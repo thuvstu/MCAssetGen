@@ -9,6 +9,7 @@ export default function McPackDialog({ base, layers, name, onNotify }: {
   const [entries, setEntries] = useState<PackEntry[]>([]);
   const [path, setPath] = useState('block/stone');
   const [ver, setVer] = useState('1.21.4');
+  const [edition, setEdition] = useState<'java' | 'bedrock'>('java');
   const [packName, setPackName] = useState(`${name || 'TexCraft'} Pack`);
   const desc = 'TexCraftで作成したリソースパックです。';
   const animated = layers.some((l) => EFFECT_MAP[l.type]?.animated?.(l.params));
@@ -36,7 +37,7 @@ export default function McPackDialog({ base, layers, name, onNotify }: {
     if (!entries.length || busy) return;
     setBusy(true);
     try {
-      await downloadPack(entries, { name: packName, description: desc, fmt: MC_VERSIONS.find((v) => v.v === ver)!.fmt });
+      await downloadPack(entries, { name: packName, description: desc, fmt: MC_VERSIONS.find((v) => v.v === ver)!.fmt, edition });
       onNotify('リソースパック (.zip) を保存しました');
     } finally { setBusy(false); }
   };
@@ -48,7 +49,8 @@ export default function McPackDialog({ base, layers, name, onNotify }: {
       </label>
       {!validPath(path) && <span style={{ color: '#e05d5d', fontSize: 12 }}>パス形式が不正です（例: block/stone）</span>}
       <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-        <label style={{ fontSize: 12 }}>バージョン <select value={ver} onChange={(e) => setVer(e.target.value)}>{MC_VERSIONS.map((v) => <option key={v.v} value={v.v}>{v.l}</option>)}</select></label>
+        <label style={{ fontSize: 12 }}>版 <select value={edition} onChange={(e) => setEdition(e.target.value as 'java' | 'bedrock')}><option value="java">Java</option><option value="bedrock">Bedrock (.mcpack)</option></select></label>
+        {edition === 'java' && <label style={{ fontSize: 12 }}>バージョン <select value={ver} onChange={(e) => setVer(e.target.value)}>{MC_VERSIONS.map((v) => <option key={v.v} value={v.v}>{v.l}</option>)}</select></label>}
         <label style={{ fontSize: 12 }}><input type="checkbox" checked={anim} onChange={(e) => setAnim(e.target.checked)} /> アニメ</label>
         {anim && <label style={{ fontSize: 12 }}>フレーム <select value={frames} onChange={(e) => setFrames(Number(e.target.value))}>{[4, 8, 12, 16, 24, 32].map((n) => <option key={n} value={n}>{n}</option>)}</select></label>}
         {anim && <label style={{ fontSize: 12 }}><input type="checkbox" checked={interp} onChange={(e) => setInterp(e.target.checked)} /> 補間</label>}

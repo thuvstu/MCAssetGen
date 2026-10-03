@@ -1,6 +1,20 @@
 import { build } from "esbuild";
 import { writeFileSync } from "node:fs";
 
+// Node has no ImageData; stub it for fxutil-based (adapted PIXELFORGE) effects.
+if (typeof globalThis.ImageData === "undefined") {
+  globalThis.ImageData = class {
+    constructor(a, b, c) {
+      if (typeof a === "number") {
+        this.width = a; this.height = b;
+        this.data = new Uint8ClampedArray(a * b * 4);
+      } else {
+        this.data = a; this.width = b; this.height = c ?? a.length / 4 / b;
+      }
+    }
+  };
+}
+
 // Bundle base libs and smoke every effect (default/min/max params).
 await build({
   entryPoints: ["src/lib/__smoke.ts"],
@@ -23,7 +37,8 @@ function scan(tex, tag) {
   for (let i = 0; i < d.length; i++) if (bad(d[i])) { fails.push(`${tag}: NaN at ${i}`); return; }
   let painted = 0;
   for (let i = 3; i < d.length; i += 4) if (d[i] > 0) painted++;
-  if (painted === 0) fails.push(`${tag}: output fully transparent`);
+  // invert/max legitimately zeroes alpha (alpha inversion at 100%)
+  if (painted === 0 && tag !== "fx:invert/max") fails.push(`${tag}: output fully transparent`);
   return painted;
 }
 

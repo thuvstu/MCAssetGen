@@ -4,6 +4,7 @@ import {
 } from './tex';
 import { EXTRA_EFFECTS } from './extraEffects';
 import { PARTS, PART_MAP, stampPart, BlendMode } from './parts';
+import { buildPfEffects } from './pfEffects';
 
 export type ParamDef =
   | { key: string; label: string; type: 'range'; min: number; max: number; step?: number; default: number }
@@ -13,7 +14,7 @@ export type ParamDef =
 
 export type Params = Record<string, number | string | boolean>;
 export interface Ctx { seed: number; t: number }
-export type CategoryId = 'color' | 'texture' | 'decor' | 'anim' | 'transform' | 'parts';
+export type CategoryId = 'color' | 'texture' | 'decor' | 'anim' | 'transform' | 'parts' | 'pixel' | 'material' | 'special';
 
 export const CATEGORIES: { id: CategoryId; name: string; icon: string }[] = [
   { id: 'color', name: '色調', icon: '🎨' },
@@ -22,6 +23,9 @@ export const CATEGORIES: { id: CategoryId; name: string; icon: string }[] = [
   { id: 'anim', name: 'アニメ', icon: '🎞️' },
   { id: 'transform', name: '変形/HD', icon: '🔧' },
   { id: 'parts', name: 'パーツ', icon: '🧩' },
+  { id: 'pixel', name: 'ドット処理', icon: '🔲' },
+  { id: 'material', name: '素材質感', icon: '🧱' },
+  { id: 'special', name: '特殊', icon: '🌟' },
 ];
 
 export interface EffectDef {
@@ -2040,6 +2044,7 @@ export const EFFECTS: EffectDef[] = [
 ];
 
 EFFECTS.push(...EXTRA_EFFECTS);
+EFFECTS.push(...buildPfEffects(new Set(EFFECTS.map((e) => e.id))));
 
 export const EFFECT_MAP: Record<string, EffectDef> = Object.fromEntries(EFFECTS.map((e) => [e.id, e]));
 

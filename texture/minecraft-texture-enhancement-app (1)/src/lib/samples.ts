@@ -245,3 +245,23 @@ export const SAMPLES: Sample[] = [
     return rgbToHex(170 + (6 - dx - dy) * 14, 215 + (6 - dx - dy) * 5, 255);
   }) },
 ];
+
+/** Procedural textures ported from PIXELFORGE (70). Generated lazily via pfSamples(). */
+import { TEXTURES, generateTexture } from './pfTextures';
+
+function imageDataToTex(img: ImageData): Tex {
+  return { w: img.width, h: img.height, d: new Uint8ClampedArray(img.data) };
+}
+
+let pfCache: Sample[] | null = null;
+export function pfSamples(): Sample[] {
+  if (!pfCache) {
+    pfCache = TEXTURES.map((t) => ({
+      id: `pf-${t.id}`,
+      name: t.name,
+      kind: 'item' as const,
+      make: () => imageDataToTex(generateTexture(t.id, 16, 7)),
+    }));
+  }
+  return pfCache;
+}
