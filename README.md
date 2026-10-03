@@ -8,8 +8,8 @@ Minecraft向けアセット生成スタジオ集。テクスチャ・3Dモデル
 | グループ | 内容 | 件数 |
 |---|---|---|
 | `3d-forge/` | 3Dボクセルモデル生成スタジオ | 8 |
-| `skyblock/` | Hypixel SkyBlockテクスチャ鍛造所 | 3 |
-| `texture/` | 汎用テクスチャ編集・強化・変換 | 4 |
+| `skyblock/` | Hypixel SkyBlockテクスチャ鍛造所 | 4 |
+| `texture/` | 汎用テクスチャ編集・強化・変換 | 5 |
 | `weapons/` | 杖・剣の特化生成 | 3 |
 | `mod/` | Fabric Modビルダー | 1 |
 
@@ -82,4 +82,13 @@ Next.js+Drizzle系(`3d-forge`の多く、`skyblock/(1)`、`mod`)はPostgresが�
 
 - 2026-10-04: 作り直し開始。旧リポジトリの破綻した統合物を白紙化し、
   素材21件のスナップショットから再出発(旧履歴は断絶)。Public化。
-- 厳密なサブセットだった2件(`hypixel-...generator2`、`enhancement-app (2)`)は削除。
+
+## 統合方針(重要)
+
+- 見た目が似ていても各フォルダは**微量に異なる別物**(アセット・調整値・辞書・
+  スクリプトが分岐)。例: `hypixel...(1)`と`...generator2`は同名65ファイルが
+  異なり、後者は`bootstrap.ts`/`masterwork-pixels.ts`/`baseline-16x.txt`/
+  独自export経路を持つ。`enhancement (1)`と`(2)`もeffects/presets/samplesの
+  中身が異なり、後者はParts/Weapon特化のUI・ロジックを持つ。
+- よって削除による統合はしない。**基盤アプリに独自要素を移植する方式**で統合し、
+  移植元は移植完了の確認が取れるまで残す。移植記録は各基盤のREADMEに残す。
