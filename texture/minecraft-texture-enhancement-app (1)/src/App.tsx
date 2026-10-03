@@ -6,6 +6,7 @@ import PixelCanvas, { Tool, ViewMode } from './components/PixelCanvas';
 import LayerPanel from './components/LayerPanel';
 import PartsPanel from './components/PartsPanel';
 import WeaponPanel from './components/WeaponPanel';
+import McPackDialog from './components/McPackDialog';
 import { Block3D, TilePreview } from './components/Previews';
 import TextureLibrary, { ImportedAsset } from './components/TextureLibrary';
 import { EffectLibrary, PresetLibrary, smartParams } from './components/EffectLibrary';
@@ -30,7 +31,7 @@ const TOOLS: { id: Tool; Icon: LucideIcon; name: string; key: string }[] = [
   { id: 'burn', Icon: Moon, name: '暗くする', key: 'U' },
   { id: 'noise', Icon: Dices, name: 'ノイズブラシ', key: 'N' },
 ];
-type ModalName = 'library' | 'effects' | 'presets' | 'new' | 'export' | 'help' | 'forge' | 'parts' | 'weapon' | null;
+type ModalName = 'library' | 'effects' | 'presets' | 'new' | 'export' | 'help' | 'forge' | 'parts' | 'weapon' | 'mcpack' | null;
 const checker = 'repeating-conic-gradient(#303632 0 25%, #252a27 0 50%) 0 0 / 16px 16px';
 
 export default function App() {
@@ -277,7 +278,7 @@ export default function App() {
 
     <header className="app-header">
       <a className="brand" href="#" onClick={(e) => { e.preventDefault(); setModal(null); setFocusMode(false); }} aria-label="TexCraft エディター"><BrandMark /><h1 className="brand-wordmark">TexCraft<span>テクスチャ工房</span></h1></a>
-      <nav className="main-nav" aria-label="メインナビゲーション"><button className={!modal || !['library', 'presets'].includes(modal) ? 'active' : ''} onClick={() => { setModal(null); setFocusMode(false); }}>エディター</button><button className={modal === 'library' ? 'active' : ''} onClick={() => setModal('library')}>テクスチャライブラリ</button><button className={modal === 'presets' ? 'active' : ''} onClick={() => setModal('presets')}>プリセット<Sparkles size={12} /></button><button className={`forge-nav ${modal === 'forge' ? 'active' : ''}`} onClick={() => setModal('forge')} disabled={processing}>進化ラボ<span className="nav-new">NEW</span></button><button className={modal === 'parts' ? 'active' : ''} onClick={() => setModal('parts')}>パーツ</button><button className={modal === 'weapon' ? 'active' : ''} onClick={() => setModal('weapon')}>武器進化</button></nav>
+      <nav className="main-nav" aria-label="メインナビゲーション"><button className={!modal || !['library', 'presets'].includes(modal) ? 'active' : ''} onClick={() => { setModal(null); setFocusMode(false); }}>エディター</button><button className={modal === 'library' ? 'active' : ''} onClick={() => setModal('library')}>テクスチャライブラリ</button><button className={modal === 'presets' ? 'active' : ''} onClick={() => setModal('presets')}>プリセット<Sparkles size={12} /></button><button className={`forge-nav ${modal === 'forge' ? 'active' : ''}`} onClick={() => setModal('forge')} disabled={processing}>進化ラボ<span className="nav-new">NEW</span></button><button className={modal === 'parts' ? 'active' : ''} onClick={() => setModal('parts')}>パーツ</button><button className={modal === 'weapon' ? 'active' : ''} onClick={() => setModal('weapon')}>武器進化</button><button className={modal === 'mcpack' ? 'active' : ''} onClick={() => setModal('mcpack')}>McPack</button></nav>
       <div className="header-actions"><span className={`save-status ${saveState === 'error' ? 'save-error' : ''}`}>{saveState === 'saving' ? <LoaderCircle size={13} className="spin" /> : saveState === 'error' ? <CircleAlert size={13} /> : <Check size={13} />}<span>{saveState === 'saving' ? '保存中...' : saveState === 'error' ? '自動保存できません' : '自動保存済み'}</span></span><button className="icon-button help-button" onClick={() => setModal('help')} aria-label="使い方とヘルプ" title="使い方とヘルプ"><CircleHelp size={18} /></button><button className="primary-button export-button" onClick={() => setModal('export')} disabled={processing}><Download size={15} /><span>エクスポート</span><ChevronDown size={13} /></button></div>
     </header>
 
@@ -328,6 +329,7 @@ export default function App() {
     {modal === 'help' && <HelpDialog onClose={() => setModal(null)} />}
     {modal === 'parts' && <Modal title="パーツスタンプ" subtitle="刃・鍔・宝石・翼などを重ねて装飾。" wide onClose={() => setModal(null)}><PartsPanel base={doc.sources[0]} onAdd={(layer, label) => { update((d) => ({ ...d, layers: [...d.layers, layer] })); setSelected(layer.id); notify(`パーツ「${label}」を追加しました`); }} /></Modal>}
     {modal === 'weapon' && <Modal title="武器進化" subtitle="段階・属性・モーションで武器を進化。" wide onClose={() => setModal(null)}><WeaponPanel base={doc.sources[0]} name={doc.name} onApply={(layers, label) => { update((d) => ({ ...d, layers })); setSelected(null); setModal(null); notify(`「${label}」を適用しました`); }} /></Modal>}
+    {modal === 'mcpack' && <Modal title="McPack出力" subtitle="Java版リソースパックとして書き出し。" onClose={() => setModal(null)}><McPackDialog base={doc.sources[0]} layers={doc.layers} name={doc.name} onNotify={notify} /></Modal>}
     {modal === 'forge' && <ForgeLab base={doc.sources[0]} processed={frames[0]} name={doc.name} fps={fps} workshop={doc.workshop} onWorkshopChange={changeWorkshop} onClose={() => setModal(null)} onNotify={notify} onOpen={(variantFrames, suffix, label) => {
       update((d) => ({ ...d, sources: variantFrames, layers: [], sampleId: null, workshop: defaultWorkshopState(), name: `${d.name.replace(/_(tier\d|break\d|awaken|dual|great|dagger|serrated|broken|shadow|spirit|crystalform|winged|twin|el_\w+|mat_\w+|overdrive|charged|berserk|guardmode|stealth|frozenmode|overheat|poisoned|blessed|slash|combo|smash|thrust|spin|throw|cast|charge|summon|guardpose|idle)$/, '')}_${suffix}`, animation: { ...d.animation, frameCount: [4, 8, 12, 16, 24, 32, 64].find((n) => n >= variantFrames.length) || 64 } }));
       setSelected(null); setFrame(0); setPlaying(true); resetView(); setModal(null);
