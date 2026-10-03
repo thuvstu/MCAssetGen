@@ -8,7 +8,7 @@
 
 | 群 | 基盤 | 移植元 | 状態 |
 |---|---|---|---|
-| texture | `texture/minecraft-texture-enhancement-app (1)` (TexCraft) | enhancement無印、(2)、editor、pixel-art | 未着手 |
+| texture | `texture/texcraft` (旧`minecraft-texture-enhancement-app (1)`) | enhancement無印、(2)、editor、pixel-art | **完了** |
 | skyblock | `skyblock/hypixel-skyblock-texture-generator (1)` (SkyForge) | generator無印、generator2、pack-generator | 未着手 |
 | weapons-staff | `weapons/minecraft-magic-staff-generator (1)` (Arcane Forge) | staff無印のみ。swordは分離維持 | 未着手 |
 | 3d-forge | `3d-forge/minecraft-3d-model-generator (2)` (VoxelForge) | 他7件 | 未着手 |
