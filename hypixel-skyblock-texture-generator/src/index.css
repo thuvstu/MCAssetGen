@@ -1,0 +1,106 @@
+@import "tailwindcss";
+
+@theme {
+  --font-pixel: "DotGothic16", "Press Start 2P", monospace;
+  --font-sans: "Zen Kaku Gothic New", "Hiragino Kaku Gothic ProN", sans-serif;
+}
+
+html, body {
+  background: #070a14;
+  color: #e8ecf8;
+  font-family: "Zen Kaku Gothic New", "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+}
+
+.font-pixel {
+  font-family: "DotGothic16", "Press Start 2P", monospace;
+}
+
+.pixelated {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+.mc-slot {
+  background: #1a1d2e;
+  box-shadow: inset 2px 2px 0 rgba(0,0,0,.6), inset -2px -2px 0 rgba(255,255,255,.08);
+  border: 2px solid #0a0c16;
+  outline: 1px solid #2e3350;
+}
+
+.mc-tooltip {
+  background: rgba(12, 8, 24, 0.96);
+  border: 2px solid #2a1650;
+  box-shadow: 0 0 0 2px #0a0a12, 0 12px 40px rgba(0,0,0,.6);
+}
+
+@keyframes glint-sweep {
+  0% { transform: translateX(-120%) rotate(18deg); }
+  100% { transform: translateX(240%) rotate(18deg); }
+}
+.enchant-glint::after {
+  content: "";
+  position: absolute;
+  inset: -20%;
+  background: linear-gradient(105deg, transparent 42%, rgba(190,140,255,.55) 48%, rgba(255,255,255,.75) 50%, rgba(140,200,255,.55) 52%, transparent 58%);
+  animation: glint-sweep 2.8s linear infinite;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+@keyframes float-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.animate-float-slow { animation: float-slow 4s ease-in-out infinite; }
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.checker {
+  background-image:
+    linear-gradient(45deg, #141829 25%, transparent 25%),
+    linear-gradient(-45deg, #141829 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #141829 75%),
+    linear-gradient(-45deg, transparent 75%, #141829 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+  background-color: #0d1120;
+}
+
+.grid-overlay {
+  background-image:
+    linear-gradient(rgba(255,255,255,.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.07) 1px, transparent 1px);
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 6px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #f5c542 var(--fill,50%), #232842 var(--fill,50%));
+  outline: none;
+}
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px; height: 16px;
+  border-radius: 4px;
+  background: #f5c542;
+  border: 2px solid #0a0c16;
+  box-shadow: 0 0 0 2px #f5c54255, 0 2px 8px rgba(0,0,0,.5);
+  cursor: pointer;
+}
+input[type="range"]::-moz-range-thumb {
+  width: 14px; height: 14px;
+  border-radius: 4px;
+  background: #f5c542;
+  border: 2px solid #0a0c16;
+  cursor: pointer;
+}
+
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: #0b0e1c; }
+::-webkit-scrollbar-thumb { background: #2b3152; border-radius: 8px; border: 2px solid #0b0e1c; }
+::-webkit-scrollbar-thumb:hover { background: #f5c542; }

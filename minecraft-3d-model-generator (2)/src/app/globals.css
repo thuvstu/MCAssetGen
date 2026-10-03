@@ -1,0 +1,15 @@
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap");
+@import "tailwindcss";
+
+/* Studio styles, split by area of the interface. */
+@import "../styles/base.css";
+@import "../styles/layout.css";
+@import "../styles/header.css";
+@import "../styles/sidebar.css";
+@import "../styles/editor.css";
+@import "../styles/viewport.css";
+@import "../styles/settings.css";
+@import "../styles/modals.css";
+@import "../styles/variants.css";
+@import "../styles/responsive.css";
+@import "../styles/workshop.css";

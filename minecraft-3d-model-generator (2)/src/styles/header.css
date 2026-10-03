@@ -1,0 +1,236 @@
+/* Top bar: brand, project switcher and export actions. */
+.app-header {
+  height: 67px;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  background: #17181f;
+  position: relative;
+  z-index: 20;
+}
+
+.brand-area {
+  width: 220px;
+  height: 100%;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  white-space: nowrap;
+}
+
+.brand > span:not(.brand-beta) {
+  font-size: 20px;
+  font-weight: 720;
+  letter-spacing: -0.85px;
+}
+
+.brand-light {
+  font-weight: 510;
+}
+
+.brand-beta {
+  font-size: 7px;
+  letter-spacing: 0.65px;
+  font-weight: 600;
+  padding: 3px 4px;
+  border: 1px solid #46404f;
+  color: #b4a0cd;
+  border-radius: 3px;
+  margin-left: -3px;
+  align-self: flex-start;
+  margin-top: 5px;
+}
+
+.mobile-menu {
+  display: none !important;
+}
+
+.header-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding-left: 25px;
+  min-width: 0;
+  color: #73737f;
+}
+
+.breadcrumb-label {
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.project-switcher {
+  position: relative;
+  min-width: 0;
+}
+
+.project-name {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: #c4c3cd;
+  font-size: 11px;
+  padding: 7px 4px;
+}
+
+.project-name > span {
+  max-width: 205px;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.project-name > svg:first-child {
+  color: #92939e;
+}
+
+.project-name > svg:last-child {
+  margin-left: 5px;
+  color: #757581;
+}
+
+.project-name:hover {
+  color: white;
+}
+
+.save-indicator {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #7b7b88;
+  font-size: 9px;
+  white-space: nowrap;
+  margin-left: 7px;
+}
+
+.save-indicator > span {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #797887;
+}
+
+.save-indicator.saved {
+  color: #83ad95;
+}
+
+.save-indicator.saved > span {
+  background: #83ad95;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 17px;
+  margin-left: auto;
+  padding: 0 21px;
+}
+
+.header-divider {
+  height: 19px;
+  width: 1px;
+  background: #34333e;
+}
+
+.export-header {
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 0 13px;
+  background: #b097e9;
+  border: 1px solid #c7aefa;
+  border-radius: 6px;
+  color: #1e172c;
+  font-size: 11px;
+  font-weight: 650;
+  box-shadow: 0 2px 5px #0002;
+}
+
+.export-header:hover {
+  background: #c6adfa;
+  box-shadow: 0 0 18px #b39aed20;
+}
+
+.export-header > svg:last-child {
+  margin-left: 4px;
+}
+
+.profile-button {
+  width: 30px;
+  height: 30px;
+  background: #b8c3b3;
+  color: #343e31;
+  border: 2px solid #dbdccb;
+  border-radius: 8px;
+  position: relative;
+  font-size: 15px;
+  font-weight: 650;
+}
+
+.profile-button > i {
+  position: absolute;
+  bottom: -3px;
+  right: -3px;
+  width: 8px;
+  height: 8px;
+  border-radius: 100%;
+  background: #91bc90;
+  border: 2px solid #17181f;
+}
+
+/* Dropdown shared by the project switcher. */
+.menu-dismiss {
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  cursor: default;
+}
+
+.dropdown-menu {
+  position: absolute;
+  z-index: 31;
+  background: #24202e;
+  border: 1px solid #4a3b59;
+  border-radius: 7px;
+  min-width: 208px;
+  padding: 5px;
+  box-shadow: 0 10px 30px #0005;
+}
+
+.project-menu {
+  top: calc(100% + 11px);
+  left: 0;
+}
+
+.dropdown-menu > button {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  width: 100%;
+  padding: 10px 9px;
+  border-radius: 4px;
+  text-align: left;
+  font-size: 10px;
+  color: #bbaac9;
+}
+
+.dropdown-menu > button:hover {
+  color: #e8d3ff;
+  background: #3b2d4b;
+}
+
+.menu-divider {
+  height: 1px;
+  background: #443250;
+  margin: 4px;
+}

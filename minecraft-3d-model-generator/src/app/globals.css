@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+@theme {
+  --color-paper: #efe9dd;
+  --color-paper2: #e4dcc9;
+  --color-ink: #15130f;
+  --color-rule: #d2c8b4;
+  --color-vermilion: #d9482b;
+  --color-indigo: #22405e;
+  --color-brass: #b8912f;
+  --color-stage: #0e0d0c;
+
+  --font-sans: "Zen Kaku Gothic New", "Hiragino Sans", "Noto Sans JP", system-ui, sans-serif;
+  --font-display: "Shippori Mincho B1", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --breakpoint-xs: 400px;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background: var(--color-stage);
+  overscroll-behavior: none;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: var(--color-vermilion);
+  color: #fff;
+}
+
+/* ---- 範囲スライダー：計器のつまみ ---- */
+.forge-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 16px;
+  background: transparent;
+  cursor: pointer;
+}
+.forge-range::-webkit-slider-runnable-track {
+  height: 3px;
+  background: #cfc4ae;
+  border-top: 1px solid rgba(21, 19, 15, 0.25);
+}
+.forge-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 11px;
+  height: 15px;
+  margin-top: -6px;
+  background: var(--color-ink);
+  border: none;
+  box-shadow: 1px 1px 0 rgba(21, 19, 15, 0.3);
+  transition: background 0.12s ease;
+}
+.forge-range:hover::-webkit-slider-thumb,
+.forge-range:focus-visible::-webkit-slider-thumb {
+  background: var(--color-vermilion);
+}
+.forge-range::-moz-range-track {
+  height: 3px;
+  background: #cfc4ae;
+}
+.forge-range::-moz-range-thumb {
+  width: 11px;
+  height: 15px;
+  border: none;
+  border-radius: 0;
+  background: var(--color-ink);
+}
+.forge-range:hover::-moz-range-thumb {
+  background: var(--color-vermilion);
+}
+.forge-range:focus-visible {
+  outline: 2px solid var(--color-vermilion);
+  outline-offset: 3px;
+}
+
+/* ---- 紙のレール用スクロールバー ---- */
+aside::-webkit-scrollbar {
+  width: 9px;
+}
+aside::-webkit-scrollbar-track {
+  background: #ded5c2;
+}
+aside::-webkit-scrollbar-thumb {
+  background: #b6aa92;
+  border: 2px solid #ded5c2;
+}
+aside::-webkit-scrollbar-thumb:hover {
+  background: var(--color-ink);
+}
+
+@keyframes clipbar {
+  from {
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+  to {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+}
+
+@keyframes fadeup {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}

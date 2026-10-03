@@ -1,0 +1,11 @@
+{
+  "checks": 1674,
+  "fails": [
+    "tex:blank@16: 出力が完全に透明",
+    "tex:blank@48: 出力が完全に透明",
+    "tex:blank@128: 出力が完全に透明",
+    "fx:invert/max@16/stone: 出力が完全に透明",
+    "fx:invert/max@64/stone: 出力が完全に透明",
+    "fx:kaleido/max@16/diamond_sword: 出力が完全に透明"
+  ]
+}

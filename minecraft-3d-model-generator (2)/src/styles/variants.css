@@ -1,0 +1,375 @@
+/* Upgrades, presets, motion timeline and the variant browser. */
+.preset-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.preset-chips > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 24px;
+  padding: 0 8px;
+  border: 1px solid #4a3a58;
+  border-radius: 12px;
+  background: #221c2c;
+  color: #bfa4dc;
+  font-size: 8px;
+}
+
+.preset-chips > button:hover {
+  background: #342845;
+  border-color: #8a6bb0;
+  color: #e3cbff;
+}
+
+.upgrade-settings {
+  margin-bottom: 15px;
+}
+
+.upgrade-content .field-group {
+  margin-bottom: 11px;
+}
+
+.tier-options,
+.tri-options,
+.duo-options,
+.action-options {
+  display: grid;
+  gap: 4px;
+}
+
+.tier-options {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+.tri-options {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.duo-options {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+.action-options {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.tier-options > button,
+.tri-options > button,
+.duo-options > button,
+.action-options > button {
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  border: 1px solid #3a3343;
+  border-radius: 4px;
+  background: #1b1924;
+  color: #8b7e9a;
+  font-size: 7.5px;
+  white-space: nowrap;
+}
+
+.tier-options > button {
+  font-size: 9px;
+  font-variant-numeric: tabular-nums;
+}
+
+.tier-options > button.selected,
+.tri-options > button.selected,
+.duo-options > button.selected,
+.action-options > button.selected {
+  border-color: #9072b5;
+  background: #332641;
+  color: #c3a0ed;
+}
+
+.tier-options > button:not(.selected):hover,
+.tri-options > button:not(.selected):hover,
+.duo-options > button:not(.selected):hover,
+.action-options > button:not(.selected):hover {
+  background: #2d2439;
+  color: #c1a3d9;
+}
+
+.limit-row > span > svg {
+  color: #d8b45e;
+}
+
+/* Badges on the 3D preview */
+.variant-badge,
+.mode-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 3px;
+  font-size: 7px;
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+}
+
+.variant-badge {
+  color: #d9c28e;
+  border: 1px solid #5a4a2d;
+  background: #2a2419;
+}
+
+.mode-badge {
+  color: #fff0c2;
+  border: 1px solid #b18a3c;
+  background: #5a4119;
+  animation: fade-in 0.2s;
+}
+
+/* Motion timeline */
+.action-player {
+  position: absolute;
+  z-index: 3;
+  left: 50%;
+  bottom: 54px;
+  transform: translateX(-50%);
+  width: min(360px, calc(100% - 140px));
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 10px 5px 5px;
+  background: #1c1e27e6;
+  border: 1px solid #3b3448;
+  border-radius: 16px;
+  backdrop-filter: blur(8px);
+}
+
+.action-play {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #b596e6;
+  color: #22172f;
+  flex-shrink: 0;
+}
+
+.action-name {
+  font-size: 9px;
+  color: #cdb6ec;
+  white-space: nowrap;
+}
+
+.action-player input[type="range"] {
+  flex: 1;
+  margin: 0;
+  min-width: 0;
+}
+
+.action-time {
+  font-size: 7px;
+  color: #8f84a3;
+  width: 30px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Variant browser */
+.variants-panel {
+  position: absolute;
+  inset: 0;
+  overflow-y: auto;
+  padding: 16px 16px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.variants-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.variant-families {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.variant-families > button {
+  height: 25px;
+  padding: 0 10px;
+  border: 1px solid #3a3343;
+  border-radius: 13px;
+  background: #1b1924;
+  color: #9384a6;
+  font-size: 8.5px;
+}
+
+.variant-families > button.selected {
+  border-color: #9072b5;
+  background: #332641;
+  color: #d2b3f5;
+}
+
+.variant-families > button:not(.selected):hover {
+  color: #cdb2e4;
+  border-color: #6b527e;
+}
+
+.variants-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.variants-export {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 27px;
+  padding: 0 11px;
+  border-radius: 5px;
+  background: #b097e9;
+  border: 1px solid #c7aefa;
+  color: #1e172c;
+  font-size: 9px;
+  font-weight: 600;
+}
+
+.variants-export:hover {
+  background: #c6adfa;
+}
+
+.variants-description,
+.variants-footnote {
+  margin: 0;
+  font-size: 8px;
+  color: #867a96;
+}
+
+.variants-footnote {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: auto;
+  padding-top: 4px;
+  color: #6f6480;
+}
+
+.variants-loading {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: #a58fc4;
+  font-size: 10px;
+}
+
+.variants-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+  gap: 9px;
+  transition: opacity 0.2s;
+}
+
+.variants-grid.is-refreshing {
+  opacity: 0.55;
+}
+
+.variant-card {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  border: 1px solid #3b3148;
+  border-radius: 7px;
+  overflow: hidden;
+  background: #1e1a27;
+  text-align: left;
+}
+
+.variant-card:hover {
+  border-color: #8a6bb0;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px #0006;
+}
+
+.variant-thumb {
+  position: relative;
+  height: 112px;
+  background: radial-gradient(ellipse at 50% 45%, #3a2c4a, #1d1926 75%);
+}
+
+.variant-svg {
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(-4px 8px 6px #0006);
+}
+
+.variant-thumb > em {
+  position: absolute;
+  top: 6px;
+  left: 6px;
+  font-style: normal;
+  font-size: 6.5px;
+  letter-spacing: 0.6px;
+  color: #b9a6d0;
+  background: #0006;
+  padding: 2px 4px;
+  border-radius: 3px;
+}
+
+.variant-label {
+  padding: 7px 9px 2px;
+  font-size: 10px;
+  color: #dcc8f0;
+  font-weight: 500;
+}
+
+.variant-meta {
+  padding: 0 9px 8px;
+  font-size: 7px;
+  color: #7f7390;
+}
+
+.export-family {
+  margin-top: 14px;
+}
+
+.export-family > span {
+  display: block;
+  color: #bda5ce;
+  font-size: 10px;
+  margin-bottom: 8px;
+}
+
+@media (max-height: 950px) and (min-width: 901px) {
+  .tier-options > button,
+  .tri-options > button,
+  .duo-options > button,
+  .action-options > button {
+    height: 24px;
+  }
+  .upgrade-content .field-group {
+    margin-bottom: 9px;
+  }
+}
+
+@media (max-width: 650px) {
+  .action-player {
+    width: calc(100% - 24px);
+    bottom: 50px;
+  }
+  .variants-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .presets-field,
+  .upgrade-settings {
+    grid-column: 1 / -1;
+  }
+  .upgrade-settings {
+    margin-bottom: 0;
+  }
+}

@@ -1,0 +1,73 @@
+/* App shell: three column workspace between header and status bar. */
+.studio-app {
+  height: 100dvh;
+  min-height: 740px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.workspace-layout {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr) 310px;
+}
+
+.app-statusbar {
+  height: 28px;
+  flex-shrink: 0;
+  background: #14131b;
+  border-top: 1px solid #2f263a;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 17px;
+  color: #7b6c89;
+  font-size: 7px;
+}
+
+.app-statusbar > div,
+.app-statusbar > div > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.app-statusbar > div {
+  gap: 12px;
+}
+
+.app-statusbar .system-status {
+  color: #8c9b92;
+}
+
+.system-status > i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #87b09a;
+}
+
+.app-statusbar .footer-separator {
+  height: 8px;
+  width: 1px;
+  background: #3c2e46;
+}
+
+.engine-label b {
+  font-weight: 400;
+  color: #a188b4;
+}
+
+.footer-version {
+  margin-left: 10px;
+  color: #6d587d;
+}
+
+.app-statusbar button {
+  color: #9f83b3;
+  height: 20px;
+  display: flex;
+  align-items: center;
+}

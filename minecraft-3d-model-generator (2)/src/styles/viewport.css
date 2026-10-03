@@ -1,0 +1,497 @@
+/* 3D preview surface, its floating toolbars and the UV editor. */
+.viewer-surface {
+  position: relative;
+  flex: 1;
+  min-height: 235px;
+  background:
+    radial-gradient(ellipse at 52% 42%, #27273580 0%, #1b1d2500 67%), #191b23;
+  isolation: isolate;
+}
+
+.model-scene {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+}
+
+.viewport-renderer {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.viewport-renderer > canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+}
+
+.viewport-renderer > canvas:active {
+  cursor: grabbing;
+}
+
+.model-fallback {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(-8px 15px 13px #0005);
+}
+
+.webgl-note {
+  position: absolute;
+  bottom: 64px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 9px;
+  color: #9991a7;
+}
+
+.view-options {
+  position: absolute;
+  top: 17px;
+  left: 17px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  z-index: 3;
+}
+
+.view-select-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #1d1f28;
+  border: 1px solid #34343f;
+  border-radius: 4px;
+  height: 26px;
+  padding: 0 8px 0 9px;
+  color: #a09eae;
+}
+
+.view-select-wrap select {
+  appearance: none;
+  border: none;
+  padding: 0 5px 0 0;
+  color: #a4a1b2;
+  font-size: 9px;
+  background: transparent;
+  cursor: pointer;
+  max-width: 124px;
+}
+
+.view-shading-label {
+  color: #666675;
+  font-size: 7px;
+  letter-spacing: 1.1px;
+}
+
+.viewport-tools {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+  position: absolute;
+  z-index: 3;
+  left: 17px;
+  top: 60px;
+  background: #1c1e27;
+  border: 1px solid #343540;
+  border-radius: 6px;
+  box-shadow: 0 3px 6px #00000010;
+}
+
+.viewport-tools button {
+  width: 29px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  color: #8b899b;
+  border-radius: 4px;
+}
+
+.viewport-tools button:hover {
+  color: #d7c7ef;
+  background: #2c2839;
+}
+
+.viewport-tools button.active {
+  color: #c2a3f5;
+  background: #393049;
+}
+
+.viewport-tools > div {
+  height: 1px;
+  width: 21px;
+  margin: 4px auto;
+  background: #34333e;
+}
+
+.axis-gizmo {
+  width: 84px;
+  height: 84px;
+  position: absolute;
+  right: 12px;
+  top: 16px;
+  z-index: 3;
+}
+
+.axis-gizmo > svg {
+  width: 84px;
+  height: 84px;
+  opacity: 0.8;
+}
+
+.axis-gizmo > button {
+  position: absolute;
+  border-radius: 50%;
+  width: 18px;
+  height: 18px;
+  font-size: 8px;
+  font-weight: 600;
+  box-shadow: 0 0 0 3px #191b23;
+}
+
+.axis-gizmo button:hover {
+  filter: brightness(1.4);
+}
+
+.axis-y {
+  left: 31px;
+  top: 5px;
+  background: #435a4d;
+  color: #adc9b5;
+}
+
+.axis-x {
+  left: 59px;
+  top: 47px;
+  background: #63424b;
+  color: #d7a2a7;
+}
+
+.axis-z {
+  left: 9px;
+  top: 50px;
+  background: #3d3b5a;
+  color: #aeacd9;
+}
+
+.scene-object-label {
+  display: flex;
+  position: absolute;
+  left: 66%;
+  top: 40%;
+  gap: 8px;
+  color: #9391a1;
+  font-size: 9px;
+  letter-spacing: 0.15px;
+  z-index: 2;
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+.object-label-line {
+  width: 29px;
+  height: 1px;
+  background: #60616f;
+  margin-top: 7px;
+  position: relative;
+}
+
+.object-label-line:before {
+  content: "";
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  left: -3px;
+  top: -1px;
+  background: #878694;
+  border-radius: 50%;
+}
+
+.scene-object-label small {
+  display: block;
+  font-size: 6px;
+  color: #656473;
+  letter-spacing: 1.3px;
+  margin-top: 6px;
+}
+
+.viewer-bottom {
+  position: absolute;
+  z-index: 3;
+  bottom: 15px;
+  left: 16px;
+  right: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.viewport-display-tools {
+  height: 28px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  background: #1c1e27cc;
+  border: 1px solid #333440;
+  border-radius: 5px;
+  backdrop-filter: blur(8px);
+}
+
+.viewport-display-tools > button {
+  width: 26px;
+  height: 24px;
+  display: grid;
+  place-items: center;
+  color: #777786;
+  border-radius: 3px;
+}
+
+.viewport-display-tools > button:hover {
+  color: #cdb2fa;
+}
+
+.viewport-display-tools > button.active {
+  color: #ada2c6;
+  background: #2f2c3e;
+}
+
+.viewport-display-tools > span {
+  height: 12px;
+  width: 1px;
+  margin: 0 3px;
+  background: #3c3947;
+}
+
+.orbit-hint {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #757383;
+  font-size: 8px;
+  white-space: nowrap;
+}
+
+.orbit-hint > i {
+  width: 2px;
+  height: 2px;
+  background: #6f6a7d;
+  border-radius: 50%;
+  margin: 0 1px;
+}
+
+.zoom-control {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  background: #1c1e27cc;
+  border: 1px solid #333440;
+  border-radius: 5px;
+  height: 28px;
+  padding: 0 3px;
+}
+
+.zoom-control button {
+  display: grid;
+  place-items: center;
+  height: 24px;
+  width: 20px;
+  color: #8d879e;
+  border-radius: 3px;
+}
+
+.zoom-control button:hover {
+  background: #393042;
+  color: #d5b9ff;
+}
+
+.zoom-control > span {
+  color: #a5a0af;
+  font-size: 9px;
+  width: 35px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.preview-expanded {
+  position: fixed;
+  inset: 20px;
+  z-index: 60;
+  box-shadow:
+    0 0 0 100vw #08080dde,
+    0 20px 100px #0009;
+}
+
+.preview-expanded .viewer-surface {
+  min-height: 0;
+}
+
+.preview-expanded .scene-object-label {
+  left: 65%;
+}
+
+.preview-expanded .orbit-hint {
+  font-size: 10px;
+}
+
+/* UV editor */
+.uv-workspace {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  height: 100%;
+  position: absolute;
+  inset: 0;
+  padding: 35px;
+  background: radial-gradient(ellipse at center, #29223055, transparent);
+}
+
+.uv-large-texture {
+  width: min(48%, 290px);
+  aspect-ratio: 1;
+  position: relative;
+  border: 1px solid #5b4a69;
+  background-color: #27202f;
+  background-image: conic-gradient(
+    #302837 25%,
+    transparent 0 50%,
+    #302837 0 75%,
+    transparent 0
+  );
+  background-size: 20px 20px;
+  box-shadow: 0 10px 30px #0004;
+}
+
+.uv-large-texture > img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  image-rendering: pixelated;
+}
+
+.uv-overlay {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.uv-info {
+  max-width: 210px;
+}
+
+.uv-info .eyebrow {
+  color: #bd99d7;
+  font-size: 8px;
+  letter-spacing: 1.5px;
+}
+
+.uv-info > h3 {
+  font-size: 12px;
+  color: #d4bfe5;
+  font-weight: 500;
+  margin: 12px 0 8px;
+  overflow-wrap: anywhere;
+}
+
+.uv-info > p {
+  font-size: 10px;
+  color: #9781a7;
+}
+
+.uv-legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 9px;
+  color: #b7a685;
+  margin-top: 20px;
+}
+
+.uv-legend > i {
+  width: 8px;
+  height: 8px;
+  border: 1px solid #f4de92;
+}
+
+.uv-info > p.uv-explanation {
+  font-size: 9px;
+  line-height: 1.9;
+  color: #8e799e;
+  margin: 13px 0 20px;
+}
+
+.uv-export {
+  display: flex;
+  margin-top: 16px;
+  font-size: 10px;
+}
+
+/* Generation overlay */
+.generation-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 9;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: #17131fd9;
+  backdrop-filter: blur(8px);
+}
+
+.generation-orbit {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  margin-bottom: 24px;
+  color: #c6a6f2;
+  background: radial-gradient(ellipse, #a575d929, transparent 72%);
+}
+
+.generation-orbit > span {
+  position: absolute;
+  inset: 0;
+  border: 1px solid #9670bf33;
+  border-top-color: #c7a2f1;
+  border-right-color: #aa80d999;
+  border-radius: 50%;
+  animation: spin 1.2s linear infinite;
+}
+
+.generation-overlay > strong {
+  color: #dbbfec;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.generation-overlay > p {
+  color: #9e81ad;
+  font-size: 10px;
+  margin: 12px 0 20px;
+}
+
+.generation-progress {
+  width: 140px;
+  height: 3px;
+  background: #3e2c4e;
+  overflow: hidden;
+  border-radius: 5px;
+}
+
+.generation-progress > span {
+  display: block;
+  height: 100%;
+  width: 40%;
+  background: #c5a3f0;
+  animation: progress 1.2s ease-in-out infinite;
+  border-radius: 5px;
+}
