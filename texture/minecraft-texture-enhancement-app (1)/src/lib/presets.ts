@@ -25,6 +25,15 @@ export const PRESETS: Preset[] = [
   { id: 'crystal', name: '結晶侵食', icon: '🔷', desc: 'アメジスト結晶', layers: [['weather', { type: 'crystal', coverage: 35, bias: 'edge' }], ['ore', { color: '#b070ff', count: 3, size: 5 }], ['sparkle', { count: 6, color: '#f0d0ff' }]] },
   { id: 'ocean', name: '深海', icon: '🐚', desc: '水中の揺らぎと泡', layers: [['tint', { color: '#1a6aa0', amount: 45 }], ['wave', { amp: 1, wavelength: 8 }], ['embers', { type: 'bubble', count: 5 }]] },
   { id: 'toon', name: 'トゥーン', icon: '🖍️', desc: 'アニメ調ポスタライズ', layers: [['adjust', { saturation: 40, contrast: 15 }], ['posterize', { levels: 4 }], ['outline', { mode: 'outer', color: '#141018' }]] },
+  { id: 'marble', name: '大理石細工', icon: '🪨', desc: '石目と金の鉱脈', layers: [['gradmap', { c1: '#384349', c2: '#b4c7c9', c3: '#f3eee3' }], ['veins', { color: '#d9b971', density: 4, amount: 65 }], ['edgewear', { color: '#ffffff', amount: 35 }]] },
+  { id: 'fabric', name: '魔法の織物', icon: '🧵', desc: '織り目と魔法の艶', layers: [['tint', { color: '#8148ad', amount: 50 }], ['weave', { size: 2, depth: 60 }], ['iridescent', { color: '#69eedb', amount: 48 }]] },
+  { id: 'ancient', name: '古代の金属', icon: '⚒️', desc: '縁の摩耗と刻印', layers: [['metal', { color: '#ad986b', amount: 50 }], ['edgewear', { color: '#fff3b0', amount: 62 }], ['runes', { style: 'carve', count: 3 }]] },
+  { id: 'opal', name: 'オパール', icon: '🔹', desc: '玉虫色の宝石', layers: [['gradmap', { c1: '#113c53', c2: '#63bdb7', c3: '#fff4ef' }], ['iridescent', { color: '#82edeb', amount: 75, animate: true }], ['sparkle', { count: 5 }]] },
+  { id: 'bloodied', name: '血塗れ', icon: '🩸', desc: '刀傷と血しぶき', layers: [['scratches', { count: 5 }], ['bloodstain', { count: 10, drip: true }], ['vignette', { strength: 35, color: '#200808' }]] },
+  { id: 'angel', name: '天使装備', icon: '😇', desc: '翼と後光', layers: [['partstamp', { part: 'wing_angel', blend: 'under' }], ['halo', { pulse: true }], ['sparkle', { count: 5, style: 'star' }]] },
+  { id: 'demon', name: '魔王装備', icon: '😈', desc: '悪魔翼と魔眼', layers: [['partstamp', { part: 'wing_demon', blend: 'under' }], ['partstamp', { part: 'eye_center' }], ['glow', { color: '#c02020', radius: 2, intensity: 50, pulse: true }]] },
+  { id: 'iaido', name: '居合', icon: '⚔️', desc: '斬撃軌跡と残像', layers: [['slash', { width: 2, intensity: 90 }], ['afterimage', { steps: 2 }], ['sparks', { count: 8 }]] },
+  { id: 'cyber', name: 'サイバー', icon: '📺', desc: 'グリッチと走査線', layers: [['adjust', { brightness: -20, saturation: 30 }], ['glitch', { amount: 40 }], ['scanline', { amount: 35 }], ['outline', { color: '#30e0ff' }]] },
 ];
 
 export const presetLayers = (p: Preset): Layer[] => p.layers.map(([t, params]) => newLayer(t, params));

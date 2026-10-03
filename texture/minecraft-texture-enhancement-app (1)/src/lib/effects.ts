@@ -3,6 +3,7 @@ import {
   hexToRgb, rgbToHsl, hslToRgb,
 } from './tex';
 import { EXTRA_EFFECTS } from './extraEffects';
+import { PARTS, PART_MAP, stampPart, BlendMode } from './parts';
 
 export type ParamDef =
   | { key: string; label: string; type: 'range'; min: number; max: number; step?: number; default: number }
@@ -12,7 +13,7 @@ export type ParamDef =
 
 export type Params = Record<string, number | string | boolean>;
 export interface Ctx { seed: number; t: number }
-export type CategoryId = 'color' | 'texture' | 'decor' | 'anim' | 'transform';
+export type CategoryId = 'color' | 'texture' | 'decor' | 'anim' | 'transform' | 'parts';
 
 export const CATEGORIES: { id: CategoryId; name: string; icon: string }[] = [
   { id: 'color', name: '色調', icon: '🎨' },
@@ -20,6 +21,7 @@ export const CATEGORIES: { id: CategoryId; name: string; icon: string }[] = [
   { id: 'decor', name: '装飾', icon: '✨' },
   { id: 'anim', name: 'アニメ', icon: '🎞️' },
   { id: 'transform', name: '変形/HD', icon: '🔧' },
+  { id: 'parts', name: 'パーツ', icon: '🧩' },
 ];
 
 export interface EffectDef {
@@ -1489,6 +1491,552 @@ export const EFFECTS: EffectDef[] = [
       return out;
     },
   },
+  {
+    id: 'edgewear', name: 'エッジ摩耗', category: 'texture', icon: '✦', desc: '輪郭や素材の境界を摩耗させ、ハイライトを入れる', isNew: true,
+    params: [
+      { key: 'color', label: '露出する色', type: 'color', default: '#d5c6a0' },
+      { key: 'amount', label: '摩耗量', type: 'range', min: 0, max: 100, default: 55 },
+      { key: 'width', label: '境界幅', type: 'range', min: 1, max: 4, default: 1 },
+      { key: 'roughness', label: 'ムラ', type: 'range', min: 0, max: 100, default: 50 },
+    ],
+    apply(src, p, ctx) {
+      const col = hexToRgb(p.color);
+      const transparent = !isOpaqueTex(src);
+      const df = transparent ? distanceField(src, (x, y) => A(src, x, y) < 128, true) : null;
+      const getLum = (x: number, y: number) => {
+        const i = IW(src, x, y);
+        return lum(src.d[i], src.d[i + 1], src.d[i + 2]);
+      };
+      return map(src, (r, g, b, _a, x, y) => {
+        const edge = transparent ? Math.max(0, 1 - ((df![y * src.w + x] - 1) / p.width)) :
+          Math.min(1, (Math.abs(getLum(x - 1, y) - getLum(x + 1, y)) + Math.abs(getLum(x, y - 1) - getLum(x, y + 1))) / 125);
+        const grain = hash2(x, y, ctx.seed);
+        const mask = grain < (1 - p.roughness / 100) + edge * p.roughness / 100 ? edge : 0;
+        const k = mask * p.amount / 100;
+        return [mix(r, col[0], k), mix(g, col[1], k), mix(b, col[2], k)];
+      });
+    },
+  },
+  {
+    id: 'weave', name: '織物・編み目', category: 'texture', icon: '▤', desc: '布、カーペット、革のような繊維と交差した陰影', isNew: true,
+    params: [
+      { key: 'size', label: '糸の太さ', type: 'range', min: 1, max: 5, default: 2 },
+      { key: 'depth', label: '凹凸', type: 'range', min: 0, max: 100, default: 38 },
+      { key: 'style', label: '織り方', type: 'select', options: [['plain', '平織り'], ['twill', '綾織り'], ['leather', '革シボ']], default: 'plain' },
+    ],
+    apply(src, p, ctx) {
+      const size = Math.max(1, Math.round(p.size * Math.max(1, src.w / 32)));
+      const depth = p.depth / 100;
+      return map(src, (r, g, b, _a, x, y) => {
+        let height: number;
+        if (p.style === 'leather') {
+          height = (hash2(Math.floor(x / size), Math.floor(y / size), ctx.seed) - 0.5) * 1.4;
+        } else {
+          const cx = Math.floor(x / size), cy = Math.floor(y / size);
+          const crossing = p.style === 'twill' ? (cx + cy * 2) % 3 === 0 : (cx + cy) % 2 === 0;
+          height = (crossing ? 0.45 : -0.45) + ((x % size === 0 || y % size === 0) ? -0.32 : 0.12);
+        }
+        const v = height * depth;
+        return v > 0 ? [lighten(r, v), lighten(g, v), lighten(b, v)] : [darken(r, -v), darken(g, -v), darken(b, -v)];
+      });
+    },
+  },
+  {
+    id: 'veins', name: '鉱脈・大理石', category: 'texture', icon: '〰', desc: '継ぎ目のない鉱脈、石目、魔力の筋を刻む', isNew: true,
+    params: [
+      { key: 'color', label: '筋の色', type: 'color', default: '#e6d2ad' },
+      { key: 'density', label: '密度', type: 'range', min: 2, max: 12, default: 5 },
+      { key: 'width', label: '幅', type: 'range', min: 1, max: 6, default: 2 },
+      { key: 'distort', label: 'うねり', type: 'range', min: 0, max: 100, default: 45 },
+      { key: 'amount', label: '濃さ', type: 'range', min: 0, max: 100, default: 70 },
+    ],
+    apply(src, p, ctx) {
+      const col = hexToRgb(p.color);
+      const noise = fbm(ctx.seed, src.w, src.h, 4, 3);
+      return map(src, (r, g, b, _a, x, y) => {
+        const u = x / src.w, v = y / src.h;
+        // Integer frequencies keep opposing tile edges continuous.
+        const field = Math.sin(Math.PI * 2 * (u * p.density + v * Math.max(1, Math.floor(p.density / 2)) +
+          (noise(x, y) - 0.5) * (p.distort / 100) * 2));
+        const band = Math.max(0, 1 - Math.abs(field) * (8 / p.width));
+        const k = band * p.amount / 100;
+        return [mix(r, col[0], k), mix(g, col[1], k), mix(b, col[2], k)];
+      });
+    },
+  },
+  {
+    id: 'iridescent', name: '玉虫色コーティング', category: 'decor', icon: '◇', desc: '光を受けた面だけ色が変わる真珠・オパール風の艶', isNew: true,
+    params: [
+      { key: 'color', label: 'ベース色', type: 'color', default: '#84e6dc' },
+      { key: 'amount', label: '強さ', type: 'range', min: 0, max: 100, default: 55 },
+      { key: 'frequency', label: '色の幅', type: 'range', min: 1, max: 5, default: 2 },
+      { key: 'animate', label: '光を動かす', type: 'bool', default: false },
+    ],
+    animated: (p) => p.animate,
+    apply(src, p, ctx) {
+      const [h] = rgbToHsl(...hexToRgb(p.color));
+      const noise = fbm(ctx.seed, src.w, src.h, 3, 2);
+      return map(src, (r, g, b, _a, x, y) => {
+        const l = lum(r, g, b) / 255;
+        const phase = ((x / src.w + y / src.h) * 0.5 + noise(x, y) * 0.45 + (p.animate ? ctx.t : 0)) * p.frequency;
+        const hue = h + Math.sin(phase * Math.PI * 2) * 90;
+        const c = hslToRgb(hue, 0.75, Math.min(0.9, 0.25 + l * 0.65));
+        const k = (p.amount / 100) * (0.25 + 0.75 * l);
+        return [mix(r, c[0], k), mix(g, c[1], k), mix(b, c[2], k)];
+      });
+    },
+  },
+
+  /* ---------------- NEW ANIMATIONS ---------------- */
+  {
+    id: 'slash', name: '斬撃軌跡', category: 'anim', icon: '⚔️', desc: '斜めに走る斬撃の残像（ヒットフレーム向き）', isNew: true,
+    params: [
+      { key: 'color', label: '色', type: 'color', default: '#ffffff' },
+      { key: 'width', label: '幅', type: 'range', min: 1, max: 6, default: 2 },
+      { key: 'intensity', label: '強さ', type: 'range', min: 0, max: 100, default: 85 },
+      { key: 'dir', label: '方向', type: 'select', options: [['tlbr', '＼'], ['trbl', '／'], ['h', '横'], ['v', '縦']], default: 'tlbr' },
+    ],
+    animated: () => true,
+    apply(src, p, ctx) {
+      const c = hexToRgb(p.color), k = p.intensity / 100;
+      const bw = p.width / 16;
+      return map(src, (r, g, b, a, x, y) => {
+        const u = x / src.w, v = y / src.h;
+        const pos = p.dir === 'h' ? u : p.dir === 'v' ? v : p.dir === 'trbl' ? (1 - u + v) / 2 : (u + v) / 2;
+        const center = -bw + ctx.t * (1 + 2 * bw);
+        const d = Math.abs(pos - center);
+        const hit = d < bw ? (1 - d / bw) * k : 0;
+        if (hit < 0.04) return;
+        const q = Math.round(hit * 5) / 5;
+        if (a < 8) return [c[0], c[1], c[2], q * 200];
+        return [mix(r, c[0], q), mix(g, c[1], q), mix(b, c[2], q)];
+      }, false);
+    },
+  },
+  {
+    id: 'shockwave', name: '衝撃波', category: 'anim', icon: '💥', desc: '中心から広がる円形の衝撃波', isNew: true,
+    params: [
+      { key: 'color', label: '色', type: 'color', default: '#ffe080' },
+      { key: 'width', label: '輪の太さ', type: 'range', min: 1, max: 6, default: 2 },
+      { key: 'intensity', label: '強さ', type: 'range', min: 0, max: 100, default: 80 },
+    ],
+    animated: () => true,
+    apply(src, p, ctx) {
+      const c = hexToRgb(p.color), k = p.intensity / 100;
+      const bw = p.width / 12;
+      const radius = ctx.t * 0.85;
+      return map(src, (r, g, b, a, x, y) => {
+        const d = Math.hypot((x + 0.5) / src.w - 0.5, (y + 0.5) / src.h - 0.5) * 1.5;
+        const ring = Math.max(0, 1 - Math.abs(d - radius) / bw);
+        if (ring < 0.05) return;
+        const q = Math.round(ring * k * 4) / 4;
+        if (a < 8) return [c[0], c[1], c[2], q * 220];
+        return [mix(r, c[0], q), mix(g, c[1], q), mix(b, c[2], q)];
+      }, false);
+    },
+  },
+  {
+    id: 'lightning', name: '雷撃', category: 'anim', icon: '⚡', desc: 'ランダムな稲妻が走る（命中演出）', isNew: true,
+    params: [
+      { key: 'color', label: '色', type: 'color', default: '#fff060' },
+      { key: 'bolts', label: '本数', type: 'range', min: 1, max: 6, default: 2 },
+      { key: 'intensity', label: '強さ', type: 'range', min: 0, max: 100, default: 90 },
+    ],
+    animated: () => true,
+    apply(src, p, ctx) {
+      const out = cloneTex(src);
+      const c = hexToRgb(p.color), k = p.intensity / 100;
+      const wrap = isOpaqueTex(src);
+      const flash = Math.sin(ctx.t * Math.PI * 8) > 0.15;
+      if (!flash) return out;
+      const R = rng((ctx.seed + Math.floor(ctx.t * 12)) | 0);
+      for (let n = 0; n < p.bolts; n++) {
+        let x = Math.floor(R() * src.w), y = 0;
+        const len = src.h + src.w;
+        for (let s = 0; s < len; s++) {
+          blendAt(out, x, y, c, k, wrap);
+          if (R() < 0.45) x += R() < 0.5 ? 1 : -1;
+          y += 1;
+          if (y >= src.h) break;
+          if (R() < 0.12) {
+            let bx = x, by = y;
+            for (let b = 0; b < 4; b++) { bx += R() < 0.5 ? 1 : -1; by += 1; blendAt(out, bx, by, c, k * 0.7, wrap); }
+          }
+        }
+      }
+      return out;
+    },
+  },
+  {
+    id: 'orbit', name: '周回オーブ', category: 'anim', icon: '🔮', desc: '周囲を回る魔力オーブ', isNew: true,
+    params: [
+      { key: 'color', label: '色', type: 'color', default: '#80e0ff' },
+      { key: 'count', label: '数', type: 'range', min: 1, max: 6, default: 3 },
+      { key: 'radius', label: '半径(%)', type: 'range', min: 20, max: 80, default: 45 },
+      { key: 'size', label: '大きさ', type: 'range', min: 1, max: 4, default: 2 },
+    ],
+    animated: () => true,
+    apply(src, p, ctx) {
+      const out = cloneTex(src);
+      const c = hexToRgb(p.color);
+      const wrap = isOpaqueTex(src);
+      const rad = (p.radius / 100) * Math.min(src.w, src.h) * 0.5;
+      const cx = src.w / 2, cy = src.h / 2;
+      for (let n = 0; n < p.count; n++) {
+        const ang = (ctx.t + n / p.count) * Math.PI * 2;
+        const px = Math.round(cx + Math.cos(ang) * rad);
+        const py = Math.round(cy + Math.sin(ang) * rad);
+        const s = p.size;
+        for (let yy = -s; yy <= s; yy++) for (let xx = -s; xx <= s; xx++) {
+          if (xx * xx + yy * yy > s * s) continue;
+          const a = 1 - Math.hypot(xx, yy) / (s + 0.5);
+          blendAt(out, px + xx, py + yy, c, a, wrap);
+        }
+      }
+      return out;
+    },
+  },
+  {
+    id: 'ripple', name: '魔法陣リップル', category: 'anim', icon: '🌀', desc: '同心円が広がる詠唱エフェクト', isNew: true,
+    params: [
+      { key: 'color', label: '色', type: 'color', default: '#c080ff' },
+      { key: 'rings', label: '輪の数', type: 'range', min: 1, max: 4, default: 2 },
+      { key: 'intensity', label: '強さ', type: 'range', min: 0, max: 100, default: 70 },
+    ],
+    animated: () => true,
+    apply(src, p, ctx) {
+      const c = hexToRgb(p.color), k = p.intensity / 100;
+      return map(src, (r, g, b, a, x, y) => {
+        const d = Math.hypot((x + 0.5) / src.w - 0.5, (y + 0.5) / src.h - 0.5) * 2;
+        let hit = 0;
+        for (let n = 0; n < p.rings; n++) {
+          const phase = fract(d * 2 - ctx.t + n / p.rings);
+          hit = Math.max(hit, Math.max(0, 1 - Math.abs(phase - 0.5) * 10));
+        }
+        if (hit < 0.08) return;
+        const q = hit * k;
+        if (a < 8) return [c[0], c[1], c[2], q * 180];
+        return [mix(r, c[0], q), mix(g, c[1], q), mix(b, c[2], q)];
+      }, false);
+    },
+  },
+  {
+    id: 'afterimage', name: '残像', category: 'anim', icon: '👻', desc: '半透明の残像が斜めに残る（高速移動）', isNew: true,
+    params: [
+      { key: 'dir', label: '方向', type: 'select', options: [['nw', '左上'], ['ne', '右上'], ['sw', '左下'], ['se', '右下']], default: 'nw' },
+      { key: 'steps', label: '残像数', type: 'range', min: 1, max: 4, default: 2 },
+      { key: 'amount', label: '濃さ', type: 'range', min: 0, max: 100, default: 45 },
+    ],
+    animated: () => true,
+    apply(src, p, ctx) {
+      const out = cloneTex(src);
+      const dirs: Record<string, [number, number]> = { nw: [-1, -1], ne: [1, -1], sw: [-1, 1], se: [1, 1] };
+      const [dx, dy] = dirs[p.dir];
+      const sc = Math.max(1, Math.round(src.w / 16));
+      const shift = Math.round((0.3 + 0.7 * Math.sin(ctx.t * Math.PI * 2)) * sc);
+      for (let s = p.steps; s >= 1; s--) {
+        const ox = dx * shift * s, oy = dy * shift * s, a = (p.amount / 100) * (1 - (s - 1) / p.steps) * 0.55;
+        for (let y = 0; y < src.h; y++) for (let x = 0; x < src.w; x++) {
+          const sx = x - ox, sy = y - oy;
+          if (sx < 0 || sy < 0 || sx >= src.w || sy >= src.h) continue;
+          const si = I(src, sx, sy);
+          if (src.d[si + 3] < 128) continue;
+          const oi = I(out, x, y);
+          if (out.d[oi + 3] >= 128) continue;
+          out.d[oi] = src.d[si]; out.d[oi + 1] = src.d[si + 1]; out.d[oi + 2] = src.d[si + 2];
+          out.d[oi + 3] = a * 255;
+        }
+      }
+      return out;
+    },
+  },
+  {
+    id: 'scanline', name: '走査線', category: 'anim', icon: '📺', desc: 'レトロなCRT走査線が流れる', isNew: true,
+    params: [
+      { key: 'color', label: '色', type: 'color', default: '#40ff80' },
+      { key: 'gap', label: '間隔', type: 'range', min: 2, max: 8, default: 3 },
+      { key: 'amount', label: '強さ', type: 'range', min: 0, max: 100, default: 40 },
+      { key: 'animate', label: 'スクロール', type: 'bool', default: true },
+    ],
+    animated: (p) => p.animate,
+    apply(src, p, ctx) {
+      const c = hexToRgb(p.color), k = p.amount / 100;
+      const off = p.animate ? Math.floor(ctx.t * src.h) : 0;
+      return map(src, (r, g, b, _a, _x, y) => {
+        if ((y + off) % p.gap !== 0) return;
+        return [mix(r, c[0], k), mix(g, c[1], k), mix(b, c[2], k)];
+      });
+    },
+  },
+  {
+    id: 'glitch', name: 'グリッチ', category: 'anim', icon: '📺', desc: 'RGBずらしとスライスずれ（サイバー）', isNew: true,
+    params: [
+      { key: 'amount', label: '強さ', type: 'range', min: 0, max: 100, default: 50 },
+      { key: 'slices', label: 'スライス数', type: 'range', min: 2, max: 10, default: 4 },
+    ],
+    animated: () => true,
+    apply(src, p, ctx) {
+      const out = createTex(src.w, src.h);
+      const amp = Math.round((p.amount / 100) * src.w * 0.15);
+      const R = rng(ctx.seed + Math.floor(ctx.t * 8));
+      const sliceH = Math.max(1, Math.floor(src.h / p.slices));
+      for (let y = 0; y < src.h; y++) {
+        const slice = Math.floor(y / sliceH);
+        const ox = Math.round((hash2(slice, Math.floor(ctx.t * 8), ctx.seed) - 0.5) * 2 * amp);
+        const ch = R() < 0.3 ? 1 : 0;
+        for (let x = 0; x < src.w; x++) {
+          const s = IW(src, x - ox, y), o = I(out, x, y);
+          out.d[o] = src.d[s]; out.d[o + 1] = src.d[s + 1]; out.d[o + 2] = src.d[s + 2]; out.d[o + 3] = src.d[s + 3];
+          if (ch && src.d[s + 3]) {
+            out.d[o] = clamp(src.d[s] * 1.4);
+            out.d[o + 2] = clamp(src.d[s + 2] * 0.6);
+          }
+        }
+      }
+      return out;
+    },
+  },
+  {
+    id: 'breathe', name: '呼吸スケール', category: 'anim', icon: '😮‍💨', desc: '輪郭がわずかに伸縮する生命感', isNew: true,
+    params: [
+      { key: 'amount', label: '振幅', type: 'range', min: 1, max: 4, default: 1 },
+    ],
+    animated: () => true,
+    apply(src, p, ctx) {
+      const out = createTex(src.w, src.h);
+      const s = 1 + Math.sin(ctx.t * Math.PI * 2) * (p.amount * 0.03);
+      const cx = src.w / 2, cy = src.h / 2;
+      for (let y = 0; y < src.h; y++) for (let x = 0; x < src.w; x++) {
+        const sx = Math.round(cx + (x - cx) / s);
+        const sy = Math.round(cy + (y - cy) / s);
+        if (sx < 0 || sy < 0 || sx >= src.w || sy >= src.h) continue;
+        const si = I(src, sx, sy), o = I(out, x, y);
+        out.d[o] = src.d[si]; out.d[o + 1] = src.d[si + 1]; out.d[o + 2] = src.d[si + 2]; out.d[o + 3] = src.d[si + 3];
+      }
+      return out;
+    },
+  },
+  {
+    id: 'sparks', name: '衝突スパーク', category: 'anim', icon: '✨', desc: 'ヒット時に飛び散る火花', isNew: true,
+    params: [
+      { key: 'color', label: '色', type: 'color', default: '#ffe060' },
+      { key: 'count', label: '数', type: 'range', min: 4, max: 20, default: 10 },
+    ],
+    animated: () => true,
+    apply(src, p, ctx) {
+      const out = cloneTex(src);
+      const c = hexToRgb(p.color);
+      const wrap = isOpaqueTex(src);
+      const R = rng(ctx.seed);
+      const burst = Math.max(0, Math.sin(ctx.t * Math.PI * 2));
+      for (let n = 0; n < p.count; n++) {
+        const ang = R() * Math.PI * 2;
+        const dist = burst * (0.3 + R() * 0.7) * Math.min(src.w, src.h) * 0.5;
+        const px = Math.round(src.w / 2 + Math.cos(ang) * dist);
+        const py = Math.round(src.h / 2 + Math.sin(ang) * dist);
+        blendAt(out, px, py, c, burst, wrap);
+        if (burst > 0.5) blendAt(out, px + Math.round(Math.cos(ang)), py + Math.round(Math.sin(ang)), c, burst * 0.6, wrap);
+      }
+      return out;
+    },
+  },
+
+  /* ---------------- NEW DECOR / TEXTURE ---------------- */
+  {
+    id: 'bloodstain', name: '血しぶき', category: 'decor', icon: '🩸', desc: '刃や表面に血の飛沫を付ける', isNew: true,
+    params: [
+      { key: 'color', label: '色', type: 'color', default: '#7a1018' },
+      { key: 'count', label: '飛沫の数', type: 'range', min: 2, max: 20, default: 8 },
+      { key: 'drip', label: '垂れ', type: 'bool', default: true },
+    ],
+    apply(src, p, ctx) {
+      const out = cloneTex(src);
+      const c = hexToRgb(p.color);
+      const wrap = isOpaqueTex(src);
+      const R = rng(ctx.seed);
+      for (let n = 0; n < p.count; n++) {
+        let x = Math.floor(R() * src.w), y = Math.floor(R() * src.h);
+        if (!A(src, x, y) && !wrap) continue;
+        blendAt(out, x, y, c, 0.9, wrap);
+        if (R() < 0.6) blendAt(out, x + 1, y, c, 0.6, wrap);
+        if (p.drip) {
+          const len = 1 + Math.floor(R() * 4);
+          for (let d = 1; d <= len; d++) blendAt(out, x, y + d, c, 0.8 - d * 0.15, wrap);
+        }
+      }
+      return out;
+    },
+  },
+  {
+    id: 'scratches', name: '刀傷', category: 'texture', icon: '⚔️', desc: '細い斜めの傷を刻む', isNew: true,
+    params: [
+      { key: 'count', label: '本数', type: 'range', min: 1, max: 12, default: 4 },
+      { key: 'color', label: '色', type: 'color', default: '#d8d0c0' },
+      { key: 'depth', label: '濃さ', type: 'range', min: 0, max: 100, default: 55 },
+    ],
+    apply(src, p, ctx) {
+      const out = cloneTex(src);
+      const c = hexToRgb(p.color), k = p.depth / 100;
+      const wrap = isOpaqueTex(src);
+      const R = rng(ctx.seed);
+      for (let n = 0; n < p.count; n++) {
+        let x = Math.floor(R() * src.w), y = Math.floor(R() * src.h);
+        const dx = R() < 0.5 ? 1 : -1, dy = 1;
+        const len = 3 + Math.floor(R() * Math.min(src.w, src.h) * 0.5);
+        for (let s = 0; s < len; s++) {
+          if (A(src, wrap ? mod(x, src.w) : x, wrap ? mod(y, src.h) : y)) blendAt(out, x, y, c, k, wrap);
+          x += dx; y += dy;
+        }
+      }
+      return out;
+    },
+  },
+  {
+    id: 'chainmail', name: '鎖帷子', category: 'texture', icon: '⛓️', desc: '鎖の編み目を重ねる', isNew: true,
+    params: [
+      { key: 'color', label: '色', type: 'color', default: '#8a9098' },
+      { key: 'size', label: '輪の大きさ', type: 'range', min: 2, max: 6, default: 3 },
+      { key: 'amount', label: '濃さ', type: 'range', min: 0, max: 100, default: 55 },
+    ],
+    apply(src, p) {
+      const c = hexToRgb(p.color), k = p.amount / 100, s = p.size;
+      return map(src, (r, g, b, _a, x, y) => {
+        const ox = (Math.floor(y / s) % 2) * Math.floor(s / 2);
+        const cx = mod(x - ox, s * 2) - s, cy = mod(y, s) - s / 2;
+        const d = Math.abs(Math.hypot(cx, cy) - s * 0.55);
+        if (d > 0.7) return;
+        const shade = d < 0.35 ? 1.15 : 0.75;
+        return [mix(r, c[0] * shade, k), mix(g, c[1] * shade, k), mix(b, c[2] * shade, k)];
+      });
+    },
+  },
+  {
+    id: 'leather', name: '革巻き', category: 'texture', icon: '👜', desc: '柄や表面を革のシワで覆う', isNew: true,
+    params: [
+      { key: 'color', label: '色', type: 'color', default: '#6b4226' },
+      { key: 'amount', label: '強さ', type: 'range', min: 0, max: 100, default: 70 },
+      { key: 'wrinkles', label: 'シワ', type: 'range', min: 1, max: 8, default: 3 },
+    ],
+    apply(src, p, ctx) {
+      const c = hexToRgb(p.color), k = p.amount / 100;
+      const n = fbm(ctx.seed, src.w, src.h, p.wrinkles, 3);
+      return map(src, (r, g, b, _a, x, y) => {
+        const v = n(x, y);
+        const shade = 0.7 + 0.5 * v;
+        const o = c.map((cv) => cv * shade);
+        return [mix(r, o[0], k), mix(g, o[1], k), mix(b, o[2], k)];
+      });
+    },
+  },
+  {
+    id: 'geminset', name: '宝石象嵌', category: 'decor', icon: '💠', desc: '中央や四隅にカット宝石を埋め込む', isNew: true,
+    params: [
+      { key: 'color', label: '宝石色', type: 'color', default: '#d02040' },
+      { key: 'pos', label: '位置', type: 'select', options: [['c', '中央'], ['tl', '左上'], ['tr', '右上'], ['bl', '左下'], ['br', '右下']], default: 'c' },
+      { key: 'size', label: '大きさ', type: 'range', min: 2, max: 8, default: 3 },
+    ],
+    apply(src, p) {
+      const out = cloneTex(src);
+      const c = hexToRgb(p.color);
+      const light = c.map((v) => lighten(v, 0.5)) as [number, number, number];
+      const dark = c.map((v) => darken(v, 0.4)) as [number, number, number];
+      const s = p.size;
+      let cx = Math.floor(src.w / 2), cy = Math.floor(src.h / 2);
+      if (p.pos.includes('l')) cx = s + 1; if (p.pos.includes('r')) cx = src.w - s - 2;
+      if (p.pos.includes('t')) cy = s + 1; if (p.pos.includes('b')) cy = src.h - s - 2;
+      for (let y = -s; y <= s; y++) for (let x = -s; x <= s; x++) {
+        const md = Math.abs(x) + Math.abs(y);
+        if (md > s) continue;
+        const col = (x + y < 0) ? light : (x + y > 1) ? dark : c;
+        const px = cx + x, py = cy + y;
+        if (px < 0 || py < 0 || px >= src.w || py >= src.h) continue;
+        const i = I(out, px, py);
+        out.d[i] = col[0]; out.d[i + 1] = col[1]; out.d[i + 2] = col[2]; out.d[i + 3] = 255;
+      }
+      return out;
+    },
+  },
+  {
+    id: 'ribbon', name: 'リボン/飾り紐', category: 'decor', icon: '🎀', desc: '柄から垂れる飾り紐', isNew: true,
+    params: [
+      { key: 'color', label: '色', type: 'color', default: '#c02040' },
+      { key: 'side', label: '位置', type: 'select', options: [['l', '左'], ['r', '右'], ['both', '両側']], default: 'l' },
+    ],
+    apply(src, p) {
+      const out = cloneTex(src);
+      const c = hexToRgb(p.color);
+      const dark = c.map((v) => darken(v, 0.35)) as [number, number, number];
+      const sc = Math.max(1, Math.round(src.w / 16));
+      const draw = (x0: number, dir: number) => {
+        let x = x0, y = Math.floor(src.h * 0.55);
+        for (let s = 0; s < src.h * 0.4; s++) {
+          blendAt(out, x, y, s % 3 === 0 ? dark : c, 0.95);
+          for (let w = 1; w < sc; w++) blendAt(out, x + w * dir, y, c, 0.85);
+          y += 1;
+          if (s % 3 === 2) x += dir;
+        }
+      };
+      if (p.side !== 'r') draw(Math.floor(src.w * 0.25), -1);
+      if (p.side !== 'l') draw(Math.floor(src.w * 0.7), 1);
+      return out;
+    },
+  },
+  {
+    id: 'halo', name: '後光', category: 'decor', icon: '😇', desc: '背後に聖なる光輪', isNew: true,
+    params: [
+      { key: 'color', label: '色', type: 'color', default: '#ffe080' },
+      { key: 'radius', label: '半径', type: 'range', min: 2, max: 10, default: 5 },
+      { key: 'pulse', label: '脈動', type: 'bool', default: true },
+    ],
+    animated: (p) => p.pulse,
+    apply(src, p, ctx) {
+      const out = cloneTex(src);
+      const c = hexToRgb(p.color);
+      const k = p.pulse ? 0.55 + 0.45 * Math.sin(ctx.t * Math.PI * 2) : 1;
+      const cx = src.w / 2, cy = src.h * 0.35;
+      const R = p.radius * Math.max(1, src.w / 16);
+      for (let y = 0; y < src.h; y++) for (let x = 0; x < src.w; x++) {
+        const d = Math.hypot(x - cx, y - cy);
+        const ring = Math.max(0, 1 - Math.abs(d - R) / 1.4);
+        if (ring < 0.1) continue;
+        const i = I(out, x, y);
+        if (src.d[i + 3] >= 128) continue;
+        out.d[i] = c[0]; out.d[i + 1] = c[1]; out.d[i + 2] = c[2];
+        out.d[i + 3] = ring * k * 200;
+      }
+      return out;
+    },
+  },
+
+  /* ---------------- PARTS STAMP ---------------- */
+  {
+    id: 'partstamp', name: 'パーツ重ね', category: 'parts', icon: '🧩', desc: '刃・鍔・宝石・翼・オーラ等のドットパーツを重ねる', isNew: true,
+    params: [
+      { key: 'part', label: 'パーツ', type: 'select', options: PARTS.map((pt) => [pt.id, `${pt.icon} ${pt.name}`] as [string, string]), default: PARTS[0].id },
+      { key: 'blend', label: '合成', type: 'select', options: [['over', '上に'], ['under', '下に'], ['add', '加算'], ['multiply', '乗算'], ['screen', 'スクリーン']], default: 'over' },
+      { key: 'amount', label: '不透明度', type: 'range', min: 0, max: 100, default: 100 },
+      { key: 'recolor', label: '再着色', type: 'color', default: '#ffffff' },
+      { key: 'useRecolor', label: '再着色する', type: 'bool', default: false },
+      { key: 'animate', label: 'オーラ/炎を動かす', type: 'bool', default: false },
+    ],
+    animated: (p) => p.animate,
+    apply(src, p, ctx) {
+      const def = PART_MAP[p.part];
+      if (!def) return src;
+      const rec = p.useRecolor ? p.recolor : undefined;
+      let t = stampPart(src, def, p.blend as BlendMode, p.amount, rec);
+      if (p.animate && (def.category === 'aura' || def.category === 'flame' || def.category === 'eye')) {
+        // pulse overlay
+        t = map(t, (r, g, b, a, x, y) => {
+          if (a < 8) return;
+          const n = hash2(x, y, ctx.seed);
+          const pulse = 0.75 + 0.25 * Math.sin((ctx.t + n) * Math.PI * 2);
+          return [r * pulse, g * pulse, b * pulse];
+        });
+      }
+      return t;
+    },
+  },
 ];
 
 EFFECTS.push(...EXTRA_EFFECTS);
@@ -1581,8 +2129,9 @@ export function randomLayers(): Layer[] {
   else if (colorFx === 'adjust') out.push(newLayer('adjust', { hue: Math.round(R() * 360 - 180), saturation: 20, contrast: 15 }));
   else if (colorFx === 'palette') out.push(newLayer('palette', { palette: pick(Object.keys(PALETTES)) }));
   else out.push(newLayer('metal', { color: hue() }));
-  const tex = pick(['weather', 'cracks', 'noise', 'autoshade', 'pattern', 'ore', 'frost']);
+  const tex = pick(['weather', 'cracks', 'noise', 'autoshade', 'pattern', 'ore', 'frost', 'edgewear', 'weave', 'veins']);
   out.push(newLayer(tex, tex === 'weather' ? { type: pick(['moss', 'rust', 'snow', 'crystal', 'blood', 'sand']) } : tex === 'ore' ? { color: hue() } : {}));
+  if (R() < 0.4) out.push(newLayer('partstamp', { part: pick(PARTS.map((pt) => pt.id)) }));
   const deco = pick(['sparkle', 'glow', 'frame', 'emblem', 'runes', 'outline', 'bevel']);
   out.push(newLayer(deco, deco === 'glow' || deco === 'outline' ? { color: hue() } : deco === 'emblem' ? { shape: pick(Object.keys(GLYPHS)), color: hue() } : {}));
   if (R() < 0.6) out.push(newLayer(pick(['enchant', 'shimmer', 'pulse', 'embers', 'huecycle']), {}));

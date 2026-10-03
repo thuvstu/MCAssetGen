@@ -173,6 +173,14 @@ const leaves = () => make(16, 16, (x, y) => {
   return shade(['#294b28', '#396734', '#4c823b', '#649549', '#76a657'], hash2(x, y, 39));
 });
 
+// Ported palettes from enhancement-app (2): distinct mineral tunings + glass.
+const glass = () => make(16, 16, (x, y) => {
+  if (x === 0 || y === 0) return '#e5faff';
+  if (x === 15 || y === 15) return '#6395a8';
+  if ((x === 3 && y >= 2 && y < 8) || (x === 5 && y >= 2 && y < 5) || (y === 12 && x > 10)) return '#b8e9f4';
+  return null;
+});
+
 const potion = () => fromMap([
   '................', '......oooo......', '......ohho......', '......oggo......', '.....ogwwgo.....',
   '....ogw..wgo....', '...ogw....wgo...', '...ogwpppppgo...', '...ogppppppgo...', '...ogppllppgo...',
@@ -218,6 +226,11 @@ export const SAMPLES: Sample[] = [
   byId('planks'), { id: 'oak_log', name: 'オークの原木', kind: 'block', make: logTexture, top: logTop }, byId('bricks'),
   { id: 'obsidian', name: '黒曜石', kind: 'block', make: () => mineral(['#171522', '#231e31', '#342c44', '#463e55', '#605269'], 54) },
   { id: 'amethyst', name: 'アメジスト', kind: 'block', make: () => mineral(['#4e3b6e', '#745496', '#9471ba', '#b298d2', '#d2baf0'], 15) },
+  { id: 'endstone', name: 'エンドストーン', kind: 'block', make: () => mineral(['#a6aa79', '#b8bb88', '#c9cc9c', '#d7d9ae', '#e5e6ba'], 64) },
+  { id: 'netherrack', name: 'ネザーラック', kind: 'block', make: () => mineral(['#35111a', '#4e1923', '#68212b', '#792c33', '#8b353b'], 81) },
+  { id: 'deepslate', name: '深層岩', kind: 'block', make: () => mineral(['#282d2f', '#343a3d', '#41484a', '#51575a', '#5e6565'], 90) },
+  { id: 'wool', name: '羊毛', kind: 'block', make: () => mineral(['#bab1a6', '#d2c9be', '#e5dcd2', '#f1e9df', '#ffffff'], 102) },
+  { id: 'glass', name: 'ガラス', kind: 'block', make: glass },
   byId('sand'), byId('lava'),
   { id: 'water', name: '水', kind: 'block', make: () => mineral(['#173b80', '#1e509b', '#2564b1', '#397ac4', '#609dd7'], 42) },
   { id: 'leaves', name: 'オークの葉', kind: 'block', make: leaves },
