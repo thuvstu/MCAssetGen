@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MCAssetGen — Minecraft Asset Generators</title>
+<style>
+:root{color-scheme:dark;--bg:#0b0e11;--panel:#141922;--line:#262d3a;--text:#e8eaf2;--muted:#9aa0b5;--accent:#7dd87d}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:'Hiragino Kaku Gothic ProN','Noto Sans JP',system-ui,sans-serif}
+.page{max-width:1100px;margin:0 auto;padding:32px 20px 64px}
+h1{margin:0;font-size:26px}h1 span{color:var(--accent)}
+.sub{color:var(--muted);margin:6px 0 20px}
+h2{font-size:18px;margin:28px 0 4px}.count{font-size:12px;color:var(--muted);border:1px solid var(--line);border-radius:12px;padding:1px 8px;margin-left:8px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px;margin-top:12px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+.card h3{margin:0 0 6px;font-size:15px}.card h3 .base{color:var(--accent);font-size:11px;border:1px solid var(--accent);border-radius:10px;padding:1px 8px;margin-left:8px;white-space:nowrap}
+.card p{margin:0 0 8px;font-size:13px;line-height:1.7}
+.meta{font-size:11px;color:var(--muted)}.meta code{font-size:11px}
+.howto{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:10px 14px;font-size:13px;overflow-x:auto;margin-top:20px}
+</style>
+</head>
+<body>
+<div class="page">
+<h1><span>■</span> MCAssetGen</h1>
+<p class="sub">Minecraft向けアセット生成スタジオ集 — 19スタジオ / 5グループ。ローカルで各フォルダを開いて `npm install` → `npm run dev`。</p>
+
+<h2>3d-forge <span class="count">8</span></h2>
+<div class="grid">
+<div class="card"><h3>minecraft-3d-model-generator (2)<span class="base">統合基盤</span></h3><p>VFX・武器24刀種・強化派生・発光・UV・Blockbench/RP出力。テスト付き最大実装。</p><div class="meta"><code>3d-forge/minecraft-3d-model-generator (2)</code> · Next.js+three</div></div>
+<div class="card"><h3>minecraft-3d-asset-studio</h3><p>フル編集室。fabricMod/Bedrock/Java/OBJ出力を持つ輸出核。</p><div class="meta"><code>3d-forge/minecraft-3d-asset-studio</code> · Next.js+three</div></div>
+<div class="card"><h3>advanced-minecraft-model-generator</h3><p>武器/防具/機械/遺物の進化生成。bbmodel/mc/rpの3種出力。</p><div class="meta"><code>3d-forge/advanced-minecraft-model-generator</code> · Next.js+three</div></div>
+<div class="card"><h3>minecraft-3d-model-generator</h3><p>和紙調UI。R3F+Drei+postprocessingの高品質レンダリング。</p><div class="meta"><code>3d-forge/minecraft-3d-model-generator</code> · Next.js+R3F</div></div>
+<div class="card"><h3>generate-json-3d-models</h3><p>プロンプトからJSONモデル生成。互換性検証・品質ゲート付き。</p><div class="meta"><code>3d-forge/generate-json-3d-models</code> · Next.js+three</div></div>
+<div class="card"><h3>minecraft-3d-model-generator (3)</h3><p>staff寄りVoxel forge。staffRig/浮遊/発光エフェクト。</p><div class="meta"><code>3d-forge/minecraft-3d-model-generator (3)</code> · Next.js+three</div></div>
+<div class="card"><h3>minecraft-3d-model-generator (1)</h3><p>スペック駆動の軽量生成器。魔法演出辞書付き。</p><div class="meta"><code>3d-forge/minecraft-3d-model-generator (1)</code> · Next.js+three</div></div>
+<div class="card"><h3>generate-3d-minecraft-models</h3><p>画像→ボクセル変換の最小構成。Bedrock/Java両pack出力。</p><div class="meta"><code>3d-forge/generate-3d-minecraft-models</code> · Vite</div></div>
+</div>
+
+<h2>skyblock <span class="count">3</span></h2>
+<div class="grid">
+<div class="card"><h3>hypixel-skyblock-texture-generator (1)<span class="base">統合基盤</span></h3><p>SkyForge本家。ギャラリー/DB保存/72点Masterwork一括ZIP。</p><div class="meta"><code>skyblock/hypixel-skyblock-texture-generator (1)</code> · Next.js+jimp</div></div>
+<div class="card"><h3>skyblock-texture-pack-generator</h3><p>SKYBLOCK TEXTURE FORGE。鍛造テーマ+検証ツール群。</p><div class="meta"><code>skyblock/skyblock-texture-pack-generator</code> · Vite</div></div>
+<div class="card"><h3>hypixel-skyblock-texture-generator</h3><p>64px武器ピクセル鍛造所。DBなし軽量Vite版。</p><div class="meta"><code>skyblock/hypixel-skyblock-texture-generator</code> · Vite</div></div>
+</div>
+
+<h2>texture <span class="count">4</span></h2>
+<div class="grid">
+<div class="card"><h3>minecraft-texture-enhancement-app (1)<span class="base">統合基盤</span></h3><p>TexCraft。レイヤ/ForgeLab/武器工房/保存まで最多機能。</p><div class="meta"><code>texture/minecraft-texture-enhancement-app (1)</code> · Vite</div></div>
+<div class="card"><h3>minecraft-texture-enhancement-app</h3><p>PIXELFORGE。効果スタック+3Dプレビュー+McPack出力。</p><div class="meta"><code>texture/minecraft-texture-enhancement-app</code> · Vite+three</div></div>
+<div class="card"><h3>pixel-art-conversion-apps</h3><p>画像→ドット絵→MCテクスチャ変換。k-means減色/タイリング。</p><div class="meta"><code>texture/pixel-art-conversion-apps</code> · Vite+three</div></div>
+<div class="card"><h3>minecraft-texture-editor-app</h3><p>PIXELBLOOM最小エディタ。学習用サンプル。</p><div class="meta"><code>texture/minecraft-texture-editor-app</code> · Vite</div></div>
+</div>
+
+<h2>weapons <span class="count">3</span></h2>
+<div class="grid">
+<div class="card"><h3>minecraft-magic-staff-generator (1)<span class="base">杖の基盤</span></h3><p>Arcane Forge。要素/器種/レアリティの総合作成所。</p><div class="meta"><code>weapons/minecraft-magic-staff-generator (1)</code> · Vite</div></div>
+<div class="card"><h3>minecraft-magic-staff-generator</h3><p>Spellforge Atelier。4段階進化+Life Pack研究の配布pack設計。</p><div class="meta"><code>weapons/minecraft-magic-staff-generator</code> · Vite</div></div>
+<div class="card"><h3>minecraft-sword-texture-maker<span class="base">剣の基盤</span></h3><p>AegisBlade Studio。42輪郭×部位ロック+ARCHITECTURE.md。</p><div class="meta"><code>weapons/minecraft-sword-texture-maker</code> · Vite</div></div>
+</div>
+
+<h2>mod <span class="count">1</span></h2>
+<div class="grid">
+<div class="card"><h3>web-based-fabric-mod-builder<span class="base">出力口</span></h3><p>MythicCraft Studio。Fabric/Kotlin GradleをZIP出力。全グループの最終出力口候補。</p><div class="meta"><code>mod/web-based-fabric-mod-builder</code> · Next.js</div></div>
+</div>
+
+<pre class="howto">cd &lt;group&gt;/&lt;project&gt; && npm install && npm run dev   # Next.js+Drizzle系は .env に DATABASE_URL が必要</pre>
+</div>
+</body>
+</html>
