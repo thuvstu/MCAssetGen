@@ -46,6 +46,41 @@ export function slugFor(cfg: StaffConfig) {
   return safeId(`${cfg.itemType}_${cfg.element}_${cfg.rarity ?? 'arcane'}_${cfg.seed}`);
 }
 
+/** Validate a server collection: duplicate texture/cmd detection with Japanese messages. */
+export function validateServerPack(entries: ServerPackEntry[]): string[] {
+  const errors: string[] = [];
+  const textureIds = new Set<string>();
+  const commands = new Set<string>();
+  entries.forEach((entry, index) => {
+    const textureId = slugFor(entry.cfg);
+    const commandKey = `${entry.baseItem}:${entry.cmd}`;
+    if (textureIds.has(textureId)) errors.push(`${index + 1}件目: texture ID「${textureId}」が重複しています`);
+    if (commands.has(commandKey)) errors.push(`${index + 1}件目: ${commandKey} のCustomModelDataが重複しています`);
+    if (!Number.isSafeInteger(entry.cmd) || entry.cmd < 1) errors.push(`${index + 1}件目: CustomModelDataは1以上の整数にしてください`);
+    textureIds.add(textureId);
+    commands.add(commandKey);
+  });
+  return errors;
+}
+
+/** Machine-readable manifest of a server collection for server operators. */
+export function buildCollectionManifest(entries: ServerPackEntry[], namespace: string) {
+  return {
+    namespace,
+    generated_at: new Date().toISOString(),
+    items: entries.map((e) => ({
+      texture_id: slugFor(e.cfg),
+      display_name: entryLabel(e.cfg, e.name),
+      base_item: e.baseItem,
+      custom_model_data: e.cmd,
+      rarity: e.cfg.rarity ?? null,
+      element: e.cfg.element,
+      type: e.cfg.itemType,
+      give_command: `/give @s minecraft:${e.baseItem}{CustomModelData:${e.cmd}} 1`,
+    })),
+  };
+}
+
 /** Assign a free, non-colliding CustomModelData per base item. */
 /** Azisaba-style: small sequential IDs per base item starting at 2 (0/1 are vanilla-ish). */
 export function autoAssignCmds(entries: ServerPackEntry[], startAt = 2): ServerPackEntry[] {
@@ -231,6 +266,8 @@ export async function downloadServerPack(opts: ServerPackOptions): Promise<{ cou
    also overrides the same base item, merge the "entries"/"overrides" arrays by hand,
    or move these customs onto a less contested base item.`,
   ].join('\n'));
+
+  zip.file(`arcane_${ns}_manifest.json`, JSON.stringify(buildCollectionManifest(entries, ns), null, 2));
 
   const blob = await zip.generateAsync({ type: 'blob' });
   const url = URL.createObjectURL(blob);

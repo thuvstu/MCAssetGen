@@ -72,6 +72,50 @@ export function applyEdgeLight(c: RenderCtx) {
   }
 }
 
+export type AtelierFinish = "vanilla" | "forged" | "weathered" | "engraved" | "gilded" | "runic";
+
+/** 6 workshop finishes ported from Spellforge Atelier (quantize/pits/patina/carve/inlay/runes). */
+export function applyAtelierFinish(c: RenderCtx, style: AtelierFinish) {
+  const { cfg, buf, W } = c;
+  const seed = cfg.seed || 1;
+  const hash = (x: number, y: number, s: number) => {
+    let h = (x * 374761393 + y * 668265263 + s * 144665) | 0;
+    h = Math.imul(h ^ (h >>> 13), 1274126177);
+    return ((h ^ (h >>> 16)) >>> 0) / 4294967295;
+  };
+  const src = new Uint8ClampedArray(buf.d);
+  const at = (x: number, y: number) => (x < 0 || y < 0 || x >= W || y >= W ? 0 : src[(y * W + x) * 4 + 3]);
+  const colAt = (x: number, y: number): RGB => { const i = (y * W + x) * 4; return [src[i], src[i + 1], src[i + 2]]; };
+  const gold: RGB = [212, 175, 55];
+  const energy: RGB = [120, 220, 255];
+  for (let y = 0; y < W; y++) {
+    for (let x = 0; x < W; x++) {
+      if (at(x, y) < 26) continue;
+      const cluster = hash(Math.floor(x / 2), Math.floor(y / 2), seed + 77);
+      const col = colAt(x, y);
+      const l = lum(col);
+      if (style === "vanilla") {
+        const q = l < 85 ? shadeRgb(col, -0.35) : l > 170 ? shadeRgb(col, 0.35) : col;
+        buf.set(x, y, q, 255);
+      } else if (style === "forged") {
+        if (cluster > 0.91) buf.set(x, y, shadeRgb(col, -0.45), 255);
+        else if ((x + y) % 5 === 0 && cluster > 0.6) buf.blend(x, y, WHITE, 120);
+      } else if (style === "weathered") {
+        if (cluster > 0.65) buf.set(x, y, shadeRgb(col, -0.4), 255);
+        else if (cluster < 0.12) buf.blend(x, y, WHITE, 60);
+      } else if (style === "engraved") {
+        if ((x + y + seed) % 7 === 0 && cluster > 0.42) buf.set(x, y, shadeRgb(col, -0.3), 255);
+        else if (cluster > 0.94) buf.blend(x, y, WHITE, 110);
+      } else if (style === "gilded") {
+        if ((x - y + seed) % 12 === 0 && cluster > 0.35) buf.blend(x, y, gold, 200);
+        else if (cluster > 0.9) buf.blend(x, y, gold, 130);
+      } else if (style === "runic") {
+        if ((x - y + seed) % 10 < 2 && cluster > 0.5) buf.blend(x, y, energy, 220);
+      }
+    }
+  }
+}
+
 export function applyDropShadow(c: RenderCtx): Pix {
   const { cfg, buf, W, S } = c;
   if (!cfg.dropShadow) return buf;

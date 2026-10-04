@@ -16,6 +16,26 @@ export type MinecraftPackTarget =
   | 'optifine-cit'
   | 'mod-fabric-neoforge';
 
+/** Java Edition versions a pack can declare, in release order (ported from Spellforge). */
+export const MC_VERSIONS = [
+  { id: "1.8.9", label: "1.8.9", format: 1, range: false },
+  { id: "1.12.2", label: "1.12.2", format: 3, range: false },
+  { id: "1.16.5", label: "1.16.5", format: 6, range: false },
+  { id: "1.18.2", label: "1.18.2", format: 8, range: false },
+  { id: "1.19.4", label: "1.19.4", format: 13, range: false },
+  { id: "1.20.1", label: "1.20.1", format: 15, range: false },
+  { id: "1.20.4", label: "1.20.4", format: 22, range: false },
+  { id: "1.20.6", label: "1.20.6", format: 32, range: false },
+  { id: "1.21.1", label: "1.21.1", format: 34, range: false },
+  { id: "1.21.4", label: "1.21.4", format: 46, range: false },
+  { id: "1.21.8", label: "1.21.8", format: 64, range: false },
+  { id: "1.21.10", label: "1.21.10", format: 69, range: true },
+  { id: "1.21.11", label: "1.21.11", format: 75, range: true },
+  { id: "26.1", label: "26.1", format: 84, range: true },
+  { id: "26.2", label: "26.2", format: 88, range: true },
+] as const;
+export type McVersionId = (typeof MC_VERSIONS)[number]["id"];
+
 export interface BaseItemProfile {
   id: string;
   label: string;
@@ -40,6 +60,8 @@ export const VANILLA_BASE_ITEMS: BaseItemProfile[] = [
   { id: 'nether_star', label: 'ネザースター (nether_star)', parent: 'minecraft:item/generated' },
   { id: 'mace', label: 'メイス (mace)', parent: 'minecraft:item/handheld' },
   { id: 'breeze_rod', label: 'ブリーズロッド (breeze_rod)', parent: 'minecraft:item/handheld' },
+  { id: 'bone', label: '骨 (bone)', parent: 'minecraft:item/handheld' },
+  { id: 'golden_hoe', label: '金のクワ (golden_hoe)', parent: 'minecraft:item/handheld' },
 ];
 
 const SUGGESTED: Record<ItemType, string> = {
