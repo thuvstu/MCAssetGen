@@ -11,7 +11,7 @@
 | texture | `texture/texcraft` (旧`minecraft-texture-enhancement-app (1)`) | enhancement無印、(2)、editor、pixel-art | **完了** |
 | skyblock | `skyblock/hypixel-skyblock-texture-generator (1)` (SkyForge) | generator2(完了・削除済)、無印・pack-generator(エンジン+データ保存、UIは残置) | **部分完了** |
 | weapons-staff | `weapons/minecraft-magic-staff-generator (1)` (Arcane Forge) | staff無印(完了・削除済)。swordは分離維持 | **完了** |
-| 3d-forge | `3d-forge/minecraft-3d-model-generator (2)` (VoxelForge) | 他7件 | 未着手 |
+| 3d-forge | `3d-forge/voxelforge-studio` (旧`(2)`) | 他7件(完了・削除済) | **完了(エンジン/データ/輸出)/UIは次段階** |
 | mod | `mod/web-based-fabric-mod-builder` (単独維持) | なし | — |
 
 ---
@@ -133,3 +133,13 @@
 2. 基盤のtypecheck+lint+dev起動が通る
 3. 移植記録を基盤READMEに追記
 4. 移植元フォルダを削除し、commit+push
+
+## 3d-forge UI次段階メモ(基盤 `src/components/studio/compat/` への吸収候補)
+
+- advanced: studio/{Header,Inspector,Rail,StatusBar}、Viewport3D、modals/{Export,Save}
+- gen-3d: PixelEditor、Viewport3D、App(6タブ)
+- gen-json: studio、decor-editor、texture-studio、prompt-report、export-report、model-viewer/thumbnail
+- asset-studio: EvolutionLab、TextureAtlasEditor、ElementInspector、DecorationPanel、GeneratorModal、PresetsModal、ActionBar、ModelViewport、ExportModal
+- 無印Forge: panels/{Color,Effects,Lineage,Motion,Shape}、right/{AtlasSheet,ExportPanel,LibraryPanel}、stage/{Stage,StageHud,StageBoundary}、ForgeProvider、LeftRail
+- (1): SpecPanel、SetGenerator、Gallery、Viewer、ExportBar
+- (3): VoxelForgeStudio、StaffFxPanel、UVAtlasEditor、ExportStudioModal、Viewport3D、ElementInspector
