@@ -15,10 +15,11 @@ import DiagnosticsPanel from "./Diagnostics";
 import { BlocksEditor, CommandsEditor, EventsEditor, ItemsEditor, MetaEditor, MobSkillsEditor } from "./ElementEditors";
 import SkillEditor from "./SkillEditor";
 import ImportExport from "./ImportExport";
+import ServerLink from "./ServerLink";
 import { MobsEditor, RecipesEditor } from "./MobRecipeEditors";
 import { MobNamesContext, SectionHeader } from "./ui";
 
-type Section = "meta" | "items" | "blocks" | "skills" | "mobs" | "custommobs" | "recipes" | "events" | "commands" | "code" | "analysis" | "build" | "reference" | "io";
+type Section = "meta" | "items" | "blocks" | "skills" | "mobs" | "custommobs" | "recipes" | "events" | "commands" | "code" | "analysis" | "build" | "reference" | "io" | "link";
 
 function normalize(data: Partial<ModProject> | null, name: string): ModProject {
   const d = data ?? {};
@@ -249,6 +250,7 @@ export default function Editor({ id }: { id: number }) {
     { id: "analysis", label: "解析", icon: "🔍", badge: errs ? `${errs}` : warns ? `${warns}` : "✓", group: "出力" },
     { id: "build", label: "ビルド", icon: "📦", group: "出力" },
     { id: "io", label: "インポート/エクスポート", icon: "🔄", group: "出力" },
+    { id: "link", label: "サーバー連携", icon: "🔗", group: "出力" },
     { id: "reference", label: "リファレンス", icon: "📖", group: "ヘルプ" },
   ];
   const groups = [...new Set(nav.map((n) => n.group))];
@@ -320,6 +322,7 @@ export default function Editor({ id }: { id: number }) {
           {section === "custommobs" && <MobsEditor project={project} mutate={mutate} />}
           {section === "recipes" && <RecipesEditor project={project} mutate={mutate} />}
           {section === "io" && <ImportExport project={project} mutate={mutate} replace={replace} />}
+          {section === "link" && <ServerLink project={project} mutate={mutate} replace={replace} />}
           {section === "meta" && <MetaEditor project={project} mutate={mutate} />}
           {section === "items" && <ItemsEditor project={project} mutate={mutate} />}
           {section === "blocks" && <BlocksEditor project={project} mutate={mutate} />}

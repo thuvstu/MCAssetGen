@@ -13,6 +13,7 @@ import {
 import PixelArt from "@/components/pixel-art";
 import Modal from "@/components/ui/modal";
 import { TEMPLATES, type SavedProject } from "@/lib/model-types";
+import { convertBbmodel } from "@/lib/bbmodel-import";
 import { useStudioStore } from "../studio-context";
 
 function matches(project: SavedProject, query: string): boolean {
@@ -22,9 +23,19 @@ function matches(project: SavedProject, query: string): boolean {
 }
 
 export default function LibraryModal() {
-  const { library, closeModal, openProject, removeProject } = useStudioStore();
+  const { library, closeModal, openProject, removeProject, notify } = useStudioStore();
   const [query, setQuery] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
+
+  const importBbmodel = async (file: File) => {
+    try {
+      const project = convertBbmodel(JSON.parse(await file.text()), file.name);
+      openProject(project);
+      notify(`${project.model.cubes.length} cubes を取り込みました`, "info");
+    } catch (e) {
+      notify(`bbmodel の読み込みに失敗: ${String(e instanceof Error ? e.message : e)}`, "error");
+    }
+  };
 
   const visible = library.projects.filter((project) => matches(project, query));
 
@@ -60,6 +71,20 @@ export default function LibraryModal() {
             </button>
           )}
         </div>
+        <label className="icon-button small" title=".bbmodel を取り込んで編集">
+          <FolderOpen size={15} />
+          <input
+            type="file"
+            accept=".bbmodel,application/json"
+            className="hidden"
+            aria-label=".bbmodel を取り込む"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              event.target.value = "";
+              if (file) void importBbmodel(file);
+            }}
+          />
+        </label>
       </div>
 
       {library.loading ? (
