@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { exportMobsYaml, exportSkillsYaml, importMythicYaml } from "@/lib/mod/mythicYaml";
-import type { ModProject } from "@/lib/mod/types";
+import type { GeneratedFile, ModProject } from "@/lib/mod/types";
 import { SectionHeader } from "./ui";
 import {
   LINK_ROOTS,
@@ -12,6 +12,7 @@ import {
   pickRoot,
   readTextFile,
   writeBinaryFile,
+  writeFileTree,
   writeTextFile,
   type FSDirHandle,
   type TreeEntry,
@@ -26,7 +27,7 @@ interface BbInfo {
   error?: string;
 }
 
-export default function ServerLink({ project, mutate }: { project: ModProject; mutate: Mutate; replace: (p: ModProject) => void }) {
+export default function ServerLink({ project, mutate, files }: { project: ModProject; mutate: Mutate; replace: (p: ModProject) => void; files: GeneratedFile[] }) {
   const [root, setRoot] = useState<FSDirHandle | null>(null);
   const [rootName, setRootName] = useState("");
   const [trees, setTrees] = useState<Record<string, { entries: TreeEntry[]; missing: boolean }>>({});
@@ -36,6 +37,7 @@ export default function ServerLink({ project, mutate }: { project: ModProject; m
   const [preview, setPreview] = useState("");
   const [bb, setBb] = useState<BbInfo | null>(null);
   const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState("");
 
   useEffect(() => {
     loadRootHandle().then((h) => {
@@ -139,6 +141,24 @@ export default function ServerLink({ project, mutate }: { project: ModProject; m
     await saveBack(kind, `${base}/${kind}/${kind}.yml`);
   };
 
+  const deployModSources = async () => {
+    if (!root || !files.length) return;
+    setBusy(true);
+    setProgress("");
+    try {
+      const modId = (project.meta.modId || "mymod").toLowerCase().replace(/[^a-z0-9_.-]+/g, "_");
+      await writeFileTree(root, `moddev/${modId}`, files, (done, total) => setProgress(`${done}/${total}`));
+      await refresh(root);
+      setProgress("");
+      setNotice(`moddev/${modId}/ に ${files.length} ファイルを展開しました。IntelliJ で開けます。`);
+    } catch (e) {
+      setProgress("");
+      setError(String(e instanceof Error ? e.message : e));
+    } finally {
+      setBusy(false);
+    }
+  };
+
   const downloadBbmodel = async () => {
     if (!root) return;
     try {
@@ -234,6 +254,13 @@ export default function ServerLink({ project, mutate }: { project: ModProject; m
                   <button className="btn mt-2" onClick={downloadBbmodel}>⬇ ダウンロード（VoxelForge の取込から開く）</button>
                 </div>
               )}
+            </div>
+            <div className="card p-4">
+              <h3 className="mb-2 font-semibold">Mod開発に持っていく</h3>
+              <p className="mb-2 text-xs text-zinc-400">生成済み {files.length} ファイルを開発フォルダに展開します。IntelliJ で開いてすぐ開発できます（初回は `gradle wrapper` 生成→ `./gradlew build`）。</p>
+              <button className="btn-primary" disabled={busy || !files.length} onClick={deployModSources}>
+                ⬇ moddev/{(project.meta.modId || "mymod").toLowerCase()}/ に展開{progress ? ` (${progress})` : ""}
+              </button>
             </div>
             <div className="card p-4">
               <h3 className="mb-2 font-semibold">リソースパック配布</h3>

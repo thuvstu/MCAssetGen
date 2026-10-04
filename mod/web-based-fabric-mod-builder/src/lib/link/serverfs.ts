@@ -172,3 +172,18 @@ export async function writeBinaryFile(root: FSDirHandle, relPath: string, blob: 
   await writable.write(blob);
   await writable.close();
 }
+
+export async function writeFileTree(
+  root: FSDirHandle,
+  baseDir: string,
+  files: { path: string; content: string }[],
+  onProgress?: (done: number, total: number) => void,
+): Promise<void> {
+  let done = 0;
+  for (const file of files) {
+    const safe = file.path.split("/").filter((p) => p && p !== "." && p !== "..");
+    await writeTextFile(root, `${baseDir}/${safe.join("/")}`, file.content);
+    done++;
+    onProgress?.(done, files.length);
+  }
+}

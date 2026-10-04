@@ -322,7 +322,7 @@ export default function Editor({ id }: { id: number }) {
           {section === "custommobs" && <MobsEditor project={project} mutate={mutate} />}
           {section === "recipes" && <RecipesEditor project={project} mutate={mutate} />}
           {section === "io" && <ImportExport project={project} mutate={mutate} replace={replace} />}
-          {section === "link" && <ServerLink project={project} mutate={mutate} replace={replace} />}
+          {section === "link" && <ServerLink project={project} mutate={mutate} replace={replace} files={analysis.files} />}
           {section === "meta" && <MetaEditor project={project} mutate={mutate} />}
           {section === "items" && <ItemsEditor project={project} mutate={mutate} />}
           {section === "blocks" && <BlocksEditor project={project} mutate={mutate} />}
