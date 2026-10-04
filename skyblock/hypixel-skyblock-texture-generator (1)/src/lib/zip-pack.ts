@@ -44,3 +44,45 @@ export function buildPackFileList(opts: {
 export function downloadFilename(packName: string): string {
   return `${sanitizeFilename(packName)}.zip`;
 }
+
+/**
+ * A complete installable resource pack containing exactly one texture.
+ * Users can drop this on top of another pack without carrying anyone else's
+ * textures along — the normal use case for distributing a single item.
+ */
+export function buildSingleTextureFileList(opts: {
+  name: string;
+  author: string;
+  description: string;
+  itemId: string;
+  png: Uint8Array;
+}): PackFile[] {
+  const item = getItem(opts.itemId);
+  const files: PackFile[] = [
+    {
+      path: "pack.mcmeta",
+      data: packMcmeta(opts.name, opts.description || `single item: ${opts.itemId}`),
+    },
+    {
+      path: "readme-skyforge.txt",
+      data: packReadme(opts.name, opts.author),
+    },
+    { path: `textures/${opts.itemId}.png`, data: opts.png },
+    { path: `pack.png`, data: opts.png },
+  ];
+  if (item) {
+    files.push({
+      path: `assets/minecraft/optifine/cit/skyforge/${item.id}.png`,
+      data: opts.png,
+    });
+    files.push({
+      path: `assets/minecraft/optifine/cit/skyforge/${item.id}.properties`,
+      data: citProperties(item),
+    });
+  }
+  return files;
+}
+
+export function singleTextureFilename(itemId: string): string {
+  return `${sanitizeFilename(itemId)}-skyforge-single.zip`;
+}

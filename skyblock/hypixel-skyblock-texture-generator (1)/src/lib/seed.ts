@@ -4,6 +4,8 @@ import { packs, textures } from "@/db/schema";
 import { CATALOG_MAP } from "@/lib/catalog";
 import { generateTexture } from "@/lib/generate";
 import { nid } from "@/lib/ids";
+import { ensureSchema } from "@/lib/bootstrap";
+import { loadMasterworkPixels } from "@/lib/masterwork-pixels";
 import type { Rarity } from "@/lib/rarity";
 import type { MixEntry } from "@/lib/styles";
 
@@ -22,6 +24,8 @@ type DemoSpec = {
   glow: number;
   metallic: number;
   chaos: number;
+  /** Store authored masterwork art instead of procedural output. */
+  useMasterworks?: boolean;
 };
 
 const DEMOS: DemoSpec[] = [
@@ -212,6 +216,77 @@ const DEMOS: DemoSpec[] = [
     chaos: 24,
   },
   {
+    id: "demo_masterworks",
+    name: "Masterwork Foundations 64x",
+    author: "SkyForge Atelier",
+    description:
+      "手描き基準で起こしたオリジナル原画のみで構成した 64×64 ショーケース。剣・弓・杖・防具・ペット・道具を横断し、そのまま編集・再配布できる完成テクスチャ集。",
+    styleId: "wither_sovereign",
+    signatureId: "overhaul_intricate",
+    resolution: 64,
+    useMasterworks: true,
+    itemIds: [
+      "hyperion",
+      "scylla",
+      "midas_sword",
+      "flower_of_truth",
+      "terminator",
+      "runaans_bow",
+      "spirit_sceptre",
+      "superior_helmet",
+      "superior_chestplate",
+      "golden_dragon_pet",
+      "phoenix_pet",
+      "gemstone_gauntlet",
+    ],
+    paletteMix: [
+      { id: "wither_sovereign", weight: 2 },
+      { id: "dragonwake", weight: 1 },
+    ],
+    signatureMix: [
+      { id: "overhaul_intricate", weight: 2 },
+      { id: "reborn_clean", weight: 1 },
+    ],
+    hueShift: 0,
+    glow: 50,
+    metallic: 60,
+    chaos: 0,
+  },
+  {
+    id: "demo_mechworks",
+    name: "Machineworks Arsenal",
+    author: "SkyForge Forge",
+    description:
+      "ドリル系統・機械部品・歯車刃をマシンワークス画法で鍛造した機械装備一式。鋼・真鍮・ティールの動力を基調に、鋲とリブで動力源を表現する。",
+    styleId: "lin_mechworks",
+    signatureId: "sig_mechworks",
+    resolution: 64,
+    itemIds: [
+      "divans_drill",
+      "titanium_drill",
+      "titanium_drill_dr_x455",
+      "gemstone_drill_lt_522",
+      "halberd_of_the_shredded",
+      "anti_sentient_pickaxe",
+      "hyperion",
+      "terminator",
+      "titanium_plated_drill_engine",
+      "perfectly_cut_fuel_tank",
+    ],
+    paletteMix: [
+      { id: "lin_mechworks", weight: 2 },
+      { id: "mithril_vein", weight: 1 },
+    ],
+    signatureMix: [
+      { id: "sig_mechworks", weight: 2 },
+      { id: "overhaul_intricate", weight: 1 },
+    ],
+    hueShift: -6,
+    glow: 42,
+    metallic: 74,
+    chaos: 18,
+  },
+  {
     id: "demo_steampunk",
     name: "Clockwork Steamforge Armory",
     author: "SkyForge",
@@ -245,7 +320,9 @@ const DEMOS: DemoSpec[] = [
   },
 ];
 
+
 export async function ensureDemoPacks(): Promise<void> {
+  await ensureSchema();
   const ids = DEMOS.map((d) => d.id);
   const existing = await db
     .select({ id: packs.id, resolution: packs.resolution, styleId: packs.styleId, signatureId: packs.signatureId })
@@ -291,6 +368,34 @@ export async function ensureDemoPacks(): Promise<void> {
       const item = CATALOG_MAP[itemId];
       if (!item) continue;
       const seed = 2000 + index * 853 + demo.name.length * 37;
+
+      // Masterwork showcases store the authored 64px art itself, so the
+      // gallery opens on finished pieces rather than procedural drafts.
+      if (demo.useMasterworks) {
+        const pixels = await loadMasterworkPixels(itemId);
+        if (pixels) {
+          await db.insert(textures).values({
+            id: nid("tex"),
+            packId: demo.id,
+            itemId,
+            name: item.name,
+            category: item.category,
+            rarity: item.rarity,
+            styleMix: demo.paletteMix,
+            signatureMix: demo.signatureMix,
+            seed,
+            resolution: 64,
+            pixels,
+            hueShift: 0,
+            glow: demo.glow,
+            metallic: demo.metallic,
+            chaos: 0,
+            templateId: `masterwork:${itemId}`,
+          });
+          continue;
+        }
+      }
+
       const generated = generateTexture({
         itemId,
         resolution: demo.resolution,

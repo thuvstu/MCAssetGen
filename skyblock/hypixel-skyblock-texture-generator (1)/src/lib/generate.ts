@@ -17,7 +17,15 @@ import {
   type SignatureMix,
 } from "@/lib/styles";
 import { applyNative64Essence, getNative64Template } from "@/lib/native64";
-import { getTemplate } from "@/lib/templates";
+import { getTemplate, templateIds } from "@/lib/templates";
+import { NATIVE64_TEMPLATE_IDS } from "@/lib/native64";
+
+const KNOWN_TEMPLATES = new Set<string>([...templateIds(), ...NATIVE64_TEMPLATE_IDS]);
+/** Item catalogs are hand-written; never let a stale template id crash a render. */
+function safeTemplatesFor(item: CatalogItem): string[] {
+  const valid = item.templates.filter((id) => KNOWN_TEMPLATES.has(id));
+  return valid.length ? valid : [templateIds()[0]!];
+}
 import type { Grid as GridType } from "@/lib/draw";
 
 type Grid = GridType;
@@ -208,10 +216,11 @@ export function generateTexture(input: GenerateInput): GeneratedTexture {
   const sig: SignatureMix = mixSignatures(signatureMix);
   const pal: PaletteMix = mixPalettes(paletteMix);
 
+  const templates = safeTemplatesFor(item);
   const templateId =
-    input.templateId && item.templates.includes(input.templateId)
+    input.templateId && templates.includes(input.templateId)
       ? input.templateId
-      : rngPick(shapeRng, item.templates);
+      : rngPick(shapeRng, templates);
 
   const resolution: Resolution = input.resolution === 64 ? 64 : input.resolution === 32 ? 32 : 16;
   const native64 = resolution === 64;

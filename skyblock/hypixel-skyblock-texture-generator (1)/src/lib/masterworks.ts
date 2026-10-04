@@ -95,6 +95,7 @@ export const MASTERWORKS: Masterwork[] = [
   { itemId: "automaton_blade", file: "/masterworks/automaton_blade.png", title: "Automaton Heartblade", titleJa: "オートマタ・ハートブレード", discipline: "sword", note: "古代オートマタの永久機関コアを組み込んだ蒸気機械剣。" },
   { itemId: "tachyon_cleaver", file: "/masterworks/tachyon_cleaver.png", title: "Tachyon Accelerator Cleaver", titleJa: "タキオンクリーバー", discipline: "sword", note: "時間加速ピストンと電磁ブレードを備えた超未来大鉈。" },
   { itemId: "mecha_gauntlet", file: "/masterworks/mecha_gauntlet.png", title: "Steamwork Power Gauntlet", titleJa: "スチームワーク・パワーガントレット", discipline: "tool", note: "真鍮歯車と排気バルブを搭載した蒸気駆動強化手甲。" },
+{ itemId: "snow_minion", file: "/masterworks/snow_minion.png", title: "Snow Minion", titleJa: "スノー・ミニオン", discipline: "misc", note: "雪の角が生えた冬の使い魔。(generator2より移植。原文の日本語はソース時点で文字化けしていたため転記)" },
 ];
 
 export const MASTERWORK_BY_ITEM = Object.fromEntries(
