@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "smoke": "node scripts/smoke.mjs"
+    "smoke": "node scripts/smoke.mjs",
+    "asset": "node scripts/mcasset.mjs"
   },
   "dependencies": {
     "clsx": "2.1.1",
