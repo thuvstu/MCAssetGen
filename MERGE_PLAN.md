@@ -143,3 +143,8 @@
 - 無印Forge: panels/{Color,Effects,Lineage,Motion,Shape}、right/{AtlasSheet,ExportPanel,LibraryPanel}、stage/{Stage,StageHud,StageBoundary}、ForgeProvider、LeftRail
 - (1): SpecPanel、SetGenerator、Gallery、Viewer、ExportBar
 - (3): VoxelForgeStudio、StaffFxPanel、UVAtlasEditor、ExportStudioModal、Viewport3D、ElementInspector
+
+## mod群(両維持)
+
+- `mod/mythicforge-studio` (MythicForge): 更新版Fabric開発用。DB作成・push済み。
+- `mod/mythiccraft-studio` (MythicCraft): MythicMobs連携・ServerLink・moddev展開ハブ。

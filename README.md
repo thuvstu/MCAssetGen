@@ -55,7 +55,8 @@ PIXELBLOOMの21ルック+変異表、変換器のk-means/8パレットを統合�
 
 | フォルダ | 概要 | 技術 |
 |---|---|---|
-| `web-based-fabric-mod-builder` | **MythicCraft Studio**。Fabric/Kotlin GradleをZIP出力。全グループの最終出力口候補 | Next.js |
+| `mod/mythicforge-studio` | **MythicForge**(Mojang-code Fabric Mod開発用) | Next.js |
+| `mod/mythiccraft-studio` | **MythicCraft Studio**(MythicMobs連携・サーバー連携ハブ) | Next.js |
 
 ## 開発
 
