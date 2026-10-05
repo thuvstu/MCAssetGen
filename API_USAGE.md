@@ -10,7 +10,23 @@ HTTP APIとCLIの使い方まとめ。ベースURLは各アプリのdevポート
 | mythiccraft-studio | :5141 |
 | mythicforge-studio | :5142 |
 
-## mcasset CLI (texcraft)
+## mcasset 統合CLI (全スタジオ)
+
+```bash
+cd MCAssetGen/cli
+npm run mcasset -- <studio>:<command> [options]
+```
+
+| スタジオ | コマンド例 |
+|---|---|
+| `tex` | texcraft CLIに委譲(下記参照) |
+| `sky` | `sky:items` / `sky:render --item hyperion --seed 7 --res 16 --out mm/tex.png` |
+| `vox` | `vox:kinds` / `vox:generate --kind sword --seed 42 --out model.bbmodel` |
+| `arcane` | `arcane:render --random --size 64 --out mm/staff.png` / `arcane:config` |
+| `mythic` | `mythic:build --project proj.json --out moddev/mymod` |
+| `mythiccraft` | `mythiccraft:sample --name mymod --out project.json` / `mythiccraft:build --project file.json --out dir/` |
+
+## mcasset CLI (texcraft個別)
 
 ```bash
 cd MCAssetGen/texture/texcraft
@@ -104,3 +120,6 @@ curl 'localhost:5142/api/compile/artifact?mod=mymod' -o mymod.jar
 - DB要アプリは `.env` の `DATABASE_URL` (Supabaseプーラー) が必要。未設定では5xxになる
 - `/api/compile` のビルドは JDK21 + Gradle が必要(手元は8/17/24のため未検証)
 - ブラウザFile System Access APIはChrome/Edgeのみ対応
+
+
+# 基本的に64pxがおすすめです
