@@ -10,7 +10,7 @@
 |---|---|---|---|
 | texture | `texture/texcraft` (旧`minecraft-texture-enhancement-app (1)`) | enhancement無印、(2)、editor、pixel-art | **完了** |
 | skyblock | `skyblock/hypixel-skyblock-texture-generator (1)` (SkyForge) | generator2(完了・削除済)、無印・pack-generator(エンジン+データ保存、UIは残置) | **部分完了** |
-| weapons-staff | `weapons/minecraft-magic-staff-generator (1)` (Arcane Forge) | staff無印(完了・削除済)。swordは分離維持 | **完了** |
+| weapons-staff | `weapons/minecraft-magic-staff-generator` (**Spellforge・杖の本体**) + `(1)`Arcane(別設計として併存) | 完了(復元済み) |
 | 3d-forge | `3d-forge/voxelforge-studio` (旧`(2)`) | 他7件(完了・削除済) | **完了(エンジン/データ/輸出)/UIは次段階** |
 | mod | `mod/web-based-fabric-mod-builder` (単独維持) | なし | — |
 

@@ -47,7 +47,8 @@ PIXELBLOOMの21ルック+変異表、変換器のk-means/8パレットを統合�
 
 | フォルダ | 概要 | 技術 |
 |---|---|---|
-| `minecraft-magic-staff-generator (1)` | **Arcane Forge統合基盤**。Spellforgeの進化エンジン/版表/検証/マニフェスト/6仕上げ/ catalogを統合 | Vite |
+| `minecraft-magic-staff-generator` | **Spellforge Atelier(杖の本体)** | Vite |
+| `minecraft-magic-staff-generator (1)` | Arcane Forge(別設計として併存) | Vite |
 | `minecraft-sword-texture-maker` | **AegisBlade Studio**(分離維持)。42輪郭×部位ロック+ARCHITECTURE.md | Vite |
 
 ## mod/ — Mod出力
