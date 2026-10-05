@@ -9,6 +9,37 @@ import { Field, ListPane, NumInput, SectionHeader, Select, TextInput, Toggle } f
 
 type Mutate = (fn: (d: ModProject) => void) => void;
 
+export function TextureField({ texture, onChange, hint }: { texture?: string; onChange: (dataUrl: string | undefined) => void; hint?: string }) {
+  return (
+    <Field label="テクスチャ" hint={hint ?? "TexCraft等で作ったPNG。未設定なら仮生成"}>
+      <div className="flex items-center gap-2">
+        {texture ? (
+          <img src={texture} alt="texture" className="h-12 w-12 rounded border border-zinc-700" style={{ imageRendering: "pixelated" }} />
+        ) : (
+          <span className="text-xs text-zinc-500">未設定</span>
+        )}
+        <label className="btn cursor-pointer">
+          選択
+          <input
+            type="file"
+            accept="image/png,image/jpeg,image/webp"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              e.target.value = "";
+              if (!file) return;
+              const reader = new FileReader();
+              reader.onload = () => onChange(typeof reader.result === "string" ? reader.result : undefined);
+              reader.readAsDataURL(file);
+            }}
+          />
+        </label>
+        {texture && <button className="btn" onClick={() => onChange(undefined)}>クリア</button>}
+      </div>
+    </Field>
+  );
+}
+
 export function TriggerList({ triggers, defs, skills, onChange }: { triggers: TriggerBinding[]; defs: TriggerDef[]; skills: string[]; onChange: (t: TriggerBinding[]) => void }) {
   return (
     <div className="card p-4">
@@ -146,6 +177,7 @@ export function ItemsEditor({ project, mutate }: { project: ModProject; mutate: 
               <Field label="登録名 (ID)" hint={`${project.meta.modId}:${it.registryName}`}>
                 <TextInput mono value={it.registryName} onChange={(v) => set({ registryName: v })} />
               </Field>
+              <TextureField texture={it.texture} onChange={(v) => set({ texture: v })} />
               <Field label="種類">
                 <Select value={it.kind} onChange={(v) => set({ kind: v })} options={KINDS} />
               </Field>
@@ -258,6 +290,7 @@ export function BlocksEditor({ project, mutate }: { project: ModProject; mutate:
               <Field label="登録名 (ID)" hint={`${project.meta.modId}:${b.registryName}`}>
                 <TextInput mono value={b.registryName} onChange={(v) => set({ registryName: v })} />
               </Field>
+              <TextureField texture={b.texture} onChange={(v) => set({ texture: v })} />
               <Field label="サウンド">
                 <Select value={b.sound} onChange={(v) => set({ sound: v })} options={SOUNDS.map((s) => ({ value: s, label: s }))} />
               </Field>

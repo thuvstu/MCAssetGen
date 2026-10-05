@@ -148,9 +148,26 @@ export default function ServerLink({ project, mutate, files }: { project: ModPro
     try {
       const modId = (project.meta.modId || "mymod").toLowerCase().replace(/[^a-z0-9_.-]+/g, "_");
       await writeFileTree(root, `moddev/${modId}`, files, (done, total) => setProgress(`${done}/${total}`));
+      let texCount = 0;
+      const dataUrlToBytes = (dataUrl: string): Uint8Array<ArrayBuffer> => {
+        const binary = atob(dataUrl.split(",")[1]);
+        const bytes = new Uint8Array(new ArrayBuffer(binary.length));
+        for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+        return bytes;
+      };
+      for (const item of project.items) {
+        if (!item.texture) continue;
+        await writeBinaryFile(root, `moddev/${modId}/src/main/resources/assets/${modId}/textures/item/${item.registryName}.png`, new Blob([dataUrlToBytes(item.texture)], { type: "image/png" }));
+        texCount++;
+      }
+      for (const block of project.blocks) {
+        if (!block.texture) continue;
+        await writeBinaryFile(root, `moddev/${modId}/src/main/resources/assets/${modId}/textures/block/${block.registryName}.png`, new Blob([dataUrlToBytes(block.texture)], { type: "image/png" }));
+        texCount++;
+      }
       await refresh(root);
       setProgress("");
-      setNotice(`moddev/${modId}/ に ${files.length} ファイルを展開しました。IntelliJ で開けます。`);
+      setNotice(`moddev/${modId}/ に ${files.length} ファイル+実テクスチャ ${texCount} 件を展開しました。IntelliJ で開けます。`);
     } catch (e) {
       setProgress("");
       setError(String(e instanceof Error ? e.message : e));

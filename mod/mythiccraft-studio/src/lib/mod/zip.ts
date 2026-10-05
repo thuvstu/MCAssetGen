@@ -62,9 +62,19 @@ export async function downloadZip(project: ModProject, files: GeneratedFile[], w
   if (withTextures) {
     const icon = await placeholderPng(project.meta.modId, "block");
     if (icon) root.file(`src/main/resources/assets/${project.meta.modId}/icon.png`, icon);
+    const attached = new Map<string, string>();
+    for (const item of project.items) if (item.texture) attached.set(`item/${item.registryName}`, item.texture);
+    for (const block of project.blocks) if (block.texture) attached.set(`block/${block.registryName}`, block.texture);
     for (const t of texturePaths(project)) {
-      const png = await placeholderPng(t.name, t.kind);
-      if (png) root.file(t.path, png);
+      const key = t.path.split("textures/")[1]?.replace(/\.png$/, "") ?? "";
+      const dataUrl = attached.get(key);
+      if (dataUrl) {
+        const blob = await (await fetch(dataUrl)).blob();
+        root.file(t.path, blob);
+      } else {
+        const png = await placeholderPng(t.name, t.kind);
+        if (png) root.file(t.path, png);
+      }
     }
   }
   const blob = await zip.generateAsync({ type: "blob", compression: "DEFLATE" });

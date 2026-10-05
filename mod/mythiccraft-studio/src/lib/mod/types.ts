@@ -57,6 +57,8 @@ export interface ModItem {
   useCooldown: number; // ticks
   armorMaterial?: ArmorMat;
   triggers: TriggerBinding[];
+  /** attached PNG (dataURL) from texture studios; used in zip + moddev deploy instead of placeholder */
+  texture?: string;
 }
 
 export interface ModBlock {
@@ -76,6 +78,8 @@ export interface ModBlock {
   dropMax?: number;
   oreGen?: { enabled: boolean; dimension: "overworld" | "nether" | "end"; veinSize: number; veinsPerChunk: number; minY: number; maxY: number };
   triggers: TriggerBinding[];
+  /** attached PNG (dataURL) from texture studios; used in zip + moddev deploy instead of placeholder */
+  texture?: string;
 }
 
 export interface MobSkill {
