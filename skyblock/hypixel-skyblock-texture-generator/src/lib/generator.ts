@@ -1790,3 +1790,201 @@ export function renderToDataURL(
   generateTexture(c, item, N, style, seed, customPalette, essence, animation, shape);
   return c.toDataURL('image/png');
 }
+
+/**
+ * Headless equivalent of generateTexture for the mcasset CLI (no DOM/canvas).
+ * Mirrors the pixel pipeline (supersample → bevel → grain → dither → wear →
+ * element → sparkle → outline → safe-margin clip). The radial glow backdrop
+ * and animation frames are browser-only and intentionally skipped.
+ */
+export function renderPixelsHeadless(
+  item: ItemDef,
+  N: 16 | 32 | 64,
+  style: StyleOptions,
+  seed: number,
+  customPalette?: ItemDef['palette'],
+  essence: TextureEssence = DEFAULT_TEXTURE_ESSENCE,
+  shape: ShapeOptions = DEFAULT_SHAPE_OPTIONS,
+): { width: number; height: number; data: Uint8ClampedArray } {
+  const p = customPalette ?? item.palette;
+  const renderStyle = resolveStyle(style, essence);
+  const detail = N >= 64 ? 2 : N >= 32 ? 1 : 0;
+  const mixSeed = (hashStr(item.id) ^ seed) >>> 0;
+  const { sampler, layout } = buildSampler(item, p, renderStyle, detail, mixSeed, essence, shape, 0);
+
+  const SS = N >= 64 ? 2 : N >= 32 ? 3 : 4;
+  const data = new Uint8ClampedArray(N * N * 4);
+  const scale = 64 / N;
+  const counts = new Map<string, number>();
+  for (let py = 0; py < N; py++) {
+    for (let px = 0; px < N; px++) {
+      counts.clear();
+      let empty = 0;
+      for (let sy = 0; sy < SS; sy++) {
+        for (let sx = 0; sx < SS; sx++) {
+          const x = (px + (sx + 0.5) / SS) * scale;
+          const y = (py + (sy + 0.5) / SS) * scale;
+          const c = sampler(x, y);
+          if (!c) { empty++; continue; }
+          counts.set(c, (counts.get(c) ?? 0) + 1);
+        }
+      }
+      const total = SS * SS;
+      if (empty > total * 0.5) continue;
+      let best: string | null = null, bestN = 0;
+      counts.forEach((v, k) => { if (v > bestN) { bestN = v; best = k; } });
+      if (!best) continue;
+      const [r, g, b] = hexToRgb(best);
+      const i = (py * N + px) * 4;
+      data[i] = r; data[i + 1] = g; data[i + 2] = b; data[i + 3] = 255;
+    }
+  }
+
+  const bevel = renderStyle.bevel / 100, hl = renderStyle.highlight / 100;
+  const edgeLight = (renderStyle.edgeLight ?? 70) / 100;
+  if (bevel > 0.02) {
+    const src = new Uint8ClampedArray(data);
+    const op = (x: number, y: number) => x >= 0 && y >= 0 && x < N && y < N && src[(y * N + x) * 4 + 3] > 0;
+    for (let y = 0; y < N; y++) {
+      for (let x = 0; x < N; x++) {
+        const i = (y * N + x) * 4;
+        if (src[i + 3] === 0) continue;
+        const tl = !op(x, y - 1) || !op(x - 1, y);
+        const br = !op(x, y + 1) || !op(x + 1, y);
+        if (tl) {
+          const k = 12 + edgeLight * 34 + hl * 18;
+          data[i] = Math.min(255, data[i] + k); data[i + 1] = Math.min(255, data[i + 1] + k); data[i + 2] = Math.min(255, data[i + 2] + k * 0.86);
+        } else if (br) {
+          const k = 20 + bevel * 34;
+          data[i] = Math.max(0, data[i] - k); data[i + 1] = Math.max(0, data[i + 1] - k); data[i + 2] = Math.max(0, data[i + 2] - k * 0.8);
+        }
+      }
+    }
+  }
+
+  const grain = renderStyle.grain / 100;
+  if (grain > 0.02) {
+    const amt = grain * (N >= 64 ? 15 : N >= 32 ? 10 : 6);
+    for (let y = 0; y < N; y++) {
+      for (let x = 0; x < N; x++) {
+        const i = (y * N + x) * 4;
+        if (data[i + 3] === 0) continue;
+        const n = Math.round((hash2(x, y, mixSeed) - 0.5) * 2 * amt);
+        data[i] = Math.max(0, Math.min(255, data[i] + n));
+        data[i + 1] = Math.max(0, Math.min(255, data[i + 1] + n));
+        data[i + 2] = Math.max(0, Math.min(255, data[i + 2] + n));
+      }
+    }
+  }
+
+  const dither = clamp((renderStyle.dither ?? 0) / 100, 0, 1) * (N >= 64 ? 1 : 0.55);
+  if (dither > 0.01) {
+    const bayer = [0, 8, 2, 10, 12, 4, 14, 6, 3, 11, 1, 9, 15, 7, 13, 5];
+    for (let y = 0; y < N; y++) {
+      for (let x = 0; x < N; x++) {
+        const i = (y * N + x) * 4;
+        if (!data[i + 3]) continue;
+        const threshold = (bayer[(y & 3) * 4 + (x & 3)] / 15 - 0.5) * 18 * dither;
+        data[i] = clamp(data[i] + threshold, 0, 255);
+        data[i + 1] = clamp(data[i + 1] + threshold, 0, 255);
+        data[i + 2] = clamp(data[i + 2] + threshold, 0, 255);
+      }
+    }
+  }
+
+  const wear = clamp(essence.wear, 0, 1) * (N >= 64 ? 1 : N >= 32 ? 0.52 : 0.18);
+  if (wear > 0.005) {
+    for (let y = 0; y < N; y++) {
+      for (let x = 0; x < N; x++) {
+        const i = (y * N + x) * 4;
+        if (data[i + 3] === 0) continue;
+        const streak = hash2(Math.floor((x + y) / 3), Math.floor((x - y + N) / 6), mixSeed ^ 0x51f1);
+        const alignment = ((x + y + Math.floor(hash2(x, y, mixSeed) * 3)) % 7) < 5;
+        if (alignment && streak > 1 - wear * 0.075) {
+          const depth = 18 + hash2(x, y, mixSeed ^ 0xb42) * 42;
+          data[i] = Math.max(0, data[i] - depth);
+          data[i + 1] = Math.max(0, data[i + 1] - depth);
+          data[i + 2] = Math.max(0, data[i + 2] - depth * 0.82);
+        }
+      }
+    }
+  }
+
+  const primaryElement = shape.element ?? 'none';
+  const secondaryElement = shape.elementSecondary ?? 'none';
+  const blend = clamp(shape.elementBlend ?? 0.5, 0, 1);
+  const merge = shape.elementMerge ?? 'split';
+  const mergeMask = (secondary: boolean) => (x: number, y: number) => {
+    if (secondaryElement === 'none') return secondary ? 0 : 1;
+    const xn = x / Math.max(1, N - 1), yn = y / Math.max(1, N - 1);
+    if (merge === 'gradient') {
+      const value = clamp((xn + yn) * 0.5 + blend - 0.5, 0, 1);
+      return secondary ? value : 1 - value;
+    }
+    if (merge === 'weave') {
+      const cell = ((Math.floor(x / Math.max(1, N / 8)) + Math.floor(y / Math.max(1, N / 8))) & 1) === 0;
+      return secondary ? (cell ? blend : 0.18 * blend) : (cell ? 0.18 * (1 - blend) : 1 - blend);
+    }
+    if (merge === 'chaos') {
+      const noise = hash2(Math.floor(x / 4), Math.floor(y / 4), mixSeed ^ 0x7221);
+      const second = noise < blend;
+      return secondary ? (second ? 1 : 0.14) : (second ? 0.14 : 1);
+    }
+    const second = (xn + yn) * 0.5 > 1 - blend;
+    return secondary ? (second ? 1 : 0) : (second ? 0 : 1);
+  };
+  applyElement(data, N, primaryElement, shape.elementPower ?? 0.65, mixSeed, mergeMask(false));
+  if (secondaryElement !== 'none') applyElement(data, N, secondaryElement, (shape.elementPower ?? 0.65) * (0.62 + blend * 0.55), mixSeed ^ 0x3345, mergeMask(true));
+
+  if (item.glow && renderStyle.glow > 25 && N >= 32) {
+    for (let y = 0; y < N; y++) {
+      for (let x = 0; x < N; x++) {
+        const i = (y * N + x) * 4;
+        if (data[i + 3] === 0) continue;
+        if (hash2(x, y, mixSeed ^ 0x9e37) > 0.972) {
+          data[i] = Math.min(255, data[i] + 46);
+          data[i + 1] = Math.min(255, data[i + 1] + 34);
+          data[i + 2] = Math.min(255, data[i + 2] + 62);
+        }
+      }
+    }
+  }
+
+  // Outline: dilate silhouette into transparent neighbours (no canvas).
+  const outHex = getOutlineColor(p, renderStyle);
+  const [orr, og, ob] = hexToRgb(outHex);
+  const thick = renderStyle.outline <= 6
+    ? 0
+    : Math.max(0, Math.min(7, Math.round((renderStyle.outline / 100) * (N / 16) * 1.25)));
+  if (thick > 0) {
+    const src = new Uint8ClampedArray(data);
+    const op = (x: number, y: number) => x >= 0 && y >= 0 && x < N && y < N && src[(y * N + x) * 4 + 3] > 0;
+    for (let y = 0; y < N; y++) {
+      for (let x = 0; x < N; x++) {
+        if (op(x, y)) continue;
+        let hit = false;
+        for (let dy = -thick; dy <= thick && !hit; dy++) {
+          for (let dx = -thick; dx <= thick && !hit; dx++) {
+            if (Math.abs(dx) + Math.abs(dy) <= thick && op(x + dx, y + dy)) hit = true;
+          }
+        }
+        if (hit) {
+          const i = (y * N + x) * 4;
+          data[i] = orr; data[i + 1] = og; data[i + 2] = ob; data[i + 3] = 255;
+        }
+      }
+    }
+  }
+
+  if (layout.safe) {
+    const k = N / 64;
+    const x0 = Math.floor(layout.safe.x * k), y0 = Math.floor(layout.safe.y * k);
+    const x1 = Math.ceil((layout.safe.x + layout.safe.width) * k), y1 = Math.ceil((layout.safe.y + layout.safe.height) * k);
+    for (let y = 0; y < N; y++) for (let x = 0; x < N; x++) {
+      if (x >= x0 && y >= y0 && x < x1 && y < y1) continue;
+      data[(y * N + x) * 4 + 3] = 0;
+    }
+  }
+
+  return { width: N, height: N, data };
+}

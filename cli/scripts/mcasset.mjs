@@ -23,8 +23,13 @@ if (typeof globalThis.ImageData === "undefined") {
 
 const STUDIOS = {
   sky: "skyblock/hypixel-skyblock-texture-generator (1)",
+  sky2: "skyblock/hypixel-skyblock-texture-generator",
+  forge: "skyblock/skyblock-texture-pack-generator",
+  adv: "weapons/advanced-minecraft-asset-generator",
   vox: "3d-forge/voxelforge-studio",
   arcane: "weapons/minecraft-magic-staff-generator (1)",
+  spell: "weapons/minecraft-magic-staff-generator",
+  sword: "weapons/minecraft-sword-texture-maker",
   mythic: "mod/mythicforge-studio",
   mythiccraft: "mod/mythiccraft-studio",
 };
@@ -58,27 +63,36 @@ const nodePaths = [
 
 const [target, ...rest] = process.argv.slice(2);
 const [studio, command] = (target ?? "").split(":");
-const valid = ["sky", "vox", "arcane", "mythic", "mythiccraft", "tex"];
+const valid = ["sky", "sky2", "forge", "adv", "vox", "arcane", "spell", "sword", "mythic", "mythiccraft", "tex"];
 if (!command || !valid.includes(studio)) {
   console.log(`mcasset — MCAssetGen unified CLI
 usage: npm run mcasset -- <studio>:<command> [options]
 studios:
   tex    texture studio (delegates to texcraft CLI)
   sky    SkyForge texture generator
+  sky2   classic SkyBlock texture generator (64px pixel forge)
+  forge  SkyBlock Texture Forge (raster engine + resource pack builder)
+  adv    advanced weapon asset generator (32 shapes/materials/anim/3D)
   vox    VoxelForge 3D model generator
   arcane Arcane Forge staff renderer
+  spell  Spellforge staff renderer
+  sword  AegisBlade sword renderer
   mythic MythicForge Fabric mod generator
   mythiccraft MythicCraft mod generator
 examples:
   npm run mcasset -- sky:items
   npm run mcasset -- sky:render --item hyperion --seed 7 --out mm/tex.png
+  npm run mcasset -- sky2:render --item hyperion --size 32 --out mm/tex.png
+  npm run mcasset -- forge:render --item HYPERION --res 32 --out mm/forge.png
+  npm run mcasset -- adv:render --shape sword --material ruby --out mm/w.png
   npm run mcasset -- arcane:render --random --out mm/staff.png
   npm run mcasset -- mythic:build --project proj.json --out moddev/mymod`);
   process.exit(command ? 1 : 0);
 }
 
 if (studio === "tex") {
-  const r = spawnSync(process.execPath, ["../texture/texcraft/scripts/mcasset.mjs", command, ...rest], { cwd: root, stdio: "inherit", shell: false });
+  const texRoot = path.join(AI, "texture/texcraft");
+  const r = spawnSync(process.execPath, [path.join(texRoot, "scripts/mcasset.mjs"), command, ...rest], { cwd: texRoot, stdio: "inherit", shell: false });
   process.exit(r.status ?? 1);
 }
 
@@ -91,6 +105,9 @@ await build({
   outfile: path.join(AI, STUDIOS[studio], ".cli", `${studio}.cjs`),
   logLevel: "warning",
   plugins: [aliasPlugin],
+  banner: {
+    js: `if(typeof globalThis.ImageData==="undefined"){globalThis.ImageData=class{constructor(a,b,c){if(typeof a==="number"){this.width=a;this.height=b;this.data=new Uint8ClampedArray(a*b*4)}else{this.data=a;this.width=b;this.height=c??a.length/4/b}}};}`,
+  },
 });
 
 const result = spawnSync(process.execPath, [path.join(AI, STUDIOS[studio], ".cli", `${studio}.cjs`)], {

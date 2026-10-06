@@ -1,3 +1,5 @@
+if(typeof globalThis.ImageData==="undefined"){globalThis.ImageData=class{constructor(a,b,c){if(typeof a==="number"){this.width=a;this.height=b;this.data=new Uint8ClampedArray(a*b*4)}else{this.data=a;this.width=b;this.height=c??a.length/4/b}}};}
+
 // src/lib/cli.ts
 import { readFileSync, writeFileSync } from "node:fs";
 
@@ -38,10 +40,10 @@ function hash2(x, y, seed) {
 function tileNoise(seed, period) {
   return (x, y) => {
     const x0 = Math.floor(x), y0 = Math.floor(y);
-    const fx = x - x0, fy = y - y0;
+    const fx2 = x - x0, fy = y - y0;
     const m = (v) => mod(v, period);
     const a = hash2(m(x0), m(y0), seed), b = hash2(m(x0 + 1), m(y0), seed), c = hash2(m(x0), m(y0 + 1), seed), d = hash2(m(x0 + 1), m(y0 + 1), seed);
-    const sx = fx * fx * (3 - 2 * fx), sy = fy * fy * (3 - 2 * fy);
+    const sx = fx2 * fx2 * (3 - 2 * fx2), sy = fy * fy * (3 - 2 * fy);
     return a + (b - a) * sx + (c - a) * sy + (a - b - c + d) * sx * sy;
   };
 }
@@ -127,12 +129,12 @@ var EXTRA_EFFECTS = [
     apply(src, p, ctx) {
       const c = hexToRgb(p.color);
       const n = fbm(ctx.seed, src.w, src.h, p.scale, 2);
-      return paint(src, (rgb, x, y) => {
+      return paint(src, (rgb2, x, y) => {
         const v = n(x, y), facet = Math.floor(v * 7) / 7;
         const edge = Math.abs(v * 7 - Math.round(v * 7)) < 0.13;
-        const l = lum(...rgb) / 255;
+        const l = lum(...rgb2) / 255;
         const target = c.map((q) => q * (0.25 + facet * 0.8 + l * 0.4) + (edge ? 75 : 0));
-        return mix(rgb, target, p.amount / 100);
+        return mix(rgb2, target, p.amount / 100);
       });
     }
   },
@@ -150,9 +152,9 @@ var EXTRA_EFFECTS = [
         const i = (mod(y, src.h) * src.w + mod(x, src.w)) * 4;
         return lum(src.d[i], src.d[i + 1], src.d[i + 2]);
       };
-      return paint(src, (rgb, x, y) => {
+      return paint(src, (rgb2, x, y) => {
         const edge = Math.hypot(L(x + 1, y) - L(x - 1, y), L(x, y + 1) - L(x, y - 1));
-        return mix(rgb, c, clamp((edge - p.threshold) / 90, 0, 1) * p.amount / 100);
+        return mix(rgb2, c, clamp((edge - p.threshold) / 90, 0, 1) * p.amount / 100);
       });
     }
   },
@@ -166,9 +168,9 @@ var EXTRA_EFFECTS = [
     params: [color("#a97e4f"), amount, scale],
     apply(src, p, ctx) {
       const n = fbm(ctx.seed, src.w, src.h, 3, 2), c = hexToRgb(p.color);
-      return paint(src, (rgb, x, y) => {
+      return paint(src, (rgb2, x, y) => {
         const grain = Math.pow(0.5 + 0.5 * Math.sin((x / src.w * p.scale + n(x, y) * 0.7) * Math.PI * 2), 5);
-        return mix(rgb, c.map((v) => v * (0.7 + grain * 0.55)), p.amount / 100);
+        return mix(rgb2, c.map((v) => v * (0.7 + grain * 0.55)), p.amount / 100);
       });
     }
   },
@@ -182,11 +184,11 @@ var EXTRA_EFFECTS = [
     params: [color("#a5b6c0"), amount, { key: "vertical", label: "\u7E26\u65B9\u5411\u306E\u30E9\u30A4\u30F3", type: "bool", default: false }],
     apply(src, p, ctx) {
       const c = hexToRgb(p.color);
-      return paint(src, (rgb, x, y) => {
+      return paint(src, (rgb2, x, y) => {
         const row = p.vertical ? x : y, column = p.vertical ? y : x;
         const streak = hash2(row, 0, ctx.seed) * 0.25 + hash2(row, Math.floor(column / 8), ctx.seed) * 0.08;
         const reflection = Math.pow(Math.sin(column / Math.max(src.w, src.h) * Math.PI), 5) * 0.4;
-        return mix(rgb, c.map((v) => v * (0.4 + lum(...rgb) / 500 + streak + reflection)), p.amount / 100);
+        return mix(rgb2, c.map((v) => v * (0.4 + lum(...rgb2) / 500 + streak + reflection)), p.amount / 100);
       });
     }
   },
@@ -199,10 +201,10 @@ var EXTRA_EFFECTS = [
     desc: "\u7E26\u7CF8\u3068\u6A2A\u7CF8\u3092\u4EA4\u4E92\u306B\u7E54\u308A\u8FBC\u3093\u3060\u5E03\u5730\u306E\u30C7\u30A3\u30C6\u30FC\u30EB\u3002",
     params: [amount, { key: "size", label: "\u7CF8\u306E\u592A\u3055", type: "range", min: 1, max: 4, default: 1 }],
     apply(src, p) {
-      return paint(src, (rgb, x, y) => {
+      return paint(src, (rgb2, x, y) => {
         const u = Math.floor(x / p.size), v = Math.floor(y / p.size);
         const delta = ((u + v) % 2 ? -1 : 1) * 34 * p.amount / 100;
-        return rgb.map((q) => q + delta);
+        return rgb2.map((q) => q + delta);
       });
     }
   },
@@ -216,10 +218,10 @@ var EXTRA_EFFECTS = [
     params: [amount, animate],
     animated: (p) => p.animate,
     apply(src, p, ctx) {
-      return paint(src, (rgb, x, y) => {
-        const l = lum(...rgb) / 255;
+      return paint(src, (rgb2, x, y) => {
+        const l = lum(...rgb2) / 255;
         const hue = (x / src.w - y / src.h) * 160 + l * 220 + (p.animate ? ctx.t * 360 : 0);
-        return mix(rgb, hslToRgb(hue, 0.45, clamp(l * 0.65 + 0.28, 0, 0.95)), p.amount / 100);
+        return mix(rgb2, hslToRgb(hue, 0.45, clamp(l * 0.65 + 0.28, 0, 0.95)), p.amount / 100);
       });
     }
   },
@@ -233,12 +235,12 @@ var EXTRA_EFFECTS = [
     params: [amount, scale, { ...animate, default: true }],
     animated: (p) => p.animate,
     apply(src, p, ctx) {
-      return paint(src, (rgb, x, y) => {
+      return paint(src, (rgb2, x, y) => {
         const u = x / src.w, v = y / src.h, t = p.animate ? ctx.t * Math.PI * 2 : 0;
         const wave = Math.sin(u * Math.PI * 2 * p.scale + Math.sin(v * 5 + t) * 2);
         const ribbon = Math.pow(Math.max(0, wave), 3) * (0.4 + v * 0.6);
         const c = hslToRgb(150 + v * 125 + Math.sin(t) * 20, 0.8, 0.65);
-        return rgb.map((q, i) => q + c[i] * ribbon * p.amount / 100);
+        return rgb2.map((q, i) => q + c[i] * ribbon * p.amount / 100);
       });
     }
   },
@@ -252,10 +254,10 @@ var EXTRA_EFFECTS = [
     params: [amount, scale, { key: "stars", label: "\u661F\u306E\u5BC6\u5EA6", type: "range", min: 0, max: 100, default: 35 }],
     apply(src, p, ctx) {
       const n = fbm(ctx.seed, src.w, src.h, p.scale, 3);
-      return paint(src, (rgb, x, y) => {
+      return paint(src, (rgb2, x, y) => {
         const v = n(x, y), c = hslToRgb(200 + v * 100, 0.8, 0.15 + v * 0.45);
-        if (hash2(x, y, ctx.seed + 91) > 1 - p.stars / 6e3) return mix(rgb, [234, 247, 255], p.amount / 100);
-        return mix(rgb, c, p.amount / 100);
+        if (hash2(x, y, ctx.seed + 91) > 1 - p.stars / 6e3) return mix(rgb2, [234, 247, 255], p.amount / 100);
+        return mix(rgb2, c, p.amount / 100);
       });
     }
   },
@@ -270,13 +272,13 @@ var EXTRA_EFFECTS = [
     animated: (p) => p.animate,
     apply(src, p, ctx) {
       const c = hexToRgb(p.color), pulse = p.animate ? 0.65 + 0.35 * Math.sin(ctx.t * Math.PI * 2) : 1;
-      return paint(src, (rgb, x, y) => {
+      return paint(src, (rgb2, x, y) => {
         const u = (x + 0.5) / src.w - 0.5, v = (y + 0.5) / src.h - 0.5;
         const r = Math.hypot(u, v), a = Math.atan2(v, u), width = 0.7 / Math.min(src.w, src.h);
         const rings = Math.abs(r - 0.39) < width || Math.abs(r - 0.29) < width;
         const glyph = r > 0.31 && r < 0.37 && Math.abs(Math.sin(a * 8)) < 0.3;
         const diamond = Math.abs(Math.abs(u) + Math.abs(v) - 0.3) < width;
-        return rings || glyph || diamond ? mix(rgb, c, p.amount / 100 * pulse) : rgb;
+        return rings || glyph || diamond ? mix(rgb2, c, p.amount / 100 * pulse) : rgb2;
       });
     }
   },
@@ -289,9 +291,9 @@ var EXTRA_EFFECTS = [
     desc: "\u9670\u5F71\u306B\u7D30\u3044\u659C\u7DDA\u3092\u52A0\u3048\u3066\u624B\u63CF\u304D\u306E\u96F0\u56F2\u6C17\u306B\u3002",
     params: [amount, { key: "spacing", label: "\u7DDA\u306E\u9593\u9694", type: "range", min: 2, max: 8, default: 4 }],
     apply(src, p) {
-      return paint(src, (rgb, x, y) => {
-        const l = lum(...rgb), line = l < 175 && (x + y) % p.spacing === 0 || l < 85 && mod(x - y, p.spacing) === 0;
-        return line ? mix(rgb, [18, 22, 24], p.amount / 100) : rgb;
+      return paint(src, (rgb2, x, y) => {
+        const l = lum(...rgb2), line = l < 175 && (x + y) % p.spacing === 0 || l < 85 && mod(x - y, p.spacing) === 0;
+        return line ? mix(rgb2, [18, 22, 24], p.amount / 100) : rgb2;
       });
     }
   },
@@ -304,10 +306,10 @@ var EXTRA_EFFECTS = [
     desc: "RGB\u30C1\u30E3\u30F3\u30CD\u30EB\u3092\u305A\u3089\u3057\u3066\u30B5\u30A4\u30D0\u30FC\u306A\u8272\u306E\u306B\u3058\u307F\u3092\u8FFD\u52A0\u3002",
     params: [amount, { key: "offset", label: "\u305A\u3089\u3057\u5E45 (px)", type: "range", min: 1, max: 6, default: 1 }],
     apply(src, p) {
-      return paint(src, (rgb, x, y) => {
+      return paint(src, (rgb2, x, y) => {
         const left = (y * src.w + mod(x - p.offset, src.w)) * 4;
         const right = (y * src.w + mod(x + p.offset, src.w)) * 4;
-        return mix(rgb, [src.d[right + 3] ? src.d[right] : rgb[0], rgb[1], src.d[left + 3] ? src.d[left + 2] : rgb[2]], p.amount / 100);
+        return mix(rgb2, [src.d[right + 3] ? src.d[right] : rgb2[0], rgb2[1], src.d[left + 3] ? src.d[left + 2] : rgb2[2]], p.amount / 100);
       });
     }
   },
@@ -321,12 +323,12 @@ var EXTRA_EFFECTS = [
     params: [color("#bde9f5"), amount, { key: "frosted", label: "\u3059\u308A\u30AC\u30E9\u30B9", type: "bool", default: false }],
     apply(src, p, ctx) {
       const c = hexToRgb(p.color);
-      return paint(src, (rgb, x, y) => {
+      return paint(src, (rgb2, x, y) => {
         const u = x / src.w, v = y / src.h, d = u - v;
         const shine = Math.abs(d - 0.2) < 0.09 ? 0.6 : Math.abs(d - 0.4) < 0.025 ? 0.3 : 0.04;
         const edge = x === 0 || y === 0 || x === src.w - 1 || y === src.h - 1;
         const frost = p.frosted ? hash2(x, y, ctx.seed) * 0.28 : 0;
-        return mix(rgb, c, (shine + (edge ? 0.3 : 0) + frost) * p.amount / 100);
+        return mix(rgb2, c, (shine + (edge ? 0.3 : 0) + frost) * p.amount / 100);
       });
     }
   }
@@ -1162,12 +1164,12 @@ function nearestOnto(src, dstW, dstH) {
   }
   return out;
 }
-function stampPart(base, part, blend = "over", amount2 = 100, recolor) {
+function stampPart(base, part, blend = "over", amount2 = 100, recolor2) {
   const stamp = nearestOnto(stampToTex(part), base.w, base.h);
   const out = cloneTex(base);
   const k = amount2 / 100;
   let rec = null;
-  if (recolor) rec = hexToRgb(recolor);
+  if (recolor2) rec = hexToRgb(recolor2);
   for (let i = 0; i < stamp.d.length; i += 4) {
     const sa = stamp.d[i + 3] / 255;
     if (sa < 0.02) continue;
@@ -1746,15 +1748,15 @@ var DECOR_FX = [
         const x = ((x0 + Math.sin(ctx.t * 1.6 * sp + sway) * 1.8) % w + w) % w;
         const life = 1 - y / h * 0.25;
         const a = clamp01(life * (0.55 + 0.45 * Math.sin(ctx.t * 6 + k))) * 255;
-        const px = Math.round(x), py = Math.round(y);
-        if (v.glow) addPx(img, px, py, c.r, c.g, c.b, a * 0.85);
-        else overPx(img, px, py, c.r, c.g, c.b, a);
+        const px2 = Math.round(x), py = Math.round(y);
+        if (v.glow) addPx(img, px2, py, c.r, c.g, c.b, a * 0.85);
+        else overPx(img, px2, py, c.r, c.g, c.b, a);
         if (s >= 2) {
-          addPx(img, px + 1, py, c.r, c.g, c.b, a * 0.4);
-          addPx(img, px - 1, py, c.r, c.g, c.b, a * 0.4);
-          addPx(img, px, py + 1, c.r, c.g, c.b, a * 0.35);
+          addPx(img, px2 + 1, py, c.r, c.g, c.b, a * 0.4);
+          addPx(img, px2 - 1, py, c.r, c.g, c.b, a * 0.4);
+          addPx(img, px2, py + 1, c.r, c.g, c.b, a * 0.35);
         }
-        if (s >= 3 || rnd() > 0.7) addPx(img, px, py, cc.r, cc.g, cc.b, a * 0.7);
+        if (s >= 3 || rnd() > 0.7) addPx(img, px2, py, cc.r, cc.g, cc.b, a * 0.7);
       }
     },
     true
@@ -1774,15 +1776,15 @@ var DECOR_FX = [
         const x0 = rnd() * w, y0 = rnd() * h, sp = 0.4 + rnd() * 0.9;
         const y = ((y0 + ctx.t * v.speed * 11 * sp) % h + h) % h;
         const x = ((x0 + Math.sin(ctx.t * 1.1 * sp + k) * 2.2) % w + w) % w;
-        const px = Math.round(x), py = Math.round(y);
-        overPx(img, px, py, 255, 255, 255, 235);
+        const px2 = Math.round(x), py = Math.round(y);
+        overPx(img, px2, py, 255, 255, 255, 235);
         if (s >= 2) {
-          overPx(img, px + 1, py, 240, 248, 255, 170);
-          overPx(img, px, py + 1, 240, 248, 255, 170);
+          overPx(img, px2 + 1, py, 240, 248, 255, 170);
+          overPx(img, px2, py + 1, 240, 248, 255, 170);
         }
         if (s >= 3) {
-          overPx(img, px - 1, py, 230, 240, 255, 120);
-          overPx(img, px, py - 1, 230, 240, 255, 120);
+          overPx(img, px2 - 1, py, 230, 240, 255, 120);
+          overPx(img, px2, py - 1, 230, 240, 255, 120);
         }
       }
       if (v.frost) {
@@ -1874,17 +1876,17 @@ var DECOR_FX = [
         for (let y = 0; y < 7; y++)
           for (let x = 0; x < 5; x++) {
             if (g[y][x] !== "1") continue;
-            const px = gx + x * sc, py = gy + y * sc;
+            const px2 = gx + x * sc, py = gy + y * sc;
             for (let sy = 0; sy < sc; sy++) for (let sx = 0; sx < sc; sx++) {
-              screenPx(img, px + sx, py + sy, c.r, c.g, c.b, 200 * pulse);
-              overPx(img, px + sx, py + sy, clamp2(c.r * 0.7 + 80 * pulse), clamp2(c.g * 0.7 + 80 * pulse), clamp2(c.b * 0.7 + 80 * pulse), 200 * pulse);
+              screenPx(img, px2 + sx, py + sy, c.r, c.g, c.b, 200 * pulse);
+              overPx(img, px2 + sx, py + sy, clamp2(c.r * 0.7 + 80 * pulse), clamp2(c.g * 0.7 + 80 * pulse), clamp2(c.b * 0.7 + 80 * pulse), 200 * pulse);
             }
             if (v.glow > 0) {
               const gr = Math.round(sc * 1.6 * (v.glow / 100));
               for (let oy = -gr; oy <= gr; oy++) for (let ox = -gr; ox <= gr; ox++) {
                 const d = Math.hypot(ox, oy);
                 if (d > gr) continue;
-                addPx(img, px + ox, py + oy, c.r, c.g, c.b, clamp01(1 - d / (gr + 0.4)) * v.glow * 0.9 * pulse);
+                addPx(img, px2 + ox, py + oy, c.r, c.g, c.b, clamp01(1 - d / (gr + 0.4)) * v.glow * 0.9 * pulse);
               }
             }
           }
@@ -2141,10 +2143,10 @@ var MATERIAL_FX = [
         const ang = rnd() * Math.PI * 2;
         const len = 2 + rnd() * v.length;
         for (let i = 0; i < len; i++) {
-          const px = Math.round(x + Math.cos(ang) * i), py = Math.round(y + Math.sin(ang) * i);
-          if (px < 0 || py < 0 || px >= w || py >= h || m[py * w + px] < 0.25) continue;
+          const px2 = Math.round(x + Math.cos(ang) * i), py = Math.round(y + Math.sin(ang) * i);
+          if (px2 < 0 || py < 0 || px2 >= w || py >= h || m[py * w + px2] < 0.25) continue;
           const fall = 1 - Math.abs(i - len / 2) / (len / 2 + 0.4);
-          const i2 = py * w + px << 2;
+          const i2 = py * w + px2 << 2;
           if (v.light) {
             img.data[i2] = clamp2(img.data[i2] + 90 * k * fall);
             img.data[i2 + 1] = clamp2(img.data[i2 + 1] + 88 * k * fall);
@@ -2360,9 +2362,9 @@ var MATERIAL_FX = [
         for (let x = 0; x < w; x++) {
           const i = y * w + x << 2;
           if (img.data[i + 3] === 0) continue;
-          const idx = v.dir === "h" ? y : x;
-          let n = line[idx] * 42 * k;
-          n += (valueNoise(v.dir === "h" ? x / v.freq : y / v.freq, idx * 3.1, 44) - 0.5) * 30 * k;
+          const idx2 = v.dir === "h" ? y : x;
+          let n = line[idx2] * 42 * k;
+          n += (valueNoise(v.dir === "h" ? x / v.freq : y / v.freq, idx2 * 3.1, 44) - 0.5) * 30 * k;
           if (v.specular) {
             const pos = (v.dir === "h" ? x : y) / (v.dir === "h" ? w : h);
             n += Math.exp(-Math.pow((pos - 0.34) / 0.16, 2)) * 46 * k;
@@ -2831,8 +2833,8 @@ var SPECIAL_FX = [
         const flush = () => {
           if (run.length > 1) {
             const sorted = [...run].sort((a, b) => v.desc ? b.l - a.l : a.l - b.l);
-            run.forEach((p, idx) => {
-              const i = p.y * w + p.x << 2, j = sorted[idx].y * w + sorted[idx].x << 2;
+            run.forEach((p, idx2) => {
+              const i = p.y * w + p.x << 2, j = sorted[idx2].y * w + sorted[idx2].x << 2;
               img.data[i] = img.data[j];
               img.data[i + 1] = img.data[j + 1];
               img.data[i + 2] = img.data[j + 2];
@@ -3110,8 +3112,8 @@ var EXTRA_FX = [
         const rad = v.size;
         for (let y = -rad; y <= rad; y++) {
           for (let x = -rad; x <= rad; x++) {
-            const px = cx + x, py = cy + y;
-            if (px < 0 || py < 0 || px >= w || py >= h) continue;
+            const px2 = cx + x, py = cy + y;
+            if (px2 < 0 || py < 0 || px2 >= w || py >= h) continue;
             const dist2 = Math.abs(x) + Math.abs(y);
             if (dist2 <= rad) {
               const shade2 = 1 - dist2 / (rad + 1);
@@ -3120,7 +3122,7 @@ var EXTRA_FX = [
                 const hl = rgbToHsl2(c.r, c.g, c.b);
                 col = hslToRgb2(hl.h + (x - y) * 0.08, hl.s, hl.l);
               }
-              addPx(img, px, py, col.r * shade2, col.g * shade2, col.b * shade2, 220);
+              addPx(img, px2, py, col.r * shade2, col.g * shade2, col.b * shade2, 220);
             }
           }
         }
@@ -3306,10 +3308,10 @@ var EXTRA_FX = [
         const sp = 0.6 + rnd() * 0.8;
         const y = (y0 + ctx.t * v.speed * 10 * sp) % h;
         const x = ((x0 + Math.sin(ctx.t * 2 * sp + k) * 4) % w + w) % w;
-        const px = Math.round(x), py = Math.round(y);
-        overPx(img, px, py, c.r, c.g, c.b, 240);
-        overPx(img, px + 1, py, c.r * 1.1, c.g * 0.9, c.b * 0.95, 200);
-        overPx(img, px, py + 1, c.r * 0.9, c.g * 0.8, c.b * 0.85, 180);
+        const px2 = Math.round(x), py = Math.round(y);
+        overPx(img, px2, py, c.r, c.g, c.b, 240);
+        overPx(img, px2 + 1, py, c.r * 1.1, c.g * 0.9, c.b * 0.95, 200);
+        overPx(img, px2, py + 1, c.r * 0.9, c.g * 0.8, c.b * 0.85, 180);
       }
     },
     true
@@ -4379,14 +4381,14 @@ function nearestColor(r, g, b, pal2) {
   return best;
 }
 function kmeans(t, k, seed) {
-  const px = [];
-  for (let i = 0; i < t.d.length; i += 4) if (t.d[i + 3] > 0) px.push([t.d[i], t.d[i + 1], t.d[i + 2]]);
-  if (!px.length) return [[0, 0, 0]];
+  const px2 = [];
+  for (let i = 0; i < t.d.length; i += 4) if (t.d[i + 3] > 0) px2.push([t.d[i], t.d[i + 1], t.d[i + 2]]);
+  if (!px2.length) return [[0, 0, 0]];
   const R4 = rng(seed);
-  let cent = Array.from({ length: k }, () => [...px[Math.floor(R4() * px.length)]]);
+  let cent = Array.from({ length: k }, () => [...px2[Math.floor(R4() * px2.length)]]);
   for (let it = 0; it < 8; it++) {
     const sum = cent.map(() => [0, 0, 0, 0]);
-    for (const p of px) {
+    for (const p of px2) {
       let bi = 0, bd = 1e12;
       cent.forEach((c, j) => {
         const dd = (p[0] - c[0]) ** 2 + (p[1] - c[1]) ** 2 + (p[2] - c[2]) ** 2;
@@ -4433,7 +4435,7 @@ function scale2x(src) {
   const W = src.w, H = src.h;
   const get = (x, y) => I(src, clamp(x, 0, W - 1), clamp(y, 0, H - 1));
   const eq = (a, b) => src.d[a] === src.d[b] && src.d[a + 1] === src.d[b + 1] && src.d[a + 2] === src.d[b + 2] && src.d[a + 3] === src.d[b + 3];
-  const put = (x, y, s) => {
+  const put2 = (x, y, s) => {
     const o = I(out, x, y);
     out.d[o] = src.d[s];
     out.d[o + 1] = src.d[s + 1];
@@ -4450,10 +4452,10 @@ function scale2x(src) {
         if (eq(D, C4)) e2 = C4;
         if (eq(D, B)) e3 = B;
       }
-      put(x * 2, y * 2, e0);
-      put(x * 2 + 1, y * 2, e1);
-      put(x * 2, y * 2 + 1, e2);
-      put(x * 2 + 1, y * 2 + 1, e3);
+      put2(x * 2, y * 2, e0);
+      put2(x * 2 + 1, y * 2, e1);
+      put2(x * 2, y * 2 + 1, e2);
+      put2(x * 2 + 1, y * 2 + 1, e3);
     }
   return out;
 }
@@ -4521,19 +4523,19 @@ var EFFECTS = [
       const [ch, cs] = rgbToHsl(...c);
       return map(src, (r, g, b) => {
         let o;
-        const px = [r, g, b];
+        const px2 = [r, g, b];
         switch (p.mode) {
           case "multiply":
-            o = px.map((v, i) => v * c[i] / 255);
+            o = px2.map((v, i) => v * c[i] / 255);
             break;
           case "screen":
-            o = px.map((v, i) => 255 - (255 - v) * (255 - c[i]) / 255);
+            o = px2.map((v, i) => 255 - (255 - v) * (255 - c[i]) / 255);
             break;
           case "overlay":
-            o = px.map((v, i) => v < 128 ? 2 * v * c[i] / 255 : 255 - 2 * (255 - v) * (255 - c[i]) / 255);
+            o = px2.map((v, i) => v < 128 ? 2 * v * c[i] / 255 : 255 - 2 * (255 - v) * (255 - c[i]) / 255);
             break;
           case "add":
-            o = px.map((v, i) => v + c[i] * 0.6);
+            o = px2.map((v, i) => v + c[i] * 0.6);
             break;
           default: {
             const [, , l] = rgbToHsl(r, g, b);
@@ -5087,8 +5089,8 @@ var EFFECTS = [
         n++;
       }
       const glowC = [255, 140, 30];
-      crack.forEach((idx) => {
-        const x = idx % src.w, y = Math.floor(idx / src.w), i = idx * 4;
+      crack.forEach((idx2) => {
+        const x = idx2 % src.w, y = Math.floor(idx2 / src.w), i = idx2 * 4;
         const cc = p.glow ? hash2(x, y, ctx.seed) > 0.5 ? glowC : [255, 210, 80] : c;
         out.d[i] = mix3(src.d[i], cc[0], k);
         out.d[i + 1] = mix3(src.d[i + 1], cc[1], k);
@@ -5206,14 +5208,14 @@ var EFFECTS = [
         }
         for (const [cx, cy] of cells)
           for (let yy = 0; yy < sc; yy++) for (let xx = 0; xx < sc; xx++) {
-            const px = cx * sc + xx - (sc > 1 ? x * (sc - 1) : 0), py = cy * sc + yy - (sc > 1 ? y * (sc - 1) : 0);
-            if (!wrap && (px < 0 || py < 0 || px >= W || py >= H)) continue;
-            if (A(src, mod(px, W), mod(py, H))) blob.add(key(px, py));
+            const px2 = cx * sc + xx - (sc > 1 ? x * (sc - 1) : 0), py = cy * sc + yy - (sc > 1 ? y * (sc - 1) : 0);
+            if (!wrap && (px2 < 0 || py < 0 || px2 >= W || py >= H)) continue;
+            if (A(src, mod(px2, W), mod(py, H))) blob.add(key(px2, py));
           }
       }
       const inB = (x, y) => blob.has(key(x, y));
-      blob.forEach((idx) => {
-        const x = idx % W, y = Math.floor(idx / W), i = idx * 4;
+      blob.forEach((idx2) => {
+        const x = idx2 % W, y = Math.floor(idx2 / W), i = idx2 * 4;
         let f = 1;
         if (!inB(x - 1, y) || !inB(x, y - 1)) f = 1.3;
         else if (!inB(x + 1, y) || !inB(x, y + 1)) f = 0.7;
@@ -5451,23 +5453,23 @@ var EFFECTS = [
         if (v < 0.05) continue;
         const arm = p.style === "dot" ? 0 : p.style === "cross" ? 1 : p.style === "star" ? 2 : 3;
         const len = Math.round(arm * v * sc);
-        const put = (xx, yy, a) => {
+        const put2 = (xx, yy, a) => {
           if (p.onOpaque && !A(src, wrap ? mod(xx, src.w) : xx, wrap ? mod(yy, src.h) : yy)) return;
           blendAt(out, xx, yy, c, a, wrap);
         };
-        for (let yy = 0; yy < sc; yy++) for (let xx = 0; xx < sc; xx++) put(x + xx, y + yy, v);
+        for (let yy = 0; yy < sc; yy++) for (let xx = 0; xx < sc; xx++) put2(x + xx, y + yy, v);
         for (let d = 1; d <= len; d++) {
           const a = v * (1 - (d - 1) / (len + 1)) * 0.85;
-          put(x + d, y, a);
-          put(x - d, y, a);
-          put(x, y + d, a);
-          put(x, y - d, a);
+          put2(x + d, y, a);
+          put2(x - d, y, a);
+          put2(x, y + d, a);
+          put2(x, y - d, a);
         }
         if (arm >= 3 && v > 0.6) {
-          put(x + 1, y + 1, 0.4);
-          put(x - 1, y - 1, 0.4);
-          put(x + 1, y - 1, 0.4);
-          put(x - 1, y + 1, 0.4);
+          put2(x + 1, y + 1, 0.4);
+          put2(x - 1, y - 1, 0.4);
+          put2(x + 1, y - 1, 0.4);
+          put2(x - 1, y + 1, 0.4);
         }
       }
       return out;
@@ -5921,11 +5923,11 @@ var EFFECTS = [
         const x = Math.floor(x0 + Math.sin((t + ph) * Math.PI * 2) * S3.sway * sc);
         const a = p.type === "ember" ? 1 - t * 0.7 : 0.9;
         for (let yy = 0; yy < sc; yy++) for (let xx = 0; xx < sc; xx++) {
-          const px = mod(x + xx, src.w), py = y + yy;
+          const px2 = mod(x + xx, src.w), py = y + yy;
           if (py < 0 || py >= src.h) continue;
-          if (p.onOpaque && !A(src, px, py)) continue;
+          if (p.onOpaque && !A(src, px2, py)) continue;
           if (p.type === "bubble" && (xx + yy) % 2 === 1 && sc > 1) continue;
-          blendAt(out, px, py, cols[ci], a);
+          blendAt(out, px2, py, cols[ci], a);
         }
       }
       return out;
@@ -6342,13 +6344,13 @@ var EFFECTS = [
       const cx = src.w / 2, cy = src.h / 2;
       for (let n = 0; n < p.count; n++) {
         const ang = (ctx.t + n / p.count) * Math.PI * 2;
-        const px = Math.round(cx + Math.cos(ang) * rad);
+        const px2 = Math.round(cx + Math.cos(ang) * rad);
         const py = Math.round(cy + Math.sin(ang) * rad);
         const s = p.size;
         for (let yy = -s; yy <= s; yy++) for (let xx = -s; xx <= s; xx++) {
           if (xx * xx + yy * yy > s * s) continue;
           const a = 1 - Math.hypot(xx, yy) / (s + 0.5);
-          blendAt(out, px + xx, py + yy, c, a, wrap);
+          blendAt(out, px2 + xx, py + yy, c, a, wrap);
         }
       }
       return out;
@@ -6528,10 +6530,10 @@ var EFFECTS = [
       for (let n = 0; n < p.count; n++) {
         const ang = R4() * Math.PI * 2;
         const dist2 = burst * (0.3 + R4() * 0.7) * Math.min(src.w, src.h) * 0.5;
-        const px = Math.round(src.w / 2 + Math.cos(ang) * dist2);
+        const px2 = Math.round(src.w / 2 + Math.cos(ang) * dist2);
         const py = Math.round(src.h / 2 + Math.sin(ang) * dist2);
-        blendAt(out, px, py, c, burst, wrap);
-        if (burst > 0.5) blendAt(out, px + Math.round(Math.cos(ang)), py + Math.round(Math.sin(ang)), c, burst * 0.6, wrap);
+        blendAt(out, px2, py, c, burst, wrap);
+        if (burst > 0.5) blendAt(out, px2 + Math.round(Math.cos(ang)), py + Math.round(Math.sin(ang)), c, burst * 0.6, wrap);
       }
       return out;
     }
@@ -6671,9 +6673,9 @@ var EFFECTS = [
         const md = Math.abs(x) + Math.abs(y);
         if (md > s) continue;
         const col = x + y < 0 ? light : x + y > 1 ? dark : c;
-        const px = cx + x, py = cy + y;
-        if (px < 0 || py < 0 || px >= src.w || py >= src.h) continue;
-        const i = I(out, px, py);
+        const px2 = cx + x, py = cy + y;
+        if (px2 < 0 || py < 0 || px2 >= src.w || py >= src.h) continue;
+        const i = I(out, px2, py);
         out.d[i] = col[0];
         out.d[i + 1] = col[1];
         out.d[i + 2] = col[2];
@@ -6835,380 +6837,688 @@ function applyStack(base, layers, t, upto = layers.length) {
   return cur;
 }
 
-// src/lib/pixelConvert.ts
-var dist = (a, b) => {
-  const dr = a[0] - b[0], dg = a[1] - b[1], db = a[2] - b[2];
-  return 0.3 * dr * dr + 0.59 * dg * dg + 0.11 * db * db;
+// src/lib/geometry.ts
+var idx = (t, x, y) => (y * t.w + x) * 4;
+var alphaAt = (t, x, y) => x < 0 || y < 0 || x >= t.w || y >= t.h ? 0 : t.d[idx(t, x, y) + 3];
+var isOpaqueTex2 = (t) => {
+  for (let i = 3; i < t.d.length; i += 4) if (t.d[i] < 128) return false;
+  return true;
 };
-function nearest(c, pal2) {
-  let best = 0, bd = Infinity;
-  for (let i = 0; i < pal2.length; i++) {
-    const d = dist(c, pal2[i]);
+var px = (t) => Math.max(1, Math.round(Math.max(t.w, t.h) / 16));
+function bounds(t) {
+  let x0 = t.w, y0 = t.h, x1 = -1, y1 = -1;
+  for (let y = 0; y < t.h; y++) for (let x = 0; x < t.w; x++) if (t.d[idx(t, x, y) + 3] >= 128) {
+    x0 = Math.min(x0, x);
+    y0 = Math.min(y0, y);
+    x1 = Math.max(x1, x);
+    y1 = Math.max(y1, y);
+  }
+  if (x1 < 0) return { x0: 0, y0: 0, x1: t.w - 1, y1: t.h - 1, cx: t.w / 2, cy: t.h / 2 };
+  return { x0, y0, x1, y1, cx: (x0 + x1 + 1) / 2, cy: (y0 + y1 + 1) / 2 };
+}
+function handleOf(t) {
+  let best = [t.w * 0.25, t.h * 0.75], bd = Infinity;
+  for (let y = 0; y < t.h; y++) for (let x = 0; x < t.w; x++) if (t.d[idx(t, x, y) + 3] >= 128) {
+    const d = x + (t.h - 1 - y);
     if (d < bd) {
       bd = d;
-      best = i;
+      best = [x + 0.5, y + 0.5];
     }
   }
-  return pal2[best];
+  return best;
 }
-function kmeans2(px, k) {
-  if (!px.length) return [[128, 128, 128]];
-  const cents = [px[Math.floor(px.length / 2)]];
-  while (cents.length < k && cents.length < px.length) {
-    let far = px[0], fd = -1;
-    for (let i = 0; i < px.length; i += Math.max(1, Math.floor(px.length / 400))) {
-      let m = Infinity;
-      for (const c of cents) m = Math.min(m, dist(px[i], c));
-      if (m > fd) {
-        fd = m;
-        far = px[i];
+function tipOf(t) {
+  let best = [t.w * 0.75, t.h * 0.25], bd = -Infinity;
+  for (let y = 0; y < t.h; y++) for (let x = 0; x < t.w; x++) if (t.d[idx(t, x, y) + 3] >= 128) {
+    const d = x + (t.h - 1 - y);
+    if (d > bd) {
+      bd = d;
+      best = [x + 0.5, y + 0.5];
+    }
+  }
+  return best;
+}
+function reach(t) {
+  const [hx, hy] = handleOf(t), [tx, ty] = tipOf(t);
+  return Math.max(1, Math.hypot(tx - hx, ty - hy));
+}
+function transformTex(src, inverse) {
+  const out = createTex(src.w, src.h);
+  for (let y = 0; y < src.h; y++) for (let x = 0; x < src.w; x++) {
+    const [sx, sy] = inverse(x + 0.5, y + 0.5);
+    const ix = Math.floor(sx), iy = Math.floor(sy);
+    if (ix < 0 || iy < 0 || ix >= src.w || iy >= src.h) continue;
+    const s = idx(src, ix, iy), o = idx(out, x, y);
+    out.d[o] = src.d[s];
+    out.d[o + 1] = src.d[s + 1];
+    out.d[o + 2] = src.d[s + 2];
+    out.d[o + 3] = src.d[s + 3];
+  }
+  return out;
+}
+function rotateAbout(src, deg, pxv, pyv, scale2 = 1, dx = 0, dy = 0) {
+  if (!deg && scale2 === 1 && !dx && !dy) return src;
+  const r = -deg * Math.PI / 180, c = Math.cos(r), s = Math.sin(r);
+  return transformTex(src, (x, y) => {
+    const ox = x - dx - pxv, oy = y - dy - pyv;
+    return [pxv + (ox * c - oy * s) / scale2, pyv + (ox * s + oy * c) / scale2];
+  });
+}
+var translateTex = (src, dx, dy) => dx || dy ? transformTex(src, (x, y) => [x - dx, y - dy]) : src;
+function safeScale(t, k, pxv, pyv) {
+  const b = bounds(t);
+  let m = k;
+  for (const [cx, cy] of [[b.x0, b.y0], [b.x1 + 1, b.y0], [b.x0, b.y1 + 1], [b.x1 + 1, b.y1 + 1]]) {
+    const ox = cx - pxv, oy = cy - pyv;
+    if (ox > 0.01) m = Math.min(m, (t.w - pxv) / ox);
+    if (ox < -0.01) m = Math.min(m, pxv / -ox);
+    if (oy > 0.01) m = Math.min(m, (t.h - pyv) / oy);
+    if (oy < -0.01) m = Math.min(m, pyv / -oy);
+  }
+  return Math.max(0.3, m);
+}
+var scaleAbout = (src, k, pxv, pyv) => rotateAbout(src, 0, pxv, pyv, safeScale(src, k, pxv, pyv));
+function composite(dst, src, opacity = 1) {
+  const out = cloneTex(dst);
+  for (let i = 0; i < out.d.length; i += 4) {
+    const sa = src.d[i + 3] / 255 * opacity;
+    if (sa <= 0) continue;
+    const da = out.d[i + 3] / 255, oa = sa + da * (1 - sa);
+    for (let q = 0; q < 3; q++) out.d[i + q] = (src.d[i + q] * sa + out.d[i + q] * da * (1 - sa)) / oa;
+    out.d[i + 3] = oa * 255;
+  }
+  return out;
+}
+function silhouette(src, color2, opacity = 1) {
+  const out = cloneTex(src);
+  for (let i = 0; i < out.d.length; i += 4) {
+    if (!out.d[i + 3]) continue;
+    out.d[i] = color2[0];
+    out.d[i + 1] = color2[1];
+    out.d[i + 2] = color2[2];
+    out.d[i + 3] *= opacity;
+  }
+  return out;
+}
+function withAlpha(src, k) {
+  const out = cloneTex(src);
+  for (let i = 3; i < out.d.length; i += 4) out.d[i] *= k;
+  return out;
+}
+var N4 = [[1, 0], [-1, 0], [0, 1], [0, -1]];
+function edgePixels(t) {
+  const out = [];
+  for (let y = 0; y < t.h; y++) for (let x = 0; x < t.w; x++) {
+    if (alphaAt(t, x, y) < 128) continue;
+    let nx = 0, ny = 0;
+    for (const [ox, oy] of N4) if (alphaAt(t, x + ox, y + oy) < 128) {
+      nx += ox;
+      ny += oy;
+    }
+    if (nx || ny) out.push({ x, y, nx: Math.sign(nx), ny: Math.sign(ny) });
+  }
+  return out;
+}
+var pick = (arr, count, seed, minDist, key) => {
+  const chosen = [];
+  const order = arr.map((v, i) => ({ v, r: hash2(i, 7, seed) })).sort((a, b) => a.r - b.r).map((o) => o.v);
+  for (const v of order) {
+    if (chosen.length >= count) break;
+    const [x, y] = key(v);
+    if (chosen.every((c) => {
+      const [cx, cy] = key(c);
+      return Math.hypot(cx - x, cy - y) >= minDist;
+    })) chosen.push(v);
+  }
+  return chosen;
+};
+function addSpikes(src, count, color2, seed, length = 1) {
+  const [hx, hy] = handleOf(src), R4 = reach(src), s = px(src);
+  const cands = edgePixels(src).filter((e) => Math.hypot(e.x - hx, e.y - hy) > R4 * 0.4);
+  const out = cloneTex(src);
+  for (const e of pick(cands, count, seed, s * 2.5, (v) => [v.x, v.y])) for (let l = 1; l <= length * s; l++) {
+    const x = e.x + e.nx * l, y = e.y + e.ny * l;
+    if (x < 0 || y < 0 || x >= src.w || y >= src.h || alphaAt(out, x, y) >= 128) break;
+    const o = idx(out, x, y), k = 1 - l / (length * s + 1) * 0.5;
+    out.d[o] = color2[0] * k;
+    out.d[o + 1] = color2[1] * k;
+    out.d[o + 2] = color2[2] * k;
+    out.d[o + 3] = 255;
+  }
+  return out;
+}
+function addGems(src, count, color2, seed) {
+  const [hx, hy] = handleOf(src), R4 = reach(src), s = px(src);
+  const cands = [];
+  for (let y = 0; y < src.h; y++) for (let x = 0; x < src.w; x++) {
+    if (alphaAt(src, x, y) < 128) continue;
+    const d = Math.hypot(x + 0.5 - hx, y + 0.5 - hy);
+    if (d > R4 * 0.12 && d < R4 * 0.5 && x + s <= src.w && y + s <= src.h) cands.push([x, y]);
+  }
+  const out = cloneTex(src);
+  for (const [gx, gy] of pick(cands, count, seed + 3, s * 2.2, (v) => v)) for (let yy = 0; yy < s; yy++) for (let xx = 0; xx < s; xx++) {
+    const o = idx(out, gx + xx, gy + yy);
+    const k = xx === 0 || yy === 0 ? 1.35 : xx === s - 1 || yy === s - 1 ? 0.65 : 1;
+    out.d[o] = clamp(color2[0] * k + (k > 1 ? 40 : 0));
+    out.d[o + 1] = clamp(color2[1] * k + (k > 1 ? 40 : 0));
+    out.d[o + 2] = clamp(color2[2] * k + (k > 1 ? 40 : 0));
+    out.d[o + 3] = 255;
+  }
+  return out;
+}
+function blendPx(t, x, y, c, a) {
+  if (x < 0 || y < 0 || x >= t.w || y >= t.h || a <= 0) return;
+  const o = idx(t, x, y), da = t.d[o + 3] / 255, oa = a + da * (1 - a);
+  for (let q = 0; q < 3; q++) t.d[o + q] = (c[q] * a + t.d[o + q] * da * (1 - a)) / oa;
+  t.d[o + 3] = oa * 255;
+}
+var normAngle = (a) => Math.atan2(Math.sin(a), Math.cos(a));
+function drawArc(t, cx, cy, radius, a0, a1, color2, alpha, thickness = 1, fade = true) {
+  const out = cloneTex(t);
+  const sweep = a1 - a0;
+  const total = Math.abs(sweep) < 1e-6 ? Math.PI * 2 : Math.abs(sweep);
+  const start = sweep >= 0 ? a0 : a1;
+  for (let y = 0; y < t.h; y++) for (let x = 0; x < t.w; x++) {
+    const dx = x + 0.5 - cx, dy = y + 0.5 - cy, d = Math.hypot(dx, dy);
+    if (Math.abs(d - radius) > thickness / 2) continue;
+    let rel = normAngle(Math.atan2(dy, dx) - start);
+    if (rel < 0) rel += Math.PI * 2;
+    if (rel > total) continue;
+    const k = fade ? sweep >= 0 ? rel / total : 1 - rel / total : 1;
+    blendPx(out, x, y, color2, alpha * (0.35 + 0.65 * k));
+  }
+  return out;
+}
+function drawSparks(t, cx, cy, count, spread, color2, seed, alpha = 1) {
+  const out = cloneTex(t), s = px(t);
+  for (let i = 0; i < count; i++) {
+    const a = hash2(i, seed, 3) * Math.PI * 2, r = hash2(i, seed, 4) * spread;
+    const x = Math.floor(cx + Math.cos(a) * r), y = Math.floor(cy + Math.sin(a) * r);
+    for (let yy = 0; yy < s; yy++) for (let xx = 0; xx < s; xx++) blendPx(out, x + xx, y + yy, color2, alpha * (0.5 + 0.5 * hash2(i, seed, 6)));
+  }
+  return out;
+}
+var axisCache = /* @__PURE__ */ new WeakMap();
+function calculateAxis(t) {
+  const [hx, hy] = handleOf(t), [tx, ty] = tipOf(t);
+  const len = Math.max(1, Math.hypot(tx - hx, ty - hy));
+  return { hx, hy, tx, ty, ax: (tx - hx) / len, ay: (ty - hy) / len, px: -(ty - hy) / len, py: (tx - hx) / len, len };
+}
+function axis(t) {
+  let cached = axisCache.get(t);
+  if (!cached) {
+    cached = calculateAxis(t);
+    axisCache.set(t, cached);
+  }
+  return cached;
+}
+var along = (t, x, y) => {
+  const a = axis(t);
+  return ((x + 0.5 - a.hx) * a.ax + (y + 0.5 - a.hy) * a.ay) / a.len;
+};
+var zoneOf = (t, x, y) => {
+  const u = along(t, x, y);
+  return u < 0.22 ? "handle" : u < 0.42 ? "guard" : u < 0.82 ? "blade" : "tip";
+};
+function put(t, x, y, c, a = 255) {
+  if (x < 0 || y < 0 || x >= t.w || y >= t.h) return;
+  const o = idx(t, x, y);
+  t.d[o] = c[0];
+  t.d[o + 1] = c[1];
+  t.d[o + 2] = c[2];
+  t.d[o + 3] = a;
+}
+function sample(t, x, y) {
+  if (x < 0 || y < 0 || x >= t.w || y >= t.h) return [0, 0, 0, 0];
+  const o = idx(t, x, y);
+  return [t.d[o], t.d[o + 1], t.d[o + 2], t.d[o + 3]];
+}
+function remapLuma(src, dark, mid, light, amount2 = 1) {
+  const out = cloneTex(src);
+  let lo = 255, hi = 0;
+  for (let i = 0; i < src.d.length; i += 4) if (src.d[i + 3] >= 128) {
+    const l = 0.299 * src.d[i] + 0.587 * src.d[i + 1] + 0.114 * src.d[i + 2];
+    lo = Math.min(lo, l);
+    hi = Math.max(hi, l);
+  }
+  const span = Math.max(8, hi - lo);
+  const mix32 = (t) => {
+    if (t < 0.5) {
+      const k2 = t * 2;
+      return dark.map((v, i) => v + (mid[i] - v) * k2);
+    }
+    const k = (t - 0.5) * 2;
+    return mid.map((v, i) => v + (light[i] - v) * k);
+  };
+  for (let i = 0; i < out.d.length; i += 4) {
+    if (out.d[i + 3] < 8) continue;
+    const l = (0.299 * src.d[i] + 0.587 * src.d[i + 1] + 0.114 * src.d[i + 2] - lo) / span;
+    const c = mix32(Math.min(1, Math.max(0, l)));
+    for (let q = 0; q < 3; q++) out.d[i + q] = src.d[i + q] + (c[q] - src.d[i + q]) * amount2;
+  }
+  return out;
+}
+function outline1(src, color2, onlyTransparent = true) {
+  const out = cloneTex(src);
+  for (let y = 0; y < src.h; y++) for (let x = 0; x < src.w; x++) {
+    if (onlyTransparent && alphaAt(src, x, y) >= 128) continue;
+    if (!onlyTransparent && alphaAt(src, x, y) < 128) continue;
+    const hit = N4.some(([ox, oy]) => onlyTransparent ? alphaAt(src, x + ox, y + oy) >= 128 : alphaAt(src, x + ox, y + oy) < 128);
+    if (hit) {
+      if (onlyTransparent) put(out, x, y, color2, 255);
+      else {
+        const o = idx(out, x, y);
+        for (let q = 0; q < 3; q++) out.d[o + q] = out.d[o + q] * 0.45 + color2[q] * 0.55;
       }
     }
-    cents.push([...far]);
-  }
-  for (let it = 0; it < 12; it++) {
-    const s = cents.map(() => [0, 0, 0, 0]);
-    for (const p of px) {
-      let bi = 0, bd = Infinity;
-      cents.forEach((c, i) => {
-        const d = dist(p, c);
-        if (d < bd) {
-          bd = d;
-          bi = i;
-        }
-      });
-      s[bi][0] += p[0];
-      s[bi][1] += p[1];
-      s[bi][2] += p[2];
-      s[bi][3]++;
-    }
-    s.forEach((v, i) => {
-      if (v[3]) cents[i] = [v[0] / v[3], v[1] / v[3], v[2] / v[3]];
-    });
-  }
-  return cents.map((c) => c.map(Math.round));
-}
-function reduceTex(src, paletteName, colors = 16) {
-  const px = [];
-  for (let i = 0; i < src.d.length; i += 4) {
-    if (src.d[i + 3] < 20) continue;
-    px.push([src.d[i], src.d[i + 1], src.d[i + 2]]);
-  }
-  const pal2 = paletteName ? PALETTES2[paletteName] ?? null : null;
-  const table = pal2 ?? kmeans2(px, Math.max(2, Math.min(256, colors)));
-  const out = createTex(src.w, src.h);
-  for (let i = 0; i < src.d.length; i += 4) {
-    if (src.d[i + 3] < 20) continue;
-    const [r, g, b] = nearest([src.d[i], src.d[i + 1], src.d[i + 2]], table);
-    out.d[i] = r;
-    out.d[i + 1] = g;
-    out.d[i + 2] = b;
-    out.d[i + 3] = 255;
   }
   return out;
 }
-var PALETTES2 = {
-  "\u81EA\u52D5 (k-means)": null,
-  "Minecraft\u6A19\u6E96 (\u9271\u77F3\u30FB\u571F\u30FB\u6728\u30FB\u7F8A\u6BDB)": [
-    [16, 16, 16],
-    [40, 40, 40],
-    [80, 80, 80],
-    [130, 130, 130],
-    [180, 180, 180],
-    [240, 240, 240],
-    // グレースケール/石
-    [134, 96, 67],
-    [86, 61, 42],
-    [160, 115, 80],
-    [198, 142, 99],
-    // 木材・土
-    [87, 109, 39],
-    [112, 142, 51],
-    [58, 81, 23],
-    // 草・葉
-    [45, 166, 152],
-    [92, 219, 213],
-    [19, 122, 127],
-    // ダイヤ・水
-    [245, 183, 29],
-    [216, 127, 51],
-    [150, 52, 20],
-    // 金・火・溶岩
-    [178, 34, 34],
-    [153, 51, 51],
-    [220, 20, 60],
-    // 赤石・赤羊毛
-    [118, 67, 138],
-    [128, 0, 128],
-    [76, 29, 149],
-    // 黒曜石・アメジスト
-    [50, 160, 60],
-    [20, 110, 40],
-    // エメラルド
-    [22, 100, 180],
-    [35, 60, 150]
-    // ラピスラズリ
-  ],
-  "PICO-8 (16\u8272\u30EC\u30C8\u30ED)": [
-    [0, 0, 0],
-    [29, 43, 83],
-    [126, 37, 83],
-    [0, 135, 81],
-    [171, 82, 54],
-    [95, 87, 79],
-    [194, 195, 199],
-    [255, 241, 232],
-    [255, 0, 77],
-    [255, 163, 0],
-    [255, 236, 39],
-    [0, 228, 54],
-    [41, 173, 255],
-    [131, 118, 156],
-    [255, 119, 168],
-    [255, 204, 170]
-  ],
-  "\u30B2\u30FC\u30E0\u30DC\u30FC\u30A4\u98A8 (4\u8272)": [
-    [15, 56, 15],
-    [48, 98, 48],
-    [139, 172, 15],
-    [155, 188, 15]
-  ],
-  "\u30D5\u30A1\u30DF\u30B3\u30F3 / NES\u98A8 (16\u8272)": [
-    [0, 0, 0],
-    [252, 252, 252],
-    [188, 188, 188],
-    [124, 124, 124],
-    [168, 16, 0],
-    [248, 56, 0],
-    [252, 160, 68],
-    [248, 184, 0],
-    [0, 168, 0],
-    [88, 216, 84],
-    [0, 120, 248],
-    [104, 136, 252],
-    [216, 0, 204],
-    [248, 120, 248],
-    [172, 124, 0],
-    [0, 136, 136]
-  ],
-  "\u30B5\u30A4\u30D0\u30FC\u30CD\u30AA\u30F3 (12\u8272)": [
-    [10, 10, 25],
-    [255, 0, 128],
-    [0, 240, 255],
-    [57, 255, 20],
-    [255, 225, 53],
-    [138, 43, 226],
-    [255, 110, 0],
-    [255, 255, 255],
-    [40, 20, 60],
-    [20, 70, 90],
-    [100, 20, 80],
-    [180, 255, 0]
-  ],
-  "\u30E2\u30CE\u30AF\u30ED (\u767D\u9ED22\u968E\u8ABF)": [
-    [0, 0, 0],
-    [255, 255, 255]
-  ],
-  "\u30BB\u30D4\u30A2\u5199\u771F\u98A8": [
-    [43, 26, 14],
-    [94, 62, 35],
-    [150, 108, 68],
-    [204, 166, 116],
-    [240, 220, 180]
-  ]
-};
+function extendBlade(src, pixels) {
+  if (pixels <= 0 || isOpaqueTex2(src)) return src;
+  const a = axis(src), out = cloneTex(src);
+  const copies = [];
+  for (let y = 0; y < src.h; y++) for (let x = 0; x < src.w; x++) {
+    if (alphaAt(src, x, y) < 128) continue;
+    if (along(src, x, y) < 0.55) continue;
+    copies.push({ x, y, c: sample(src, x, y) });
+  }
+  for (const p of copies) for (let k = 1; k <= pixels; k++) {
+    const nx = Math.round(p.x + a.ax * k), ny = Math.round(p.y + a.ay * k);
+    if (alphaAt(out, nx, ny) >= 128) continue;
+    const fade = 1 - (k - 1) / (pixels + 1) * 0.15;
+    put(out, nx, ny, [p.c[0] * fade, p.c[1] * fade, p.c[2] * fade], p.c[3]);
+  }
+  return out;
+}
+function thickenBlade(src, pixels = 1) {
+  if (pixels <= 0 || isOpaqueTex2(src)) return src;
+  const a = axis(src), out = cloneTex(src);
+  for (let y = 0; y < src.h; y++) for (let x = 0; x < src.w; x++) {
+    if (alphaAt(src, x, y) < 128 || along(src, x, y) < 0.38) continue;
+    const c = sample(src, x, y);
+    for (const s of [-pixels, pixels]) {
+      const nx = Math.round(x + a.px * s), ny = Math.round(y + a.py * s);
+      if (alphaAt(out, nx, ny) >= 128) continue;
+      put(out, nx, ny, [c[0] * 0.82, c[1] * 0.82, c[2] * 0.82], c[3]);
+    }
+  }
+  return out;
+}
+function dualBlade(src) {
+  const a = axis(src), mx = (a.hx + a.tx) / 2, my = (a.hy + a.ty) / 2;
+  const flipped = transformTex(src, (x, y) => [2 * mx - x, 2 * my - y]);
+  return composite(src, flipped);
+}
+function poseItem(src, deg, scale2 = 0.82, pivotX = 0.38, pivotY = 0.72) {
+  const [hx, hy] = handleOf(src);
+  return rotateAbout(src, deg, hx, hy, scale2, src.w * pivotX - hx, src.h * pivotY - hy);
+}
+function ghostCopies(src, offsets, color2) {
+  let bg = createTex(src.w, src.h);
+  for (const [dx, dy, a] of offsets) {
+    const moved = translateTex(src, dx, dy);
+    bg = composite(bg, color2 ? silhouette(moved, color2, a) : withAlpha(moved, a));
+  }
+  return composite(bg, src);
+}
+function wrapHandle(src, color2, seed) {
+  const out = cloneTex(src), s = px(src);
+  for (let y = 0; y < src.h; y++) for (let x = 0; x < src.w; x++) {
+    if (alphaAt(src, x, y) < 128 || zoneOf(src, x, y) !== "handle") continue;
+    if ((x + y + seed) % (2 * s + 1) !== 0) continue;
+    const o = idx(out, x, y);
+    out.d[o] = color2[0];
+    out.d[o + 1] = color2[1];
+    out.d[o + 2] = color2[2];
+  }
+  return out;
+}
+function bladeRunes(src, color2, seed, count) {
+  const out = cloneTex(src), s = px(src);
+  const cands = [];
+  for (let y = 0; y < src.h; y++) for (let x = 0; x < src.w; x++) {
+    if (alphaAt(src, x, y) < 128) continue;
+    const z = zoneOf(src, x, y);
+    if (z === "blade" || z === "tip") cands.push([x, y]);
+  }
+  for (const [x, y] of pick(cands, count, seed, s * 2.4, (v) => v)) {
+    put(out, x, y, color2);
+    if (s > 1) put(out, x, y + 1, [color2[0] * 0.6, color2[1] * 0.6, color2[2] * 0.6]);
+  }
+  return out;
+}
+function chipTip(src, seed, amount2 = 0.45) {
+  const out = cloneTex(src);
+  for (let y = 0; y < src.h; y++) for (let x = 0; x < src.w; x++) {
+    if (alphaAt(src, x, y) < 128 || zoneOf(src, x, y) !== "tip") continue;
+    const edge = N4.some(([ox, oy]) => alphaAt(src, x + ox, y + oy) < 128);
+    if (edge && hash2(x, y, seed) < amount2) out.d[idx(out, x, y) + 3] = 0;
+  }
+  return out;
+}
 
-// src/lib/pngCodec.ts
-import { deflateSync, inflateSync } from "node:zlib";
-var CRC_TABLE = (() => {
-  const table = new Uint32Array(256);
-  for (let n = 0; n < 256; n++) {
-    let c = n;
-    for (let k = 0; k < 8; k++) c = c & 1 ? 3988292384 ^ c >>> 1 : c >>> 1;
-    table[n] = c;
+// src/lib/evolution.ts
+var GROUPS = [
+  { id: "tier", name: "\u6BB5\u968E\u5F37\u5316", en: "SAME WEAPON \xB7 +0 to +5", desc: "\u8F2A\u90ED\u306F\u540C\u3058\u3002\u7814\u304E\u3001\u8B77\u62F3\u306E\u5B9D\u77F3\u3001\u5203\u306E\u4F38\u9577\u3001\u30EB\u30FC\u30F3\u3001\u5149\u2026\u8DB3\u3057\u3066\u3044\u304F\u3060\u3051\u3002" },
+  { id: "limit", name: "\u9650\u754C\u7A81\u7834", en: "LIMIT BREAK", desc: "\u540C\u3058\u6B66\u5668\u306E\u899A\u9192\u4F53\u3002\u672C\u4F53\u306F\u6B8B\u3057\u3001\u30AA\u30FC\u30E9\u3068\u4E80\u88C2\u3060\u3051\u304C\u6EA2\u308C\u308B\u3002" },
+  { id: "form", name: "\u5F62\u614B\u5909\u5316", en: "FORM CHANGE", desc: "\u53CC\u5203\u30FB\u5927\u5263\u30FB\u77ED\u5263\u30FB\u92F8\u5203\u3002\u30D4\u30AF\u30BB\u30EB\u3092\u8907\u88FD\u30FB\u4F38\u9577\u3057\u3066\u30B7\u30EB\u30A8\u30C3\u30C8\u3092\u5909\u3048\u308B\u3002", itemOnly: true },
+  { id: "element", name: "\u5C5E\u6027\u9055\u3044", en: "ELEMENTAL SET", desc: "\u9670\u5F71\u306F\u305D\u306E\u307E\u307E\u3001\u8272\u3060\u3051\u708E\u30FB\u6C37\u30FB\u96F7\u2026\u306B\u5DEE\u3057\u66FF\u3048\u305F\u540C\u4E00\u30E2\u30C7\u30EB\u3002" },
+  { id: "material", name: "\u7D20\u6750\u9055\u3044", en: "MATERIAL SET", desc: "\u6728\u2192\u77F3\u2192\u9244\u2192\u91D1\u2192\u30C0\u30A4\u30E4\u2192\u30CD\u30B6\u30E9\u30A4\u30C8\u3002\u30D0\u30CB\u30E9\u306E\u9053\u5177\u3068\u540C\u3058\u6BB5\u968E\u3002" },
+  { id: "mode", name: "\u4E00\u6642\u30E2\u30FC\u30C9", en: "STATUS OVERLAY", desc: "\u672C\u4F53\u306F\u305D\u306E\u307E\u307E\u3002\u767A\u5149\u3084\u7C92\u5B50\u3060\u3051\u304C\u4E57\u3063\u305F\u72B6\u614B\u5909\u5316\u3002" },
+  { id: "attack", name: "\u653B\u6483\u30E2\u30FC\u30B7\u30E7\u30F3", en: "KEY POSES", desc: "\u30AD\u30FC\u30DD\u30FC\u30BA8\u679A\u3002\u632F\u308A\u304B\u3076\u308A\u30FB\u5230\u9054\u30FB\u4F59\u97FB\u304C\u8AAD\u307F\u53D6\u308C\u308B\u30A2\u30CB\u30E1\u3002", itemOnly: true }
+];
+var fx = (t, layers, time = 0, seed = 7) => applyStack(t, layers.map(([type, p], i) => newLayer(type, p, seed + i * 31)), time);
+var anim = (n, fn) => Array.from({ length: n }, (_, i) => fn(i / n, i));
+var rgb = (hex) => hexToRgb(hex);
+var item = (t) => !isOpaqueTex2(t);
+var keys = (c) => Math.min(8, Math.max(6, c.frames));
+function enhance(c, level, t = 0) {
+  let tex = c.base;
+  const acc = rgb(c.accent);
+  const gold = [232, 196, 74];
+  const wrap = [90, 58, 28];
+  if (level >= 1) {
+    tex = outline1(tex, [12, 18, 16], true);
+    tex = fx(tex, [["sharpen", { amount: 18 }], ["bevel", { strength: 16, width: 1 }]], 0, c.seed);
   }
-  return table;
-})();
-function crc32(bytes) {
-  let crc = 4294967295;
-  for (let i = 0; i < bytes.length; i++) crc = CRC_TABLE[(crc ^ bytes[i]) & 255] ^ crc >>> 8;
-  return (crc ^ 4294967295) >>> 0;
-}
-function chunk(type, data) {
-  const out = new Uint8Array(12 + data.length);
-  const view = new DataView(out.buffer);
-  view.setUint32(0, data.length);
-  for (let i = 0; i < 4; i++) out[4 + i] = type.charCodeAt(i);
-  out.set(data, 8);
-  view.setUint32(8 + data.length, crc32(out.subarray(4, 8 + data.length)));
-  return out;
-}
-function join(parts) {
-  const total = parts.reduce((n, p) => n + p.length, 0);
-  const out = new Uint8Array(total);
-  let offset = 0;
-  for (const p of parts) {
-    out.set(p, offset);
-    offset += p.length;
+  if (level >= 2 && item(c.base)) {
+    tex = wrapHandle(tex, wrap, c.seed);
+    tex = addGems(tex, 1, gold, c.seed);
   }
-  return out;
-}
-function encodePng(tex) {
-  const { w, h, d } = tex;
-  const raw = new Uint8Array((w * 4 + 1) * h);
-  for (let y = 0; y < h; y++) {
-    raw[y * (w * 4 + 1)] = 0;
-    raw.set(d.subarray(y * w * 4, (y + 1) * w * 4), y * (w * 4 + 1) + 1);
+  if (level >= 3 && item(c.base)) {
+    tex = extendBlade(tex, px(tex));
+    tex = addGems(tex, 2, acc, c.seed + 2);
   }
-  const ihdr = new Uint8Array(13);
-  const view = new DataView(ihdr.buffer);
-  view.setUint32(0, w);
-  view.setUint32(4, h);
-  ihdr[8] = 8;
-  ihdr[9] = 6;
-  const sig = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]);
-  return join([sig, chunk("IHDR", ihdr), chunk("IDAT", deflateSync(raw)), chunk("IEND", new Uint8Array(0))]);
-}
-function readChunks(bytes) {
-  const chunks = [];
-  let offset = 8;
-  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-  while (offset + 8 <= bytes.length) {
-    const length = view.getUint32(offset);
-    const type = String.fromCharCode(bytes[offset + 4], bytes[offset + 5], bytes[offset + 6], bytes[offset + 7]);
-    chunks.push({ type, data: bytes.subarray(offset + 8, offset + 8 + length) });
-    offset += 12 + length;
-    if (type === "IEND") break;
+  if (level >= 4 && item(c.base)) {
+    tex = bladeRunes(tex, acc, c.seed, 3 + level);
+    tex = addSpikes(tex, 2, acc, c.seed, 1);
   }
-  return chunks;
-}
-function paeth(a, b, c) {
-  const p = a + b - c;
-  const pa = Math.abs(p - a), pb = Math.abs(p - b), pc = Math.abs(p - c);
-  return pa <= pb && pa <= pc ? a : pb <= pc ? b : c;
-}
-function decodePng(bytes) {
-  let width = 0, height = 0, bitDepth = 0, colorType = 0;
-  const idat = [];
-  for (const c of readChunks(bytes)) {
-    if (c.type === "IHDR") {
-      const view = new DataView(c.data.buffer, c.data.byteOffset, c.data.length);
-      width = view.getUint32(0);
-      height = view.getUint32(4);
-      bitDepth = c.data[8];
-      colorType = c.data[9];
-    } else if (c.type === "IDAT") {
-      idat.push(c.data);
-    }
-  }
-  if (bitDepth !== 8 || colorType !== 2 && colorType !== 6) {
-    throw new Error(`unsupported PNG (bitDepth=${bitDepth} colorType=${colorType}; need 8-bit RGB/RGBA)`);
-  }
-  const channels = colorType === 2 ? 3 : 4;
-  const raw = inflateSync(join(idat));
-  const tex = createTex(width, height);
-  const stride = width * channels + 1;
-  let prev = new Uint8Array(width * channels);
-  for (let y = 0; y < height; y++) {
-    const filter = raw[y * stride];
-    const row = raw.subarray(y * stride + 1, (y + 1) * stride);
-    const out = new Uint8Array(width * channels);
-    for (let x = 0; x < width * channels; x++) {
-      const a = x >= channels ? out[x - channels] : 0;
-      const b = prev[x];
-      const c = x >= channels ? prev[x - channels] : 0;
-      let v;
-      if (filter === 0) v = row[x];
-      else if (filter === 1) v = row[x] + a;
-      else if (filter === 2) v = row[x] + b;
-      else if (filter === 3) v = row[x] + (a + b >> 1);
-      else v = row[x] + paeth(a, b, c);
-      out[x] = v & 255;
-    }
-    for (let x = 0; x < width; x++) {
-      const i = (y * width + x) * 4;
-      tex.d[i] = out[x * channels];
-      tex.d[i + 1] = out[x * channels + 1];
-      tex.d[i + 2] = out[x * channels + 2];
-      tex.d[i + 3] = channels === 4 ? out[x * channels + 3] : 255;
-    }
-    prev = out;
-  }
+  if (level >= 4) tex = fx(tex, [["enchant", { color: c.accent, intensity: 28 + level * 4, width: 3 }], ["sparkle", { count: Math.min(4, level - 2), color: "#ffffff", style: "cross", animate: level >= 5 }]], t, c.seed);
+  if (level >= 5) tex = fx(tex, [["glow", { mode: item(c.base) ? "outer" : "bloom", color: c.accent, radius: 1, intensity: 38, pulse: true }]], t, c.seed);
   return tex;
 }
-
-// src/lib/presets.ts
-var PRESETS = [
-  { id: "luminous", name: "\u9271\u77F3\u306E\u8F1D\u304D", icon: "gem", desc: "\u9271\u77F3\u306E\u8272\u3068\u7ACB\u4F53\u611F\u3092\u5F15\u304D\u51FA\u3059", layers: [["adjust", { contrast: 12, saturation: 15 }], ["autoshade", { strength: 25, ao: 15 }], ["glow", { mode: "bloom", color: "#a5f9e6", radius: 2, intensity: 35 }]] },
-  { id: "astral", name: "\u30A2\u30B9\u30C8\u30E9\u30EB", icon: "orbit", desc: "\u661F\u96F2\u3068\u795E\u79D8\u7684\u306A\u9B54\u6CD5\u9663", layers: [["nebula", { amount: 70 }], ["magicCircle", { color: "#afe8ff", amount: 80, animate: true }]] },
-  { id: "pearlglass", name: "\u30D1\u30FC\u30EB\u30AC\u30E9\u30B9", icon: "diamond", desc: "\u6DE1\u3044\u8679\u8272\u3068\u30AC\u30E9\u30B9\u306E\u53CD\u5C04", layers: [["pearl", { amount: 60 }], ["glassSurface", { amount: 65 }]] },
-  { id: "artisan", name: "\u30AF\u30E9\u30D5\u30C8\u30A6\u30C3\u30C9", icon: "tree", desc: "\u7E4A\u7D30\u306A\u6728\u76EE\u3068\u9670\u5F71", layers: [["woodgrain", { amount: 45 }], ["bevel", { strength: 22, width: 1 }], ["noise", { amount: 5 }]] },
-  { id: "enchant", name: "\u30A8\u30F3\u30C1\u30E3\u30F3\u30C8\u6B66\u5668", icon: "\u{1F52E}", desc: "\u7D2B\u306E\u5149\u5F69\u3068\u8F1D\u304D", layers: [["autoshade", { strength: 40 }], ["glow", { color: "#9a50ff", radius: 2, intensity: 55, pulse: true }], ["enchant", {}]] },
-  { id: "gold", name: "\u9EC4\u91D1\u5316", icon: "\u{1F451}", desc: "\u7D14\u91D1\u306E\u8F1D\u304D", layers: [["gradmap", { c1: "#3a2000", c2: "#d9a000", c3: "#fff6b0" }], ["metal", { color: "#ffd24a", amount: 55, animate: true }], ["sparkle", { count: 4, color: "#fffbe0" }]] },
-  { id: "diamond", name: "\u30C0\u30A4\u30E4\u5316", icon: "\u{1F48E}", desc: "\u900F\u304D\u901A\u308B\u5B9D\u77F3", layers: [["gradmap", { c1: "#062a33", c2: "#2ec4c0", c3: "#eafffd" }], ["sharpen", { amount: 50 }], ["sparkle", { count: 6, style: "star" }], ["shimmer", { intensity: 55 }]] },
-  { id: "netherite", name: "\u30CD\u30B6\u30E9\u30A4\u30C8\u5316", icon: "\u26AB", desc: "\u91CD\u539A\u306A\u9ED2\u91D1\u5C5E", layers: [["gradmap", { c1: "#120e10", c2: "#443a3e", c3: "#9a8c8a" }], ["metal", { color: "#6e5e62", amount: 45, bands: 1 }], ["outline", { mode: "auto" }]] },
-  { id: "ruins", name: "\u82D4\u3080\u3057\u305F\u907A\u8DE1", icon: "\u{1F3DB}\uFE0F", desc: "\u98A8\u5316\u30FB\u82D4\u30FB\u3072\u3073", layers: [["adjust", { saturation: -25, brightness: -8 }], ["weather", { type: "moss", coverage: 45, bias: "top" }], ["cracks", { count: 3, length: 9 }], ["vignette", { strength: 30 }]] },
-  { id: "frozen", name: "\u6C37\u7D50", icon: "\u{1F9CA}", desc: "\u51CD\u308A\u3064\u3044\u305F\u8CEA\u611F", layers: [["frost", { amount: 70, crystals: 14 }], ["sparkle", { count: 4, style: "cross", color: "#e8fbff" }]] },
-  { id: "magma", name: "\u30DE\u30B0\u30DE\u5316", icon: "\u{1F30B}", desc: "\u6EB6\u5CA9\u306E\u3072\u3073\u3068\u706B\u306E\u7C89", layers: [["gradmap", { c1: "#1a0604", c2: "#4a1a10", c3: "#8a3a20" }], ["cracks", { count: 6, length: 10, glow: true, depth: 100 }], ["glow", { mode: "bloom", color: "#ff7020", radius: 2, intensity: 60 }], ["pulse", { color: "#ff9030", threshold: 120 }], ["embers", { count: 6 }]] },
-  { id: "hd", name: "HD\u30EA\u30DE\u30B9\u30BF\u30FC", icon: "\u{1F5A5}\uFE0F", desc: "\xD74\u9AD8\u89E3\u50CF\u5EA6+\u9670\u5F71", layers: [["upscale", { factor: "4" }], ["autoshade", { strength: 35, ao: 30 }], ["noise", { amount: 6 }], ["sharpen", { amount: 30 }]] },
-  { id: "gb", name: "\u30EC\u30C8\u30EDGB", icon: "\u{1F3AE}", desc: "\u30B2\u30FC\u30E0\u30DC\u30FC\u30A44\u8272", layers: [["palette", { palette: "gameboy", dither: true }]] },
-  { id: "rusty", name: "\u9306\u3073\u305F\u9244", icon: "\u{1F529}", desc: "\u8150\u98DF\u3057\u305F\u91D1\u5C5E", layers: [["metal", { color: "#b8b8c0", amount: 50 }], ["weather", { type: "rust", coverage: 45, scale: 4 }], ["cracks", { count: 2, length: 6, depth: 50 }]] },
-  { id: "snowy", name: "\u96EA\u5316\u7CA7", icon: "\u2603\uFE0F", desc: "\u4E0A\u304B\u3089\u96EA\u304C\u7A4D\u3082\u308B", layers: [["filter", { mode: "cool", amount: 40 }], ["weather", { type: "snow", coverage: 35, scale: 4 }], ["embers", { type: "snow", count: 6 }]] },
-  { id: "holo", name: "\u8679\u8272\u30DB\u30ED", icon: "\u{1F308}", desc: "\u30DB\u30ED\u30B0\u30E9\u30E0\u30AB\u30FC\u30C9\u98A8", layers: [["rainbow", { amount: 55 }], ["shimmer", { intensity: 60, width: 4 }], ["sparkle", { count: 5 }]] },
-  { id: "royal", name: "\u738B\u5BB6\u306E\u88C5\u98FE", icon: "\u{1F3F0}", desc: "\u91D1\u67A0\u3068\u7D0B\u7AE0", layers: [["bevel", { strength: 35 }], ["frame", { style: "ornate", color: "#e0b040" }], ["emblem", { shape: "crown", color: "#ffd84a" }]] },
-  { id: "neon", name: "\u30CD\u30AA\u30F3", icon: "\u{1F7E3}", desc: "\u30B5\u30A4\u30D0\u30FC\u306A\u767A\u5149", layers: [["adjust", { brightness: -35, saturation: 40 }], ["outline", { color: "#ff3cf0", mode: "outer" }], ["glow", { color: "#30e0ff", radius: 3, intensity: 70, pulse: true }], ["huecycle", { amount: 40, spread: 50 }]] },
-  { id: "cursed", name: "\u546A\u308F\u308C\u305F", icon: "\u{1F480}", desc: "\u6697\u9ED2\u306E\u30EB\u30FC\u30F3\u3068\u8108\u52D5", layers: [["tint", { color: "#3a1050", amount: 55 }], ["runes", { color: "#b040ff", count: 4, animate: true }], ["vignette", { strength: 60, color: "#10001a", shape: "round" }], ["embers", { type: "soul", count: 5 }]] },
-  { id: "crystal", name: "\u7D50\u6676\u4FB5\u98DF", icon: "\u{1F537}", desc: "\u30A2\u30E1\u30B8\u30B9\u30C8\u7D50\u6676", layers: [["weather", { type: "crystal", coverage: 35, bias: "edge" }], ["ore", { color: "#b070ff", count: 3, size: 5 }], ["sparkle", { count: 6, color: "#f0d0ff" }]] },
-  { id: "ocean", name: "\u6DF1\u6D77", icon: "\u{1F41A}", desc: "\u6C34\u4E2D\u306E\u63FA\u3089\u304E\u3068\u6CE1", layers: [["tint", { color: "#1a6aa0", amount: 45 }], ["wave", { amp: 1, wavelength: 8 }], ["embers", { type: "bubble", count: 5 }]] },
-  { id: "toon", name: "\u30C8\u30A5\u30FC\u30F3", icon: "\u{1F58D}\uFE0F", desc: "\u30A2\u30CB\u30E1\u8ABF\u30DD\u30B9\u30BF\u30E9\u30A4\u30BA", layers: [["adjust", { saturation: 40, contrast: 15 }], ["posterize", { levels: 4 }], ["outline", { mode: "outer", color: "#141018" }]] },
-  { id: "marble", name: "\u5927\u7406\u77F3\u7D30\u5DE5", icon: "\u{1FAA8}", desc: "\u77F3\u76EE\u3068\u91D1\u306E\u9271\u8108", layers: [["gradmap", { c1: "#384349", c2: "#b4c7c9", c3: "#f3eee3" }], ["veins", { color: "#d9b971", density: 4, amount: 65 }], ["edgewear", { color: "#ffffff", amount: 35 }]] },
-  { id: "fabric", name: "\u9B54\u6CD5\u306E\u7E54\u7269", icon: "\u{1F9F5}", desc: "\u7E54\u308A\u76EE\u3068\u9B54\u6CD5\u306E\u8276", layers: [["tint", { color: "#8148ad", amount: 50 }], ["weave", { size: 2, depth: 60 }], ["iridescent", { color: "#69eedb", amount: 48 }]] },
-  { id: "ancient", name: "\u53E4\u4EE3\u306E\u91D1\u5C5E", icon: "\u2692\uFE0F", desc: "\u7E01\u306E\u6469\u8017\u3068\u523B\u5370", layers: [["metal", { color: "#ad986b", amount: 50 }], ["edgewear", { color: "#fff3b0", amount: 62 }], ["runes", { style: "carve", count: 3 }]] },
-  { id: "opal", name: "\u30AA\u30D1\u30FC\u30EB", icon: "\u{1F539}", desc: "\u7389\u866B\u8272\u306E\u5B9D\u77F3", layers: [["gradmap", { c1: "#113c53", c2: "#63bdb7", c3: "#fff4ef" }], ["iridescent", { color: "#82edeb", amount: 75, animate: true }], ["sparkle", { count: 5 }]] },
-  { id: "bloodied", name: "\u8840\u5857\u308C", icon: "\u{1FA78}", desc: "\u5200\u50B7\u3068\u8840\u3057\u3076\u304D", layers: [["scratches", { count: 5 }], ["bloodstain", { count: 10, drip: true }], ["vignette", { strength: 35, color: "#200808" }]] },
-  { id: "angel", name: "\u5929\u4F7F\u88C5\u5099", icon: "\u{1F607}", desc: "\u7FFC\u3068\u5F8C\u5149", layers: [["partstamp", { part: "wing_angel", blend: "under" }], ["halo", { pulse: true }], ["sparkle", { count: 5, style: "star" }]] },
-  { id: "demon", name: "\u9B54\u738B\u88C5\u5099", icon: "\u{1F608}", desc: "\u60AA\u9B54\u7FFC\u3068\u9B54\u773C", layers: [["partstamp", { part: "wing_demon", blend: "under" }], ["partstamp", { part: "eye_center" }], ["glow", { color: "#c02020", radius: 2, intensity: 50, pulse: true }]] },
-  { id: "iaido", name: "\u5C45\u5408", icon: "\u2694\uFE0F", desc: "\u65AC\u6483\u8ECC\u8DE1\u3068\u6B8B\u50CF", layers: [["slash", { width: 2, intensity: 90 }], ["afterimage", { steps: 2 }], ["sparks", { count: 8 }]] },
-  { id: "cyber", name: "\u30B5\u30A4\u30D0\u30FC", icon: "\u{1F4FA}", desc: "\u30B0\u30EA\u30C3\u30C1\u3068\u8D70\u67FB\u7DDA", layers: [["adjust", { brightness: -20, saturation: 30 }], ["glitch", { amount: 40 }], ["scanline", { amount: 35 }], ["outline", { color: "#30e0ff" }]] },
-  { id: "legendary", name: "\u4F1D\u8AAC\u306E\u5263", icon: "\u2728", desc: "LEGENDARY BLADE", layers: [["sharpen", { amt: 90 }], ["outline", { color: "#0e1a22", thick: 1, mode: "outer" }], ["bevel", { amt: 55, angle: 315 }], ["rarityAura", { rarity: "legendary", radius: 4, intensity: 105, speed: 1.4 }], ["enchantGlint", { speed: 1.2, width: 10, intensity: 95, bands: 2 }], ["bloom", { threshold: 150, radius: 3, intensity: 95 }]] },
-  { id: "relic", name: "\u53E4\u4EE3\u306E\u907A\u7269", icon: "\u2728", desc: "ARCANE RELIC", layers: [["cracks", { count: 5, depth: 20 }], ["grime", { amount: 45, edges: true }], ["sepia", { amt: 35 }], ["runes", { color: "#63d8ff", count: 3, glow: 70, speed: 0.9 }], ["innerShadow", { size: 5, op: 60 }], ["vignette", { amount: 55, radius: 55 }]] },
-  { id: "ruin", name: "\u82D4\u3080\u3059\u5EC3\u589F", icon: "\u2728", desc: "MOSSY RUIN", layers: [["moss", { coverage: 52, topOnly: false, scale: 8 }], ["grime", { amount: 55, color: "#241c12" }], ["erosion", { amount: 34, mode: "tatter", scale: 5 }], ["bevel", { amt: 62, angle: 300 }], ["vibrance", { amt: 30 }], ["vignette", { amount: 34, radius: 66 }]] },
-  { id: "nether", name: "\u30CD\u30B6\u30FC\u306E\u707C\u71B1", icon: "\u2728", desc: "NETHER HEAT", layers: [["lavaCracks", { count: 6, glow: 85, speed: 1.4 }], ["temperature", { amt: 45 }], ["cracks", { count: 4, color: "#180a06", depth: 22 }], ["ember", { count: 34, speed: 1.4, glow: true }], ["bloom", { threshold: 120, radius: 4, intensity: 130 }], ["vignette", { amount: 40, color: "#2a0600" }]] },
-  { id: "frosted", name: "\u51CD\u3066\u3064\u304F\u6C37\u971C", icon: "\u2728", desc: "FROSTBOUND", layers: [["frost", { amount: 62, crystal: 60, edge: 70 }], ["temperature", { amt: -40 }], ["snowfall", { count: 20, size: 1, frost: true, speed: 0.7 }], ["innerGlow", { color: "#dff4ff", size: 4, intensity: 60 }], ["chromatic", { amount: 1, edgeOnly: true }], ["sharpen", { amt: 80 }]] },
-  { id: "retrogb", name: "\u30EC\u30C8\u30ED\u643A\u5E2F\u6A5F", icon: "\u2728", desc: "RETRO HANDHELD", layers: [["grayscale", { amt: 100 }], ["levels", { bin: 12, win: 236 }], ["gradientMap", { c1: "#0f380f", c2: "#306230", c3: "#9bbc0f", amt: 100 }], ["ditherBayer", { order: "2", colors: 4, spread: 60 }], ["scanline", { gap: 2, op: 22 }]] },
-  { id: "cyberholo", name: "\u30B5\u30A4\u30D0\u30FC\u30FB\u30DB\u30ED", icon: "\u2728", desc: "CYBER HOLO", layers: [["circuit", { density: 6, glow: 70, speed: 1.2 }], ["holographic", { intensity: 85, speed: 1, scale: 14 }], ["chromatic", { amount: 1.5, edgeOnly: true }], ["glitch", { amount: 22, slices: 5, speed: 5 }], ["bloom", { threshold: 160, radius: 3, intensity: 110 }], ["hexPattern", { size: 6, op: 22 }]] },
-  { id: "pf-royal", name: "\u738B\u5BB6\u306E\u9EC4\u91D1", icon: "\u2728", desc: "ROYAL GOLD", layers: [["frame", { style: "ornate", thick: 3, color: "#8c5a12", shade: 75 }], ["embossGold", { amount: 70, angle: 315 }], ["gemInlay", { color: "#e0405a", count: 4, size: 2, shine: true }], ["lightSweep", { speed: 0.7, width: 10, intensity: 90 }], ["bloom", { threshold: 190, radius: 3, intensity: 90 }], ["rivets", { spacing: 7, size: 1, inset: 4 }]] },
-  { id: "dream", name: "\u30C9\u30EA\u30FC\u30E0\u30DD\u30C3\u30D7", icon: "\u2728", desc: "DREAM POP", layers: [["iridescent", { amount: 85, scale: 14, angle: 40, speed: 0.6 }], ["vibrance", { amt: 60 }], ["sparkle", { count: 16, size: 2, speed: 1.4 }], ["bloom", { threshold: 130, radius: 4, intensity: 120 }], ["wetLook", { amount: 40, spec: 45 }]] },
-  { id: "pf-cursed", name: "\u546A\u308F\u308C\u3057\u9271\u77F3", icon: "\u2728", desc: "CURSED ORE", layers: [["duotone", { dark: "#160a2c", light: "#b45cff", amt: 70 }], ["outerGlow", { color: "#8a2be2", radius: 5, intensity: 110 }], ["runes", { color: "#e0a8ff", count: 2, scale: 1, glow: 55, speed: 1.4 }], ["glitch", { amount: 18, slices: 4, speed: 3, rgbSplit: true }], ["soulFlame", { c1: "#e6c8ff", c2: "#6a2bd0", intensity: 70, reach: 4 }]] },
-  { id: "antique", name: "\u30A2\u30F3\u30C6\u30A3\u30FC\u30AF\u7D75\u753B", icon: "\u2728", desc: "ANTIQUE", layers: [["sepia", { amt: 70 }], ["scratches", { count: 22, op: 40 }], ["grain", { amt: 22, cell: 1 }], ["grime", { amount: 38, edges: true }], ["frame", { style: "gold", thick: 2, color: "#8a6a2c", shade: 70 }], ["vignette", { amount: 52, radius: 58 }]] },
-  { id: "forge", name: "\u6EB6\u5CA9\u306E\u935B\u9020", icon: "\u2728", desc: "MAGMA FORGE", layers: [["brushedMetal", { amount: 55, specular: true }], ["rust", { amount: 55, pits: true }], ["lavaCracks", { count: 4, glow: 60, speed: 0.8 }], ["bevel", { amt: 45, angle: 300 }], ["ember", { count: 18, speed: 0.8 }], ["temperature", { amt: 28 }]] },
-  { id: "divine", name: "\u795E\u6027\u306E\u8F1D\u304D", icon: "\u2728", desc: "DIVINE", layers: [["rarityAura", { rarity: "divine", radius: 6, intensity: 130, speed: 1 }], ["sigil", { color: "#ffe066", rings: 2, ticks: 12, speed: 0.5, glow: 40 }], ["lightSweep", { speed: 0.5, width: 14, intensity: 110, color: "#fff6d0" }], ["sparkle", { count: 14, size: 2, speed: 1.6 }], ["bloom", { threshold: 140, radius: 4, intensity: 140 }], ["innerGlow", { color: "#fffbe6", size: 5, intensity: 90 }]] },
-  { id: "arcade", name: "\u30A2\u30FC\u30B1\u30FC\u30C9\u7B50\u4F53", icon: "\u2728", desc: "ARCADE CRT", layers: [["saturation", { amt: 35 }], ["crt", { scan: 42, mask: 30, bloom: 45, curve: 40, flicker: 18 }], ["chromatic", { amount: 1.2 }], ["scanline", { gap: 3, op: 18, bright: true }], ["bloom", { threshold: 150, radius: 2, intensity: 60 }]] },
-  { id: "bloom-original", name: "\u30AA\u30EA\u30B8\u30CA\u30EB", icon: "\u{1F3A8}", desc: "\u7D20\u6750\u306E\u8272\u3092\u305D\u306E\u307E\u307E", layers: [["scanline", { gap: 2, op: 12 }], ["vignette", { strength: 16 }]] },
-  { id: "bloom-polished", name: "\u30AF\u30EA\u30B9\u30BF\u30EB", icon: "\u{1F3A8}", desc: "\u900F\u660E\u611F\u3068\u304D\u3089\u3081\u304D\u3092\u30D7\u30E9\u30B9", layers: [["adjust", { brightness: 8, contrast: 16, saturation: 45, hue: 8 }], ["glow", { intensity: 12 }], ["scanline", { gap: 2, op: 8 }], ["vignette", { strength: 20 }]] },
-  { id: "bloom-amethyst", name: "\u30A2\u30E1\u30B8\u30B9\u30C8", icon: "\u{1F3A8}", desc: "\u6DF1\u307F\u306E\u3042\u308B\u7D2B\u6676\u30AB\u30E9\u30FC", layers: [["adjust", { brightness: 3, contrast: 18, saturation: 55, hue: 104 }], ["glow", { intensity: 10 }], ["noise", { amount: 3 }], ["scanline", { gap: 2, op: 14 }], ["vignette", { strength: 22 }]] },
-  { id: "bloom-nether", name: "\u30CD\u30B6\u30FC\u30E9\u30A4\u30C8", icon: "\u{1F3A8}", desc: "\u8D64\u9285\u8272\u306E\u91CD\u539A\u306A\u30C8\u30FC\u30F3", layers: [["adjust", { brightness: -6, contrast: 30, saturation: 42, hue: -128 }], ["glow", { intensity: 6 }], ["noise", { amount: 10 }], ["scanline", { gap: 2, op: 18 }], ["vignette", { strength: 30 }]] },
-  { id: "bloom-frost", name: "\u30D5\u30ED\u30B9\u30C8", icon: "\u{1F3A8}", desc: "\u51B7\u305F\u304F\u6F84\u3093\u3060\u6C37\u306E\u8CEA\u611F", layers: [["adjust", { brightness: 16, contrast: 8, saturation: 26, hue: -25 }], ["glow", { intensity: 14 }], ["noise", { amount: 4 }], ["scanline", { gap: 2, op: 10 }], ["vignette", { strength: 22 }]] },
-  { id: "bloom-gold", name: "\u30B4\u30FC\u30EB\u30C9", icon: "\u{1F3A8}", desc: "\u9EC4\u91D1\u306E\u5149\u6CA2\u3068\u91CD\u307F", layers: [["adjust", { brightness: 9, contrast: 24, saturation: 70, hue: -22 }], ["glow", { intensity: 18 }], ["noise", { amount: 5 }], ["scanline", { gap: 2, op: 12 }], ["vignette", { strength: 28 }]] },
-  { id: "bloom-ender", name: "\u30A8\u30F3\u30C0\u30FC", icon: "\u{1F3A8}", desc: "\u6B6A\u3093\u3060\u7D2B\u306E\u7570\u754C\u30C8\u30FC\u30F3", layers: [["adjust", { brightness: -2, contrast: 22, saturation: 50, hue: 145 }], ["glow", { intensity: 20 }], ["noise", { amount: 8 }], ["scanline", { gap: 2, op: 16 }], ["vignette", { strength: 34 }]] },
-  { id: "bloom-redstone", name: "\u30EC\u30C3\u30C9\u30B9\u30C8\u30FC\u30F3", icon: "\u{1F3A8}", desc: "\u8D64\u304F\u71B1\u3092\u5E2F\u3073\u305F\u767A\u5149", layers: [["adjust", { brightness: 2, contrast: 34, saturation: 80, hue: -158 }], ["glow", { intensity: 26 }], ["noise", { amount: 6 }], ["scanline", { gap: 2, op: 14 }], ["vignette", { strength: 30 }]] },
-  { id: "bloom-deepslate", name: "\u6DF1\u5C64\u5CA9", icon: "\u{1F3A8}", desc: "\u6C88\u307F\u8FBC\u3080\u3088\u3046\u306A\u6DF1\u3044\u9752\u7DD1", layers: [["adjust", { brightness: -12, contrast: 20, saturation: -10, hue: 145 }], ["noise", { amount: 16 }], ["scanline", { gap: 2, op: 18 }], ["vignette", { strength: 32 }]] },
-  { id: "bloom-prismarine", name: "\u30D7\u30EA\u30BA\u30DE\u30EA\u30F3", icon: "\u{1F3A8}", desc: "\u6D77\u5E95\u907A\u8DE1\u306E\u30B7\u30A2\u30F3", layers: [["adjust", { brightness: 0, contrast: 16, saturation: 40, hue: 70 }], ["glow", { intensity: 12 }], ["noise", { amount: 7 }], ["scanline", { gap: 2, op: 12 }], ["vignette", { strength: 24 }]] },
-  { id: "bloom-enchanted", name: "\u30A8\u30F3\u30C1\u30E3\u30F3\u30C8", icon: "\u{1F3A8}", desc: "\u7D2B\u306B\u714C\u3081\u304F\u9B54\u6CD5\u306E\u8CEA\u611F", layers: [["adjust", { brightness: 12, contrast: 18, saturation: 55, hue: 120 }], ["glow", { intensity: 28 }], ["noise", { amount: 5 }], ["scanline", { gap: 2, op: 10 }], ["vignette", { strength: 26 }]] },
-  { id: "bloom-grass", name: "\u8349\u539F\u30D6\u30ED\u30C3\u30AF", icon: "\u{1F3A8}", desc: "\u9BAE\u3084\u304B\u3067\u81EA\u7136\u306A\u7DD1", layers: [["adjust", { brightness: 6, contrast: 8, saturation: 50, hue: 35 }], ["glow", { intensity: 4 }], ["noise", { amount: 12 }], ["scanline", { gap: 2, op: 14 }], ["vignette", { strength: 22 }]] },
-  { id: "bloom-oak", name: "\u30AA\u30FC\u30AF\u6750", icon: "\u{1F3A8}", desc: "\u81EA\u7136\u306A\u6E29\u304B\u307F\u306E\u6728\u76EE", layers: [["adjust", { brightness: 4, contrast: 8, saturation: 32, hue: -20 }], ["noise", { amount: 9 }], ["scanline", { gap: 2, op: 16 }], ["vignette", { strength: 20 }]] },
-  { id: "bloom-spruce", name: "\u30C0\u30FC\u30AF\u6750", icon: "\u{1F3A8}", desc: "\u6DF1\u3044\u8272\u5473\u306E\u6728\u76EE", layers: [["adjust", { brightness: -8, contrast: 12, saturation: 20, hue: -14 }], ["noise", { amount: 10 }], ["scanline", { gap: 2, op: 14 }], ["vignette", { strength: 22 }]] },
-  { id: "bloom-birch", name: "\u30B7\u30E9\u30AB\u30D0", icon: "\u{1F3A8}", desc: "\u767D\u6728\u3068\u9ED2\u3044\u6591\u70B9\u306E\u6728\u5DE5\u7D20\u6750", layers: [["adjust", { brightness: 12, contrast: 4, saturation: 26, hue: -8 }], ["noise", { amount: 7 }], ["scanline", { gap: 2, op: 14 }], ["vignette", { strength: 18 }]] },
-  { id: "bloom-acacia", name: "\u30A2\u30AB\u30B7\u30A2\u6750", icon: "\u{1F3A8}", desc: "\u7D05\u3044\u8272\u5408\u3044\u3068\u8352\u308C\u76EE\u306E\u6728\u7D0B", layers: [["adjust", { brightness: 5, contrast: 14, saturation: 46, hue: -42 }], ["noise", { amount: 10 }], ["scanline", { gap: 2, op: 15 }], ["vignette", { strength: 22 }]] },
-  { id: "bloom-stone", name: "\u30B9\u30C8\u30FC\u30F3", icon: "\u{1F3A8}", desc: "\u5CA9\u3084\u77F3\u7573\u306B\u9069\u3057\u305F\u4E2D\u6027\u30C8\u30FC\u30F3", layers: [["adjust", { brightness: 2, contrast: 8, saturation: -8, hue: 0 }], ["noise", { amount: 13 }], ["scanline", { gap: 2, op: 14 }], ["vignette", { strength: 24 }]] },
-  { id: "bloom-dirt", name: "\u30C0\u30FC\u30C8", icon: "\u{1F3A8}", desc: "\u571F\u3084\u8015\u5730\u306B\u81EA\u7136\u306A\u6E7F\u5EA6\u611F", layers: [["adjust", { brightness: 2, contrast: 8, saturation: 28, hue: -28 }], ["noise", { amount: 14 }], ["scanline", { gap: 2, op: 14 }], ["vignette", { strength: 22 }]] },
-  { id: "bloom-cobblestone", name: "\u4E38\u77F3", icon: "\u{1F3A8}", desc: "\u5272\u308C\u76EE\u3068\u584A\u306E\u5BC6\u5EA6\u3092\u5F37\u8ABF", layers: [["adjust", { brightness: 2, contrast: 16, saturation: -12, hue: 0 }], ["noise", { amount: 18 }], ["scanline", { gap: 2, op: 16 }], ["vignette", { strength: 26 }]] },
-  { id: "bloom-bricks", name: "\u30D6\u30EA\u30C3\u30AF", icon: "\u{1F3A8}", desc: "\u7802\u8272\u306E\u7D99\u304E\u76EE\u3068\u5E03\u77F3\u306E\u898F\u5247", layers: [["adjust", { brightness: 3, contrast: 18, saturation: 18, hue: -18 }], ["noise", { amount: 12 }], ["scanline", { gap: 2, op: 16 }], ["vignette", { strength: 24 }]] },
-  { id: "bloom-obsidian", name: "\u9ED2\u66DC\u77F3", icon: "\u{1F3A8}", desc: "\u6DF1\u3044\u9ED2\u3068\u7D2B\u306E\u7D50\u6676", layers: [["adjust", { brightness: -14, contrast: 34, saturation: 30, hue: 135 }], ["glow", { intensity: 6 }], ["noise", { amount: 11 }], ["scanline", { gap: 2, op: 14 }], ["vignette", { strength: 34 }]] }
+function recolor(src, dark, mid, light, amount2 = 0.92) {
+  return remapLuma(src, rgb(dark), rgb(mid), rgb(light), amount2);
+}
+function overlay(src, layers, t = 0, seed = 7) {
+  return fx(src, layers, t, seed);
+}
+function poses(c, degrees, extras) {
+  const n = degrees.length;
+  const frames = degrees.map((d) => poseItem(c.base, d, 0.78));
+  return frames.map((f, i) => {
+    let out = f;
+    if (i > 0) {
+      const prev = poseItem(c.base, degrees[i - 1], 0.78);
+      out = composite(silhouette(prev, rgb(c.accent), 0.28), out);
+    }
+    return extras ? extras(out, i, n) : out;
+  });
+}
+var ELEMENTS = [
+  { id: "fire", name: "\u708E", desc: "\u540C\u3058\u5263\u306E\u3001\u706B\u5C5E\u6027\u7248", pal: ["#3a0a00", "#e25822", "#ffe08a"], animated: true, extra: (t, i, n) => overlay(t, [["embers", { type: "ember", count: 5 }], ["flicker", { amount: 22 }]], i / n) },
+  { id: "ice", name: "\u6C37", desc: "\u540C\u3058\u5263\u306E\u3001\u6C37\u5C5E\u6027\u7248", pal: ["#08243a", "#5ec8e8", "#eefcff"], animated: true, extra: (t, i, n) => overlay(t, [["frost", { amount: 28, crystals: 5 }], ["sparkle", { count: 3, color: "#ffffff", animate: true }]], i / n) },
+  { id: "thunder", name: "\u96F7", desc: "\u540C\u3058\u5263\u306E\u3001\u96F7\u5C5E\u6027\u7248", pal: ["#2a2400", "#e8d024", "#fffde0"], animated: true, extra: (t, i, n) => overlay(t, [["pulse", { color: "#fff3a0", amount: 35, threshold: 130 }]], i / n) },
+  { id: "dark", name: "\u95C7", desc: "\u540C\u3058\u5263\u306E\u3001\u95C7\u5C5E\u6027\u7248", pal: ["#0a0014", "#6a28b0", "#e0c0ff"], extra: (t) => outline1(t, [88, 32, 160], true) },
+  { id: "holy", name: "\u8056", desc: "\u540C\u3058\u5263\u306E\u3001\u8056\u5C5E\u6027\u7248", pal: ["#3a2a00", "#f0c04a", "#fff8dc"], extra: (t) => overlay(t, [["sparkle", { count: 3, color: "#fff4c8", animate: false }]]) },
+  { id: "poison", name: "\u6BD2", desc: "\u540C\u3058\u5263\u306E\u3001\u6BD2\u5C5E\u6027\u7248", pal: ["#08200a", "#4cb828", "#d8ff9a"] },
+  { id: "water", name: "\u6C34", desc: "\u540C\u3058\u5263\u306E\u3001\u6C34\u5C5E\u6027\u7248", pal: ["#04203c", "#2a7ac8", "#d0f4ff"] },
+  { id: "blood", name: "\u8840", desc: "\u540C\u3058\u5263\u306E\u3001\u8840\u5C5E\u6027\u7248", pal: ["#1a0000", "#b01818", "#ffb0a0"] }
 ];
-var presetLayers = (p) => p.layers.map(([t, params]) => newLayer(t, params));
+var MATERIALS = [
+  { id: "wood", name: "\u6728", pal: ["#3a2410", "#8a5a2b", "#e0b070"] },
+  { id: "stone", name: "\u77F3", pal: ["#2a2a2a", "#7a7a7a", "#d0d0d0"] },
+  { id: "iron", name: "\u9244", pal: ["#2a2a30", "#9a9aa4", "#f0f0f4"] },
+  { id: "gold", name: "\u91D1", pal: ["#3a2000", "#d9a000", "#fff4b0"] },
+  { id: "diamond", name: "\u30C0\u30A4\u30E4", pal: ["#062a33", "#2ec4c0", "#eafffd"] },
+  { id: "netherite", name: "\u30CD\u30B6\u30E9\u30A4\u30C8", pal: ["#120e10", "#4a4044", "#c0b4b0"] }
+];
+var VARIANTS = [
+  ...[0, 1, 2, 3, 4, 5].map((lv) => ({
+    id: `tier${lv}`,
+    group: "tier",
+    name: lv === 0 ? "+0 \u539F\u578B" : `+${lv}`,
+    tag: `+${lv}`,
+    animated: lv >= 5,
+    desc: ["\u624B\u3092\u52A0\u3048\u3066\u3044\u306A\u3044\u5143\u306E\u30C6\u30AF\u30B9\u30C1\u30E3", "\u8F2A\u90ED\u3092\u5F15\u304D\u3001\u5203\u3092\u7814\u3044\u3060\u3060\u3051", "\u67C4\u5DFB\u304D\u3068\u8B77\u62F3\u306E\u5B9D\u77F3", "\u5203\u3092\u4E00\u6BB5\u968E\u4F38\u3070\u3059", "\u5203\u306B\u30EB\u30FC\u30F3\u3001\u5F31\u3044\u30A8\u30F3\u30C1\u30E3\u30F3\u30C8", "\u5B8C\u6210\u5F62\u3002\u5149\u3092\u307E\u3068\u3063\u305F\u6700\u7D42\u5F37\u5316"][lv],
+    build: (c) => lv >= 5 ? anim(keys(c), (t) => enhance(c, lv, t)) : [enhance(c, lv)]
+  })),
+  {
+    id: "break1",
+    group: "limit",
+    name: "\u9650\u754C\u7A81\u7834",
+    tag: "LB",
+    animated: true,
+    desc: "\u540C\u3058+4\u306B\u3001\u5203\u304B\u3089\u6F0F\u308C\u308B\u5149\u306E\u4E80\u88C2",
+    build: (c) => anim(keys(c), (t) => overlay(enhance(c, 4, t), [["cracks", { count: 3, length: 7, glow: true, depth: 85 }], ["glow", { mode: "bloom", color: "#ff8c30", radius: 1, intensity: 32, pulse: true }]], t, c.seed))
+  },
+  {
+    id: "awaken",
+    group: "limit",
+    name: "\u899A\u9192",
+    tag: "AW",
+    animated: true,
+    desc: "\u672C\u4F53\u306F\u305D\u306E\u307E\u307E\u3001\u6B8B\u50CF\u304C\u7FFC\u306E\u3088\u3046\u306B\u958B\u304F",
+    build: (c) => {
+      const body = enhance(c, 5);
+      return anim(keys(c), (t) => {
+        const k = 0.7 + 0.3 * Math.sin(t * Math.PI * 2);
+        const wing = ghostCopies(body, [[-2, 1, 0.22 * k], [2, -1, 0.22 * k], [-3, 2, 0.12 * k], [3, -2, 0.12 * k]], rgb(c.accent));
+        return overlay(wing, [["sparkle", { count: 3, color: "#ffffff", style: "cross", animate: true }]], t, c.seed);
+      });
+    }
+  },
+  {
+    id: "dual",
+    group: "form",
+    name: "\u53CC\u5203",
+    animated: false,
+    desc: "\u4E2D\u70B9\u3067\u6298\u308A\u8FD4\u3057\u305F\u4E21\u5203\u3002\u540C\u3058\u30D4\u30AF\u30BB\u30EB",
+    build: (c) => [dualBlade(c.base)]
+  },
+  {
+    id: "great",
+    group: "form",
+    name: "\u5927\u5263",
+    animated: false,
+    desc: "\u5203\u3060\u3051\u592A\u304F\u3001\u9577\u304F\u3057\u305F\u91CD\u91CF\u578B",
+    build: (c) => [outline1(extendBlade(thickenBlade(c.base, 1), px(c.base) + 1), [16, 16, 18])]
+  },
+  {
+    id: "dagger",
+    group: "form",
+    name: "\u77ED\u5263",
+    animated: false,
+    desc: "\u67C4\u3092\u6B8B\u3057\u3066\u5203\u3092\u77ED\u304F\u3057\u305F\u5C0F\u578B",
+    build: (c) => {
+      const [hx, hy] = handleOf(c.base);
+      return [outline1(scaleAbout(c.base, 0.72, hx, hy), [16, 16, 18])];
+    }
+  },
+  {
+    id: "serrated",
+    group: "form",
+    name: "\u92F8\u5203",
+    animated: false,
+    desc: "\u5203\u306E\u7E01\u306B\u3060\u3051\u68D8\u3092\u8DB3\u3057\u305F\u5F62\u614B",
+    build: (c) => [addSpikes(c.base, 6, rgb(c.accent), c.seed, 1)]
+  },
+  {
+    id: "broken",
+    group: "form",
+    name: "\u6B20\u3051\u305F\u5203",
+    animated: false,
+    desc: "\u5207\u3063\u5148\u304C\u6B20\u3051\u3001\u540C\u3058\u6B66\u5668\u306E\u7834\u640D\u72B6\u614B",
+    build: (c) => [chipTip(c.base, c.seed, 0.55)]
+  },
+  {
+    id: "twin",
+    group: "form",
+    name: "\u4E8C\u5200",
+    animated: false,
+    desc: "\u540C\u3058\u5263\u3092\u5C11\u3057\u305A\u3089\u3057\u3066\u4E8C\u632F\u308A",
+    build: (c) => {
+      const a = axis(c.base), s = px(c.base) * 2;
+      const a1 = translateTex(c.base, Math.round(a.px * s), Math.round(a.py * s));
+      const a2 = translateTex(c.base, Math.round(-a.px * s), Math.round(-a.py * s));
+      return [composite(withAlpha(a1, 0.9), a2)];
+    }
+  },
+  ...ELEMENTS.map((e) => ({
+    id: `el_${e.id}`,
+    group: "element",
+    name: e.name,
+    tag: e.name,
+    animated: !!e.animated,
+    desc: e.desc,
+    build: (c) => {
+      const body = recolor(c.base, ...e.pal);
+      if (!e.extra) return [body];
+      const n = e.animated ? keys(c) : 1;
+      return anim(n, (_t, i) => e.extra(body, i, n));
+    }
+  })),
+  ...MATERIALS.map((m) => ({
+    id: `mat_${m.id}`,
+    group: "material",
+    name: `${m.name}\u88FD`,
+    tag: m.name,
+    animated: false,
+    desc: `\u540C\u3058\u5F62\u306E${m.name}\u30D0\u30FC\u30B8\u30E7\u30F3`,
+    build: (c) => [recolor(c.base, ...m.pal)]
+  })),
+  {
+    id: "charged",
+    group: "mode",
+    name: "\u30C1\u30E3\u30FC\u30B8",
+    animated: true,
+    desc: "\u672C\u4F53\u306F\u305D\u306E\u307E\u307E\u3001\u8F2A\u90ED\u3060\u3051\u767A\u5149",
+    build: (c) => anim(keys(c), (t) => overlay(c.base, [["glow", { mode: item(c.base) ? "outer" : "bloom", color: c.accent, radius: 1, intensity: 40 + 25 * Math.sin(t * Math.PI * 2), pulse: false }]], t, c.seed))
+  },
+  {
+    id: "enchanted",
+    group: "mode",
+    name: "\u30A8\u30F3\u30C1\u30E3\u30F3\u30C8\u4E2D",
+    animated: true,
+    desc: "\u30D0\u30CB\u30E9\u306E\u30A8\u30F3\u30C1\u30E3\u30F3\u30C8\u30B0\u30EA\u30F3\u30C8",
+    build: (c) => anim(keys(c), (t) => overlay(c.base, [["enchant", { color: "#b070ff", intensity: 50, width: 3 }]], t, c.seed))
+  },
+  {
+    id: "stealth",
+    group: "mode",
+    name: "\u30B9\u30C6\u30EB\u30B9",
+    animated: true,
+    desc: "\u672C\u4F53\u3092\u6B8B\u3057\u305F\u307E\u307E\u534A\u900F\u660E\u306B",
+    build: (c) => anim(keys(c), (t) => withAlpha(c.base, 0.4 + 0.12 * Math.sin(t * Math.PI * 2)))
+  },
+  {
+    id: "frozenmode",
+    group: "mode",
+    name: "\u51CD\u7D50",
+    animated: true,
+    desc: "\u971C\u3092\u4E57\u305B\u308B\u3002\u8272\u306F\u5927\u304D\u304F\u5909\u3048\u306A\u3044",
+    build: (c) => anim(keys(c), (t) => overlay(c.base, [["frost", { amount: 40, crystals: 6 }], ["sparkle", { count: 2, color: "#ffffff", animate: true }]], t, c.seed))
+  },
+  {
+    id: "overheat",
+    group: "mode",
+    name: "\u904E\u71B1",
+    animated: true,
+    desc: "\u5203\u306E\u30CF\u30A4\u30E9\u30A4\u30C8\u3060\u3051\u8D64\u71B1",
+    build: (c) => anim(keys(c), (t) => overlay(c.base, [["flicker", { amount: 28, color: "#ff8030" }], ["embers", { type: "ember", count: 4 }]], t, c.seed))
+  },
+  {
+    id: "blessed",
+    group: "mode",
+    name: "\u795D\u798F",
+    animated: true,
+    desc: "\u91D1\u8272\u306E\u30A2\u30A6\u30C8\u30E9\u30A4\u30F3\u3068\u661F",
+    build: (c) => anim(keys(c), (t) => overlay(outline1(c.base, [255, 228, 140], true), [["sparkle", { count: 3, style: "star", color: "#fff4c0", animate: true }]], t, c.seed))
+  },
+  {
+    id: "slash",
+    group: "attack",
+    name: "\u65AC\u6483",
+    animated: true,
+    desc: "\u632F\u308A\u304B\u3076\u308A \u2192 \u5230\u9054 \u2192 \u4F59\u97FB",
+    build: (c) => poses(c, [-38, -28, -8, 18, 36, 22, 8, 0], (f, i) => {
+      if (i < 2 || i > 4) return f;
+      const a = axis(c.base);
+      const hx = c.base.w * 0.38, hy = c.base.h * 0.72;
+      return drawArc(f, hx, hy, a.len * 0.55, -Math.PI * 0.9, -Math.PI * 0.15, rgb(c.accent), 0.55, Math.max(1, px(c.base)), true);
+    })
+  },
+  {
+    id: "smash",
+    group: "attack",
+    name: "\u632F\u308A\u4E0B\u308D\u3057",
+    animated: true,
+    desc: "\u632F\u308A\u4E0A\u3052\u3001\u53E9\u304D\u3064\u3051\u3001\u7740\u5F3E",
+    build: (c) => poses(c, [-42, -48, -20, 10, 38, 34, 16, 0], (f, i) => {
+      if (i !== 4 && i !== 5) return f;
+      const hx = c.base.w * 0.38, hy = c.base.h * 0.72, a = axis(c.base);
+      return drawSparks(f, hx + a.ax * a.len * 0.5, hy + a.ay * a.len * 0.5, 6, px(c.base) * 3, [230, 220, 200], c.seed + i, 0.8);
+    })
+  },
+  {
+    id: "thrust",
+    group: "attack",
+    name: "\u7A81\u304D",
+    animated: true,
+    desc: "\u5F15\u3044\u3066\u3001\u4E00\u76F4\u7DDA\u306B\u51FA\u3059",
+    build: (c) => {
+      const a = axis(c.base), s = a.len * 0.22;
+      const offsets = [0, -0.35, -0.5, 0.15, 0.85, 1, 0.4, 0];
+      return offsets.map((k) => {
+        const posed = poseItem(c.base, 0, 0.78);
+        const moved = translateTex(posed, Math.round(a.ax * s * k), Math.round(a.ay * s * k));
+        if (k < 0.5) return moved;
+        const ghost = translateTex(posed, Math.round(a.ax * s * (k - 0.45)), Math.round(a.ay * s * (k - 0.45)));
+        return composite(silhouette(ghost, rgb(c.accent), 0.3), moved);
+      });
+    }
+  },
+  {
+    id: "guardpose",
+    group: "attack",
+    name: "\u9632\u5FA1",
+    animated: true,
+    desc: "\u6A2A\u306B\u69CB\u3048\u308B\u30AD\u30FC\u30DD\u30FC\u30BA",
+    build: (c) => {
+      const hold = poseItem(c.base, 55, 0.8, 0.42, 0.62);
+      return anim(keys(c), (t) => t < 0.25 ? poseItem(c.base, 55 * (t / 0.25), 0.8, 0.42, 0.62) : hold);
+    }
+  },
+  {
+    id: "cast",
+    group: "attack",
+    name: "\u8A60\u5531",
+    animated: true,
+    desc: "\u63B2\u3052\u3066\u3001\u5468\u56F2\u306B\u9B54\u6CD5\u9663",
+    build: (c) => {
+      const raised = poseItem(c.base, -50, 0.72, 0.5, 0.62);
+      return anim(keys(c), (t) => {
+        const b = bounds(raised);
+        let ring = drawArc(createTex(c.base.w, c.base.h), b.cx, b.cy, Math.min(c.base.w, c.base.h) * 0.36, t * Math.PI * 2, t * Math.PI * 2 + Math.PI * 1.2, rgb(c.accent), 0.5, px(c.base), true);
+        const itemTex = translateTex(raised, 0, Math.round(-Math.sin(t * Math.PI * 2) * px(c.base)));
+        return composite(ring, itemTex);
+      });
+    }
+  },
+  {
+    id: "idle",
+    group: "attack",
+    name: "\u5F85\u6A5F",
+    animated: true,
+    desc: "\u5143\u306E\u5411\u304D\u306E\u307E\u307E\u30011\u301C2px\u6D6E\u304F",
+    build: (c) => anim(keys(c), (t) => translateTex(c.base, 0, Math.round(-Math.sin(t * Math.PI * 2))))
+  }
+];
+var VARIANT_MAP = Object.fromEntries(VARIANTS.map((v) => [v.id, v]));
 
 // src/lib/pfTextures.ts
+var TEX_GROUPS = ["\u57FA\u672C\u30D6\u30ED\u30C3\u30AF", "\u9271\u77F3", "\u91D1\u5C5E\u30D6\u30ED\u30C3\u30AF", "\u7279\u6B8A\u6B21\u5143", "\u88C5\u98FE\u30FB\u610F\u5320", "\u30A2\u30A4\u30C6\u30E0"];
 var Pt = class {
   img;
   size;
@@ -7251,7 +7561,7 @@ function voronoi(size, seed, cells, colFn, jitterAmt = 1) {
   const pts = [];
   for (let i = 0; i < cells; i++) pts.push([rnd() * size, rnd() * size]);
   return p.fill((x, y) => {
-    let d1 = 1e9, d2 = 1e9, idx = 0;
+    let d1 = 1e9, d2 = 1e9, idx2 = 0;
     for (let i = 0; i < pts.length; i++) {
       for (let ox = -1; ox <= 1; ox++)
         for (let oy = -1; oy <= 1; oy++) {
@@ -7260,13 +7570,13 @@ function voronoi(size, seed, cells, colFn, jitterAmt = 1) {
           if (d < d1) {
             d2 = d1;
             d1 = d;
-            idx = i;
+            idx2 = i;
           } else if (d < d2) d2 = d;
         }
     }
     const edge = clamp01((Math.sqrt(d2) - Math.sqrt(d1)) / (size * 0.09 * jitterAmt));
-    const t = hash22(idx, 0, seed);
-    return colFn(t, edge, idx);
+    const t = hash22(idx2, 0, seed);
+    return colFn(t, edge, idx2);
   }).img;
 }
 function ore(size, seed, color2, glow = false, blobs = 3) {
@@ -7279,9 +7589,9 @@ function ore(size, seed, color2, glow = false, blobs = 3) {
   for (let y = 0; y < size; y++)
     for (let x = 0; x < size; x++) {
       let m = 0;
-      for (const [px, py, r] of pts) {
-        const dx = x - px * size, dy = y - py * size;
-        const wob = 1 + (fbm2(x / (size / 9), y / (size / 9), seed + Math.round(px * 50), 3) - 0.5) * 0.85;
+      for (const [px2, py, r] of pts) {
+        const dx = x - px2 * size, dy = y - py * size;
+        const wob = 1 + (fbm2(x / (size / 9), y / (size / 9), seed + Math.round(px2 * 50), 3) - 0.5) * 0.85;
         const d = Math.hypot(dx, dy) / (r * wob);
         m = Math.max(m, 1 - d);
       }
@@ -7332,8 +7642,8 @@ function segDist(x, y, x0, y0, x1, y1) {
   const L2 = dx * dx + dy * dy || 1e-6;
   let t = ((x - x0) * dx + (y - y0) * dy) / L2;
   t = clamp01(t);
-  const px = x0 + dx * t, py = y0 + dy * t;
-  const d = Math.hypot(x - px, y - py);
+  const px2 = x0 + dx * t, py = y0 + dy * t;
+  const d = Math.hypot(x - px2, y - py);
   const cross = (x - x0) * dy - (y - y0) * dx;
   return { d, t, sign: cross > 0 ? 1 : -1 };
 }
@@ -7342,8 +7652,8 @@ function itemSword(size, seed, blade, guard) {
   const bc = hexToRgb2(blade), gc = hexToRgb2(guard);
   const N = (u) => u * s;
   p.fill((x, y) => {
-    const px = x + 0.5, py = y + 0.5;
-    const b = segDist(px, py, N(0.14), N(0.86), N(0.86), N(0.14));
+    const px2 = x + 0.5, py = y + 0.5;
+    const b = segDist(px2, py, N(0.14), N(0.86), N(0.86), N(0.14));
     const wB = N(0.075) * (1 - b.t * 0.72);
     if (b.d < wB) {
       const shade2 = 1 + b.sign * 0.24 * (1 - b.t * 0.4);
@@ -7351,12 +7661,12 @@ function itemSword(size, seed, blade, guard) {
       const n = 0.94 + hash22(x, y, seed) * 0.12;
       return [clamp2(bc.r * shade2 * edge * n), clamp2(bc.g * shade2 * edge * n), clamp2(bc.b * shade2 * edge * n), 255];
     }
-    const g = segDist(px, py, N(0.06), N(0.78), N(0.24), N(0.96));
+    const g = segDist(px2, py, N(0.06), N(0.78), N(0.24), N(0.96));
     if (g.d < N(0.055)) {
       const k = 1 + g.sign * 0.2;
       return [clamp2(gc.r * k), clamp2(gc.g * k), clamp2(gc.b * k), 255];
     }
-    const h = segDist(px, py, N(0.13), N(0.87), N(0.03), N(0.97));
+    const h = segDist(px2, py, N(0.13), N(0.87), N(0.03), N(0.97));
     if (h.d < N(0.05)) {
       const k = 0.85 + h.sign * 0.2 + Math.sin(h.t * 18) * 0.08;
       return [clamp2(96 * k), clamp2(64 * k), clamp2(38 * k), 255];
@@ -7370,14 +7680,14 @@ function itemPickaxe(size, seed, head) {
   const hc = hexToRgb2(head);
   const N = (u) => u * s;
   p.fill((x, y) => {
-    const px = x + 0.5, py = y + 0.5;
-    const h = segDist(px, py, N(0.1), N(0.92), N(0.66), N(0.36));
+    const px2 = x + 0.5, py = y + 0.5;
+    const h = segDist(px2, py, N(0.1), N(0.92), N(0.66), N(0.36));
     if (h.d < N(0.052)) {
       const k = 0.9 + h.sign * 0.22 + Math.sin(h.t * 22) * 0.06;
       return [clamp2(122 * k), clamp2(84 * k), clamp2(50 * k), 255];
     }
-    const t = clamp01((px - N(0.16)) / (N(0.78) - N(0.16)));
-    if (px > N(0.16) && px < N(0.8)) {
+    const t = clamp01((px2 - N(0.16)) / (N(0.78) - N(0.16)));
+    if (px2 > N(0.16) && px2 < N(0.8)) {
       const cy = N(0.46) - Math.sin(t * Math.PI) * N(0.3);
       const width = N(0.085) * (1 - Math.abs(t - 0.5) * 0.85);
       const d = py - cy;
@@ -7395,8 +7705,8 @@ function itemApple(size, seed) {
   const p = new Pt(size), s = size;
   const cx = s * 0.5, cy = s * 0.6, r = s * 0.33;
   p.fill((x, y) => {
-    const px = x + 0.5, py = y + 0.5;
-    const dx = (px - cx) / r, dy = (py - cy) / (r * 1.02);
+    const px2 = x + 0.5, py = y + 0.5;
+    const dx = (px2 - cx) / r, dy = (py - cy) / (r * 1.02);
     let d = Math.hypot(dx, dy);
     d *= 1 + Math.abs(dx) * 0.14 - Math.max(0, -dy) * 0.1;
     if (d < 1) {
@@ -7406,9 +7716,9 @@ function itemApple(size, seed) {
       const rim = d > 0.9 ? 0.7 : 1;
       return [clamp2(206 * k * rim), clamp2(48 * k * rim * 1.05), clamp2(48 * k * rim), 255];
     }
-    const st = segDist(px, py, cx, cy - r * 0.92, cx + s * 0.05, cy - r * 1.5);
+    const st = segDist(px2, py, cx, cy - r * 0.92, cx + s * 0.05, cy - r * 1.5);
     if (st.d < s * 0.035) return [clamp2(96 * (1 + st.sign * 0.2)), clamp2(66), clamp2(38), 255];
-    const lx = (px - (cx + s * 0.13)) / (s * 0.13), ly = (py - (cy - r * 1.24)) / (s * 0.06);
+    const lx = (px2 - (cx + s * 0.13)) / (s * 0.13), ly = (py - (cy - r * 1.24)) / (s * 0.06);
     if (lx * lx + ly * ly < 1 && lx > -0.2) return [clamp2(88 + lx * 40), clamp2(168 - ly * 30), clamp2(58), 255];
     return null;
   });
@@ -7419,22 +7729,22 @@ function itemPotion(size, seed, liquid) {
   const lc = hexToRgb2(liquid);
   const cx = s * 0.5, cy = s * 0.62, r = s * 0.3;
   p.fill((x, y) => {
-    const px = x + 0.5, py = y + 0.5;
-    const inNeck = px > s * 0.42 && px < s * 0.58 && py > s * 0.18 && py < s * 0.4;
-    const d = Math.hypot((px - cx) / r, (py - cy) / r);
+    const px2 = x + 0.5, py = y + 0.5;
+    const inNeck = px2 > s * 0.42 && px2 < s * 0.58 && py > s * 0.18 && py < s * 0.4;
+    const d = Math.hypot((px2 - cx) / r, (py - cy) / r);
     const inBody = d < 1;
     if (inNeck || inBody) {
       const fillLine = cy + r * 0.15;
       if (py > fillLine && inBody) {
-        const light = clamp01(1 - Math.hypot(px - (cx - r * 0.4), py - (cy - r * 0.4)) / (r * 1.5));
+        const light = clamp01(1 - Math.hypot(px2 - (cx - r * 0.4), py - (cy - r * 0.4)) / (r * 1.5));
         const n = 0.9 + hash22(x, y, seed) * 0.2;
         const k = (0.7 + light * 0.6) * n;
         return [clamp2(lc.r * k), clamp2(lc.g * k), clamp2(lc.b * k), 235];
       }
-      const edge = d > 0.88 || inNeck && (px < s * 0.45 || px > s * 0.55);
+      const edge = d > 0.88 || inNeck && (px2 < s * 0.45 || px2 > s * 0.55);
       return edge ? [214, 232, 240, 200] : [236, 248, 255, 120];
     }
-    if (px > s * 0.4 && px < s * 0.6 && py > s * 0.1 && py < s * 0.22) {
+    if (px2 > s * 0.4 && px2 < s * 0.6 && py > s * 0.1 && py < s * 0.22) {
       const k = 0.85 + hash22(x, y, seed) * 0.3;
       return [clamp2(150 * k), clamp2(108 * k), clamp2(66 * k), 255];
     }
@@ -7448,12 +7758,12 @@ function itemIngot(size, seed, color2) {
   const c = hexToRgb2(color2);
   const N = (u) => u * s;
   p.fill((x, y) => {
-    const px = x + 0.5, py = y + 0.5;
+    const px2 = x + 0.5, py = y + 0.5;
     if (py < N(0.34) || py > N(0.78)) return null;
     const t = (py - N(0.34)) / (N(0.78) - N(0.34));
     const halfTop = N(0.22), halfBot = N(0.38);
     const half = lerp(halfTop, halfBot, t);
-    const dx = Math.abs(px - s / 2);
+    const dx = Math.abs(px2 - s / 2);
     if (dx > half) return null;
     const n = 0.94 + hash22(x, y, seed) * 0.12;
     let k = 1.14 - t * 0.44 + dx / half * 0.06;
@@ -7468,25 +7778,25 @@ function itemGem(size, seed, color2) {
   const c = hexToRgb2(color2);
   const cx = s / 2;
   p.fill((x, y) => {
-    const px = x + 0.5, py = y + 0.5;
+    const px2 = x + 0.5, py = y + 0.5;
     const topY = s * 0.2, midY = s * 0.42, botY = s * 0.88;
     let inside = false, facet = 0;
     if (py >= topY && py <= midY) {
       const t = (py - topY) / (midY - topY);
       const half = lerp(s * 0.2, s * 0.36, t);
-      inside = Math.abs(px - cx) < half;
-      facet = 0.95 + t * 0.2 - Math.abs(px - cx) / (half * 2.2);
+      inside = Math.abs(px2 - cx) < half;
+      facet = 0.95 + t * 0.2 - Math.abs(px2 - cx) / (half * 2.2);
     } else if (py > midY && py <= botY) {
       const t = (py - midY) / (botY - midY);
       const half = lerp(s * 0.36, 0, t);
-      inside = Math.abs(px - cx) < half;
-      facet = 0.8 - t * 0.35 + Math.abs(px - cx) / (s * 0.5) * 0.5;
+      inside = Math.abs(px2 - cx) < half;
+      facet = 0.8 - t * 0.35 + Math.abs(px2 - cx) / (s * 0.5) * 0.5;
     }
     if (!inside) return null;
-    const band = Math.abs(Math.abs(px - cx) - s * 0.12) < s * 0.02 ? 1.25 : 1;
+    const band = Math.abs(Math.abs(px2 - cx) - s * 0.12) < s * 0.02 ? 1.25 : 1;
     const n = 0.95 + hash22(x, y, seed) * 0.1;
     const k = clamp2(facet * band * n, 0.25, 1.7);
-    if (py < midY && Math.abs(px - cx) < s * 0.06) return [clamp2(c.r * 1.5 + 70), clamp2(c.g * 1.5 + 70), clamp2(c.b * 1.5 + 70), 255];
+    if (py < midY && Math.abs(px2 - cx) < s * 0.06) return [clamp2(c.r * 1.5 + 70), clamp2(c.g * 1.5 + 70), clamp2(c.b * 1.5 + 70), 255];
     return [clamp2(c.r * k), clamp2(c.g * k), clamp2(c.b * k), 255];
   });
   return p.img;
@@ -7494,14 +7804,14 @@ function itemGem(size, seed, color2) {
 function itemBow(size, seed) {
   const p = new Pt(size), s = size;
   p.fill((x, y) => {
-    const px = x + 0.5, py = y + 0.5;
+    const px2 = x + 0.5, py = y + 0.5;
     const cx = s * 0.72, cy = s * 0.5, r = s * 0.42;
-    const d = Math.hypot(px - cx, py - cy);
-    if (Math.abs(d - r) < s * 0.05 && px < cx) {
+    const d = Math.hypot(px2 - cx, py - cy);
+    if (Math.abs(d - r) < s * 0.05 && px2 < cx) {
       const k = 0.8 + (1 - d / r) * 0.5 + hash22(x, y, seed) * 0.12;
       return [clamp2(128 * k), clamp2(88 * k), clamp2(52 * k), 255];
     }
-    if (Math.abs(px - (cx - r)) < s * 0.02 && py > cy - r + s * 0.02 && py < cy + r - s * 0.02)
+    if (Math.abs(px2 - (cx - r)) < s * 0.02 && py > cy - r + s * 0.02 && py < cy + r - s * 0.02)
       return [236, 236, 224, 235];
     return null;
   });
@@ -7846,6 +8156,384 @@ var TEXTURES = [
   T4("blank", "\u7A7A\u767D (\u900F\u660E)", "BLANK", "\u30A2\u30A4\u30C6\u30E0", (s) => new Pt(s).img)
 ];
 var TEX_BY_ID = new Map(TEXTURES.map((t) => [t.id, t]));
+function generateTexture(id, size, seed) {
+  const t = TEX_BY_ID.get(id);
+  if (!t) return new ImageData(size, size);
+  return t.gen(Math.max(8, Math.min(256, size)), seed);
+}
+
+// src/lib/pixelConvert.ts
+var dist = (a, b) => {
+  const dr = a[0] - b[0], dg = a[1] - b[1], db = a[2] - b[2];
+  return 0.3 * dr * dr + 0.59 * dg * dg + 0.11 * db * db;
+};
+function nearest(c, pal2) {
+  let best = 0, bd = Infinity;
+  for (let i = 0; i < pal2.length; i++) {
+    const d = dist(c, pal2[i]);
+    if (d < bd) {
+      bd = d;
+      best = i;
+    }
+  }
+  return pal2[best];
+}
+function kmeans2(px2, k) {
+  if (!px2.length) return [[128, 128, 128]];
+  const cents = [px2[Math.floor(px2.length / 2)]];
+  while (cents.length < k && cents.length < px2.length) {
+    let far = px2[0], fd = -1;
+    for (let i = 0; i < px2.length; i += Math.max(1, Math.floor(px2.length / 400))) {
+      let m = Infinity;
+      for (const c of cents) m = Math.min(m, dist(px2[i], c));
+      if (m > fd) {
+        fd = m;
+        far = px2[i];
+      }
+    }
+    cents.push([...far]);
+  }
+  for (let it = 0; it < 12; it++) {
+    const s = cents.map(() => [0, 0, 0, 0]);
+    for (const p of px2) {
+      let bi = 0, bd = Infinity;
+      cents.forEach((c, i) => {
+        const d = dist(p, c);
+        if (d < bd) {
+          bd = d;
+          bi = i;
+        }
+      });
+      s[bi][0] += p[0];
+      s[bi][1] += p[1];
+      s[bi][2] += p[2];
+      s[bi][3]++;
+    }
+    s.forEach((v, i) => {
+      if (v[3]) cents[i] = [v[0] / v[3], v[1] / v[3], v[2] / v[3]];
+    });
+  }
+  return cents.map((c) => c.map(Math.round));
+}
+function reduceTex(src, paletteName, colors = 16) {
+  const px2 = [];
+  for (let i = 0; i < src.d.length; i += 4) {
+    if (src.d[i + 3] < 20) continue;
+    px2.push([src.d[i], src.d[i + 1], src.d[i + 2]]);
+  }
+  const pal2 = paletteName ? PALETTES2[paletteName] ?? null : null;
+  const table = pal2 ?? kmeans2(px2, Math.max(2, Math.min(256, colors)));
+  const out = createTex(src.w, src.h);
+  for (let i = 0; i < src.d.length; i += 4) {
+    if (src.d[i + 3] < 20) continue;
+    const [r, g, b] = nearest([src.d[i], src.d[i + 1], src.d[i + 2]], table);
+    out.d[i] = r;
+    out.d[i + 1] = g;
+    out.d[i + 2] = b;
+    out.d[i + 3] = 255;
+  }
+  return out;
+}
+var PALETTES2 = {
+  "\u81EA\u52D5 (k-means)": null,
+  "Minecraft\u6A19\u6E96 (\u9271\u77F3\u30FB\u571F\u30FB\u6728\u30FB\u7F8A\u6BDB)": [
+    [16, 16, 16],
+    [40, 40, 40],
+    [80, 80, 80],
+    [130, 130, 130],
+    [180, 180, 180],
+    [240, 240, 240],
+    // グレースケール/石
+    [134, 96, 67],
+    [86, 61, 42],
+    [160, 115, 80],
+    [198, 142, 99],
+    // 木材・土
+    [87, 109, 39],
+    [112, 142, 51],
+    [58, 81, 23],
+    // 草・葉
+    [45, 166, 152],
+    [92, 219, 213],
+    [19, 122, 127],
+    // ダイヤ・水
+    [245, 183, 29],
+    [216, 127, 51],
+    [150, 52, 20],
+    // 金・火・溶岩
+    [178, 34, 34],
+    [153, 51, 51],
+    [220, 20, 60],
+    // 赤石・赤羊毛
+    [118, 67, 138],
+    [128, 0, 128],
+    [76, 29, 149],
+    // 黒曜石・アメジスト
+    [50, 160, 60],
+    [20, 110, 40],
+    // エメラルド
+    [22, 100, 180],
+    [35, 60, 150]
+    // ラピスラズリ
+  ],
+  "PICO-8 (16\u8272\u30EC\u30C8\u30ED)": [
+    [0, 0, 0],
+    [29, 43, 83],
+    [126, 37, 83],
+    [0, 135, 81],
+    [171, 82, 54],
+    [95, 87, 79],
+    [194, 195, 199],
+    [255, 241, 232],
+    [255, 0, 77],
+    [255, 163, 0],
+    [255, 236, 39],
+    [0, 228, 54],
+    [41, 173, 255],
+    [131, 118, 156],
+    [255, 119, 168],
+    [255, 204, 170]
+  ],
+  "\u30B2\u30FC\u30E0\u30DC\u30FC\u30A4\u98A8 (4\u8272)": [
+    [15, 56, 15],
+    [48, 98, 48],
+    [139, 172, 15],
+    [155, 188, 15]
+  ],
+  "\u30D5\u30A1\u30DF\u30B3\u30F3 / NES\u98A8 (16\u8272)": [
+    [0, 0, 0],
+    [252, 252, 252],
+    [188, 188, 188],
+    [124, 124, 124],
+    [168, 16, 0],
+    [248, 56, 0],
+    [252, 160, 68],
+    [248, 184, 0],
+    [0, 168, 0],
+    [88, 216, 84],
+    [0, 120, 248],
+    [104, 136, 252],
+    [216, 0, 204],
+    [248, 120, 248],
+    [172, 124, 0],
+    [0, 136, 136]
+  ],
+  "\u30B5\u30A4\u30D0\u30FC\u30CD\u30AA\u30F3 (12\u8272)": [
+    [10, 10, 25],
+    [255, 0, 128],
+    [0, 240, 255],
+    [57, 255, 20],
+    [255, 225, 53],
+    [138, 43, 226],
+    [255, 110, 0],
+    [255, 255, 255],
+    [40, 20, 60],
+    [20, 70, 90],
+    [100, 20, 80],
+    [180, 255, 0]
+  ],
+  "\u30E2\u30CE\u30AF\u30ED (\u767D\u9ED22\u968E\u8ABF)": [
+    [0, 0, 0],
+    [255, 255, 255]
+  ],
+  "\u30BB\u30D4\u30A2\u5199\u771F\u98A8": [
+    [43, 26, 14],
+    [94, 62, 35],
+    [150, 108, 68],
+    [204, 166, 116],
+    [240, 220, 180]
+  ]
+};
+
+// src/lib/pngCodec.ts
+import { deflateSync, inflateSync } from "node:zlib";
+var CRC_TABLE = (() => {
+  const table = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 3988292384 ^ c >>> 1 : c >>> 1;
+    table[n] = c;
+  }
+  return table;
+})();
+function crc32(bytes) {
+  let crc = 4294967295;
+  for (let i = 0; i < bytes.length; i++) crc = CRC_TABLE[(crc ^ bytes[i]) & 255] ^ crc >>> 8;
+  return (crc ^ 4294967295) >>> 0;
+}
+function chunk(type, data) {
+  const out = new Uint8Array(12 + data.length);
+  const view = new DataView(out.buffer);
+  view.setUint32(0, data.length);
+  for (let i = 0; i < 4; i++) out[4 + i] = type.charCodeAt(i);
+  out.set(data, 8);
+  view.setUint32(8 + data.length, crc32(out.subarray(4, 8 + data.length)));
+  return out;
+}
+function join(parts) {
+  const total = parts.reduce((n, p) => n + p.length, 0);
+  const out = new Uint8Array(total);
+  let offset = 0;
+  for (const p of parts) {
+    out.set(p, offset);
+    offset += p.length;
+  }
+  return out;
+}
+function encodePng(tex) {
+  const { w, h, d } = tex;
+  const raw = new Uint8Array((w * 4 + 1) * h);
+  for (let y = 0; y < h; y++) {
+    raw[y * (w * 4 + 1)] = 0;
+    raw.set(d.subarray(y * w * 4, (y + 1) * w * 4), y * (w * 4 + 1) + 1);
+  }
+  const ihdr = new Uint8Array(13);
+  const view = new DataView(ihdr.buffer);
+  view.setUint32(0, w);
+  view.setUint32(4, h);
+  ihdr[8] = 8;
+  ihdr[9] = 6;
+  const sig = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]);
+  return join([sig, chunk("IHDR", ihdr), chunk("IDAT", deflateSync(raw)), chunk("IEND", new Uint8Array(0))]);
+}
+function readChunks(bytes) {
+  const chunks = [];
+  let offset = 8;
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  while (offset + 8 <= bytes.length) {
+    const length = view.getUint32(offset);
+    const type = String.fromCharCode(bytes[offset + 4], bytes[offset + 5], bytes[offset + 6], bytes[offset + 7]);
+    chunks.push({ type, data: bytes.subarray(offset + 8, offset + 8 + length) });
+    offset += 12 + length;
+    if (type === "IEND") break;
+  }
+  return chunks;
+}
+function paeth(a, b, c) {
+  const p = a + b - c;
+  const pa = Math.abs(p - a), pb = Math.abs(p - b), pc = Math.abs(p - c);
+  return pa <= pb && pa <= pc ? a : pb <= pc ? b : c;
+}
+function decodePng(bytes) {
+  let width = 0, height = 0, bitDepth = 0, colorType = 0;
+  const idat = [];
+  for (const c of readChunks(bytes)) {
+    if (c.type === "IHDR") {
+      const view = new DataView(c.data.buffer, c.data.byteOffset, c.data.length);
+      width = view.getUint32(0);
+      height = view.getUint32(4);
+      bitDepth = c.data[8];
+      colorType = c.data[9];
+    } else if (c.type === "IDAT") {
+      idat.push(c.data);
+    }
+  }
+  if (bitDepth !== 8 || colorType !== 2 && colorType !== 6) {
+    throw new Error(`unsupported PNG (bitDepth=${bitDepth} colorType=${colorType}; need 8-bit RGB/RGBA)`);
+  }
+  const channels = colorType === 2 ? 3 : 4;
+  const raw = inflateSync(join(idat));
+  const tex = createTex(width, height);
+  const stride = width * channels + 1;
+  let prev = new Uint8Array(width * channels);
+  for (let y = 0; y < height; y++) {
+    const filter = raw[y * stride];
+    const row = raw.subarray(y * stride + 1, (y + 1) * stride);
+    const out = new Uint8Array(width * channels);
+    for (let x = 0; x < width * channels; x++) {
+      const a = x >= channels ? out[x - channels] : 0;
+      const b = prev[x];
+      const c = x >= channels ? prev[x - channels] : 0;
+      let v;
+      if (filter === 0) v = row[x];
+      else if (filter === 1) v = row[x] + a;
+      else if (filter === 2) v = row[x] + b;
+      else if (filter === 3) v = row[x] + (a + b >> 1);
+      else v = row[x] + paeth(a, b, c);
+      out[x] = v & 255;
+    }
+    for (let x = 0; x < width; x++) {
+      const i = (y * width + x) * 4;
+      tex.d[i] = out[x * channels];
+      tex.d[i + 1] = out[x * channels + 1];
+      tex.d[i + 2] = out[x * channels + 2];
+      tex.d[i + 3] = channels === 4 ? out[x * channels + 3] : 255;
+    }
+    prev = out;
+  }
+  return tex;
+}
+
+// src/lib/presets.ts
+var PRESETS = [
+  { id: "luminous", name: "\u9271\u77F3\u306E\u8F1D\u304D", icon: "gem", desc: "\u9271\u77F3\u306E\u8272\u3068\u7ACB\u4F53\u611F\u3092\u5F15\u304D\u51FA\u3059", layers: [["adjust", { contrast: 12, saturation: 15 }], ["autoshade", { strength: 25, ao: 15 }], ["glow", { mode: "bloom", color: "#a5f9e6", radius: 2, intensity: 35 }]] },
+  { id: "astral", name: "\u30A2\u30B9\u30C8\u30E9\u30EB", icon: "orbit", desc: "\u661F\u96F2\u3068\u795E\u79D8\u7684\u306A\u9B54\u6CD5\u9663", layers: [["nebula", { amount: 70 }], ["magicCircle", { color: "#afe8ff", amount: 80, animate: true }]] },
+  { id: "pearlglass", name: "\u30D1\u30FC\u30EB\u30AC\u30E9\u30B9", icon: "diamond", desc: "\u6DE1\u3044\u8679\u8272\u3068\u30AC\u30E9\u30B9\u306E\u53CD\u5C04", layers: [["pearl", { amount: 60 }], ["glassSurface", { amount: 65 }]] },
+  { id: "artisan", name: "\u30AF\u30E9\u30D5\u30C8\u30A6\u30C3\u30C9", icon: "tree", desc: "\u7E4A\u7D30\u306A\u6728\u76EE\u3068\u9670\u5F71", layers: [["woodgrain", { amount: 45 }], ["bevel", { strength: 22, width: 1 }], ["noise", { amount: 5 }]] },
+  { id: "enchant", name: "\u30A8\u30F3\u30C1\u30E3\u30F3\u30C8\u6B66\u5668", icon: "\u{1F52E}", desc: "\u7D2B\u306E\u5149\u5F69\u3068\u8F1D\u304D", layers: [["autoshade", { strength: 40 }], ["glow", { color: "#9a50ff", radius: 2, intensity: 55, pulse: true }], ["enchant", {}]] },
+  { id: "gold", name: "\u9EC4\u91D1\u5316", icon: "\u{1F451}", desc: "\u7D14\u91D1\u306E\u8F1D\u304D", layers: [["gradmap", { c1: "#3a2000", c2: "#d9a000", c3: "#fff6b0" }], ["metal", { color: "#ffd24a", amount: 55, animate: true }], ["sparkle", { count: 4, color: "#fffbe0" }]] },
+  { id: "diamond", name: "\u30C0\u30A4\u30E4\u5316", icon: "\u{1F48E}", desc: "\u900F\u304D\u901A\u308B\u5B9D\u77F3", layers: [["gradmap", { c1: "#062a33", c2: "#2ec4c0", c3: "#eafffd" }], ["sharpen", { amount: 50 }], ["sparkle", { count: 6, style: "star" }], ["shimmer", { intensity: 55 }]] },
+  { id: "netherite", name: "\u30CD\u30B6\u30E9\u30A4\u30C8\u5316", icon: "\u26AB", desc: "\u91CD\u539A\u306A\u9ED2\u91D1\u5C5E", layers: [["gradmap", { c1: "#120e10", c2: "#443a3e", c3: "#9a8c8a" }], ["metal", { color: "#6e5e62", amount: 45, bands: 1 }], ["outline", { mode: "auto" }]] },
+  { id: "ruins", name: "\u82D4\u3080\u3057\u305F\u907A\u8DE1", icon: "\u{1F3DB}\uFE0F", desc: "\u98A8\u5316\u30FB\u82D4\u30FB\u3072\u3073", layers: [["adjust", { saturation: -25, brightness: -8 }], ["weather", { type: "moss", coverage: 45, bias: "top" }], ["cracks", { count: 3, length: 9 }], ["vignette", { strength: 30 }]] },
+  { id: "frozen", name: "\u6C37\u7D50", icon: "\u{1F9CA}", desc: "\u51CD\u308A\u3064\u3044\u305F\u8CEA\u611F", layers: [["frost", { amount: 70, crystals: 14 }], ["sparkle", { count: 4, style: "cross", color: "#e8fbff" }]] },
+  { id: "magma", name: "\u30DE\u30B0\u30DE\u5316", icon: "\u{1F30B}", desc: "\u6EB6\u5CA9\u306E\u3072\u3073\u3068\u706B\u306E\u7C89", layers: [["gradmap", { c1: "#1a0604", c2: "#4a1a10", c3: "#8a3a20" }], ["cracks", { count: 6, length: 10, glow: true, depth: 100 }], ["glow", { mode: "bloom", color: "#ff7020", radius: 2, intensity: 60 }], ["pulse", { color: "#ff9030", threshold: 120 }], ["embers", { count: 6 }]] },
+  { id: "hd", name: "HD\u30EA\u30DE\u30B9\u30BF\u30FC", icon: "\u{1F5A5}\uFE0F", desc: "\xD74\u9AD8\u89E3\u50CF\u5EA6+\u9670\u5F71", layers: [["upscale", { factor: "4" }], ["autoshade", { strength: 35, ao: 30 }], ["noise", { amount: 6 }], ["sharpen", { amount: 30 }]] },
+  { id: "gb", name: "\u30EC\u30C8\u30EDGB", icon: "\u{1F3AE}", desc: "\u30B2\u30FC\u30E0\u30DC\u30FC\u30A44\u8272", layers: [["palette", { palette: "gameboy", dither: true }]] },
+  { id: "rusty", name: "\u9306\u3073\u305F\u9244", icon: "\u{1F529}", desc: "\u8150\u98DF\u3057\u305F\u91D1\u5C5E", layers: [["metal", { color: "#b8b8c0", amount: 50 }], ["weather", { type: "rust", coverage: 45, scale: 4 }], ["cracks", { count: 2, length: 6, depth: 50 }]] },
+  { id: "snowy", name: "\u96EA\u5316\u7CA7", icon: "\u2603\uFE0F", desc: "\u4E0A\u304B\u3089\u96EA\u304C\u7A4D\u3082\u308B", layers: [["filter", { mode: "cool", amount: 40 }], ["weather", { type: "snow", coverage: 35, scale: 4 }], ["embers", { type: "snow", count: 6 }]] },
+  { id: "holo", name: "\u8679\u8272\u30DB\u30ED", icon: "\u{1F308}", desc: "\u30DB\u30ED\u30B0\u30E9\u30E0\u30AB\u30FC\u30C9\u98A8", layers: [["rainbow", { amount: 55 }], ["shimmer", { intensity: 60, width: 4 }], ["sparkle", { count: 5 }]] },
+  { id: "royal", name: "\u738B\u5BB6\u306E\u88C5\u98FE", icon: "\u{1F3F0}", desc: "\u91D1\u67A0\u3068\u7D0B\u7AE0", layers: [["bevel", { strength: 35 }], ["frame", { style: "ornate", color: "#e0b040" }], ["emblem", { shape: "crown", color: "#ffd84a" }]] },
+  { id: "neon", name: "\u30CD\u30AA\u30F3", icon: "\u{1F7E3}", desc: "\u30B5\u30A4\u30D0\u30FC\u306A\u767A\u5149", layers: [["adjust", { brightness: -35, saturation: 40 }], ["outline", { color: "#ff3cf0", mode: "outer" }], ["glow", { color: "#30e0ff", radius: 3, intensity: 70, pulse: true }], ["huecycle", { amount: 40, spread: 50 }]] },
+  { id: "cursed", name: "\u546A\u308F\u308C\u305F", icon: "\u{1F480}", desc: "\u6697\u9ED2\u306E\u30EB\u30FC\u30F3\u3068\u8108\u52D5", layers: [["tint", { color: "#3a1050", amount: 55 }], ["runes", { color: "#b040ff", count: 4, animate: true }], ["vignette", { strength: 60, color: "#10001a", shape: "round" }], ["embers", { type: "soul", count: 5 }]] },
+  { id: "crystal", name: "\u7D50\u6676\u4FB5\u98DF", icon: "\u{1F537}", desc: "\u30A2\u30E1\u30B8\u30B9\u30C8\u7D50\u6676", layers: [["weather", { type: "crystal", coverage: 35, bias: "edge" }], ["ore", { color: "#b070ff", count: 3, size: 5 }], ["sparkle", { count: 6, color: "#f0d0ff" }]] },
+  { id: "ocean", name: "\u6DF1\u6D77", icon: "\u{1F41A}", desc: "\u6C34\u4E2D\u306E\u63FA\u3089\u304E\u3068\u6CE1", layers: [["tint", { color: "#1a6aa0", amount: 45 }], ["wave", { amp: 1, wavelength: 8 }], ["embers", { type: "bubble", count: 5 }]] },
+  { id: "toon", name: "\u30C8\u30A5\u30FC\u30F3", icon: "\u{1F58D}\uFE0F", desc: "\u30A2\u30CB\u30E1\u8ABF\u30DD\u30B9\u30BF\u30E9\u30A4\u30BA", layers: [["adjust", { saturation: 40, contrast: 15 }], ["posterize", { levels: 4 }], ["outline", { mode: "outer", color: "#141018" }]] },
+  { id: "marble", name: "\u5927\u7406\u77F3\u7D30\u5DE5", icon: "\u{1FAA8}", desc: "\u77F3\u76EE\u3068\u91D1\u306E\u9271\u8108", layers: [["gradmap", { c1: "#384349", c2: "#b4c7c9", c3: "#f3eee3" }], ["veins", { color: "#d9b971", density: 4, amount: 65 }], ["edgewear", { color: "#ffffff", amount: 35 }]] },
+  { id: "fabric", name: "\u9B54\u6CD5\u306E\u7E54\u7269", icon: "\u{1F9F5}", desc: "\u7E54\u308A\u76EE\u3068\u9B54\u6CD5\u306E\u8276", layers: [["tint", { color: "#8148ad", amount: 50 }], ["weave", { size: 2, depth: 60 }], ["iridescent", { color: "#69eedb", amount: 48 }]] },
+  { id: "ancient", name: "\u53E4\u4EE3\u306E\u91D1\u5C5E", icon: "\u2692\uFE0F", desc: "\u7E01\u306E\u6469\u8017\u3068\u523B\u5370", layers: [["metal", { color: "#ad986b", amount: 50 }], ["edgewear", { color: "#fff3b0", amount: 62 }], ["runes", { style: "carve", count: 3 }]] },
+  { id: "opal", name: "\u30AA\u30D1\u30FC\u30EB", icon: "\u{1F539}", desc: "\u7389\u866B\u8272\u306E\u5B9D\u77F3", layers: [["gradmap", { c1: "#113c53", c2: "#63bdb7", c3: "#fff4ef" }], ["iridescent", { color: "#82edeb", amount: 75, animate: true }], ["sparkle", { count: 5 }]] },
+  { id: "bloodied", name: "\u8840\u5857\u308C", icon: "\u{1FA78}", desc: "\u5200\u50B7\u3068\u8840\u3057\u3076\u304D", layers: [["scratches", { count: 5 }], ["bloodstain", { count: 10, drip: true }], ["vignette", { strength: 35, color: "#200808" }]] },
+  { id: "angel", name: "\u5929\u4F7F\u88C5\u5099", icon: "\u{1F607}", desc: "\u7FFC\u3068\u5F8C\u5149", layers: [["partstamp", { part: "wing_angel", blend: "under" }], ["halo", { pulse: true }], ["sparkle", { count: 5, style: "star" }]] },
+  { id: "demon", name: "\u9B54\u738B\u88C5\u5099", icon: "\u{1F608}", desc: "\u60AA\u9B54\u7FFC\u3068\u9B54\u773C", layers: [["partstamp", { part: "wing_demon", blend: "under" }], ["partstamp", { part: "eye_center" }], ["glow", { color: "#c02020", radius: 2, intensity: 50, pulse: true }]] },
+  { id: "iaido", name: "\u5C45\u5408", icon: "\u2694\uFE0F", desc: "\u65AC\u6483\u8ECC\u8DE1\u3068\u6B8B\u50CF", layers: [["slash", { width: 2, intensity: 90 }], ["afterimage", { steps: 2 }], ["sparks", { count: 8 }]] },
+  { id: "cyber", name: "\u30B5\u30A4\u30D0\u30FC", icon: "\u{1F4FA}", desc: "\u30B0\u30EA\u30C3\u30C1\u3068\u8D70\u67FB\u7DDA", layers: [["adjust", { brightness: -20, saturation: 30 }], ["glitch", { amount: 40 }], ["scanline", { amount: 35 }], ["outline", { color: "#30e0ff" }]] },
+  { id: "legendary", name: "\u4F1D\u8AAC\u306E\u5263", icon: "\u2728", desc: "LEGENDARY BLADE", layers: [["sharpen", { amt: 90 }], ["outline", { color: "#0e1a22", thick: 1, mode: "outer" }], ["bevel", { amt: 55, angle: 315 }], ["rarityAura", { rarity: "legendary", radius: 4, intensity: 105, speed: 1.4 }], ["enchantGlint", { speed: 1.2, width: 10, intensity: 95, bands: 2 }], ["bloom", { threshold: 150, radius: 3, intensity: 95 }]] },
+  { id: "relic", name: "\u53E4\u4EE3\u306E\u907A\u7269", icon: "\u2728", desc: "ARCANE RELIC", layers: [["cracks", { count: 5, depth: 20 }], ["grime", { amount: 45, edges: true }], ["sepia", { amt: 35 }], ["runes", { color: "#63d8ff", count: 3, glow: 70, speed: 0.9 }], ["innerShadow", { size: 5, op: 60 }], ["vignette", { amount: 55, radius: 55 }]] },
+  { id: "ruin", name: "\u82D4\u3080\u3059\u5EC3\u589F", icon: "\u2728", desc: "MOSSY RUIN", layers: [["moss", { coverage: 52, topOnly: false, scale: 8 }], ["grime", { amount: 55, color: "#241c12" }], ["erosion", { amount: 34, mode: "tatter", scale: 5 }], ["bevel", { amt: 62, angle: 300 }], ["vibrance", { amt: 30 }], ["vignette", { amount: 34, radius: 66 }]] },
+  { id: "nether", name: "\u30CD\u30B6\u30FC\u306E\u707C\u71B1", icon: "\u2728", desc: "NETHER HEAT", layers: [["lavaCracks", { count: 6, glow: 85, speed: 1.4 }], ["temperature", { amt: 45 }], ["cracks", { count: 4, color: "#180a06", depth: 22 }], ["ember", { count: 34, speed: 1.4, glow: true }], ["bloom", { threshold: 120, radius: 4, intensity: 130 }], ["vignette", { amount: 40, color: "#2a0600" }]] },
+  { id: "frosted", name: "\u51CD\u3066\u3064\u304F\u6C37\u971C", icon: "\u2728", desc: "FROSTBOUND", layers: [["frost", { amount: 62, crystal: 60, edge: 70 }], ["temperature", { amt: -40 }], ["snowfall", { count: 20, size: 1, frost: true, speed: 0.7 }], ["innerGlow", { color: "#dff4ff", size: 4, intensity: 60 }], ["chromatic", { amount: 1, edgeOnly: true }], ["sharpen", { amt: 80 }]] },
+  { id: "retrogb", name: "\u30EC\u30C8\u30ED\u643A\u5E2F\u6A5F", icon: "\u2728", desc: "RETRO HANDHELD", layers: [["grayscale", { amt: 100 }], ["levels", { bin: 12, win: 236 }], ["gradientMap", { c1: "#0f380f", c2: "#306230", c3: "#9bbc0f", amt: 100 }], ["ditherBayer", { order: "2", colors: 4, spread: 60 }], ["scanline", { gap: 2, op: 22 }]] },
+  { id: "cyberholo", name: "\u30B5\u30A4\u30D0\u30FC\u30FB\u30DB\u30ED", icon: "\u2728", desc: "CYBER HOLO", layers: [["circuit", { density: 6, glow: 70, speed: 1.2 }], ["holographic", { intensity: 85, speed: 1, scale: 14 }], ["chromatic", { amount: 1.5, edgeOnly: true }], ["glitch", { amount: 22, slices: 5, speed: 5 }], ["bloom", { threshold: 160, radius: 3, intensity: 110 }], ["hexPattern", { size: 6, op: 22 }]] },
+  { id: "pf-royal", name: "\u738B\u5BB6\u306E\u9EC4\u91D1", icon: "\u2728", desc: "ROYAL GOLD", layers: [["frame", { style: "ornate", thick: 3, color: "#8c5a12", shade: 75 }], ["embossGold", { amount: 70, angle: 315 }], ["gemInlay", { color: "#e0405a", count: 4, size: 2, shine: true }], ["lightSweep", { speed: 0.7, width: 10, intensity: 90 }], ["bloom", { threshold: 190, radius: 3, intensity: 90 }], ["rivets", { spacing: 7, size: 1, inset: 4 }]] },
+  { id: "dream", name: "\u30C9\u30EA\u30FC\u30E0\u30DD\u30C3\u30D7", icon: "\u2728", desc: "DREAM POP", layers: [["iridescent", { amount: 85, scale: 14, angle: 40, speed: 0.6 }], ["vibrance", { amt: 60 }], ["sparkle", { count: 16, size: 2, speed: 1.4 }], ["bloom", { threshold: 130, radius: 4, intensity: 120 }], ["wetLook", { amount: 40, spec: 45 }]] },
+  { id: "pf-cursed", name: "\u546A\u308F\u308C\u3057\u9271\u77F3", icon: "\u2728", desc: "CURSED ORE", layers: [["duotone", { dark: "#160a2c", light: "#b45cff", amt: 70 }], ["outerGlow", { color: "#8a2be2", radius: 5, intensity: 110 }], ["runes", { color: "#e0a8ff", count: 2, scale: 1, glow: 55, speed: 1.4 }], ["glitch", { amount: 18, slices: 4, speed: 3, rgbSplit: true }], ["soulFlame", { c1: "#e6c8ff", c2: "#6a2bd0", intensity: 70, reach: 4 }]] },
+  { id: "antique", name: "\u30A2\u30F3\u30C6\u30A3\u30FC\u30AF\u7D75\u753B", icon: "\u2728", desc: "ANTIQUE", layers: [["sepia", { amt: 70 }], ["scratches", { count: 22, op: 40 }], ["grain", { amt: 22, cell: 1 }], ["grime", { amount: 38, edges: true }], ["frame", { style: "gold", thick: 2, color: "#8a6a2c", shade: 70 }], ["vignette", { amount: 52, radius: 58 }]] },
+  { id: "forge", name: "\u6EB6\u5CA9\u306E\u935B\u9020", icon: "\u2728", desc: "MAGMA FORGE", layers: [["brushedMetal", { amount: 55, specular: true }], ["rust", { amount: 55, pits: true }], ["lavaCracks", { count: 4, glow: 60, speed: 0.8 }], ["bevel", { amt: 45, angle: 300 }], ["ember", { count: 18, speed: 0.8 }], ["temperature", { amt: 28 }]] },
+  { id: "divine", name: "\u795E\u6027\u306E\u8F1D\u304D", icon: "\u2728", desc: "DIVINE", layers: [["rarityAura", { rarity: "divine", radius: 6, intensity: 130, speed: 1 }], ["sigil", { color: "#ffe066", rings: 2, ticks: 12, speed: 0.5, glow: 40 }], ["lightSweep", { speed: 0.5, width: 14, intensity: 110, color: "#fff6d0" }], ["sparkle", { count: 14, size: 2, speed: 1.6 }], ["bloom", { threshold: 140, radius: 4, intensity: 140 }], ["innerGlow", { color: "#fffbe6", size: 5, intensity: 90 }]] },
+  { id: "arcade", name: "\u30A2\u30FC\u30B1\u30FC\u30C9\u7B50\u4F53", icon: "\u2728", desc: "ARCADE CRT", layers: [["saturation", { amt: 35 }], ["crt", { scan: 42, mask: 30, bloom: 45, curve: 40, flicker: 18 }], ["chromatic", { amount: 1.2 }], ["scanline", { gap: 3, op: 18, bright: true }], ["bloom", { threshold: 150, radius: 2, intensity: 60 }]] },
+  { id: "bloom-original", name: "\u30AA\u30EA\u30B8\u30CA\u30EB", icon: "\u{1F3A8}", desc: "\u7D20\u6750\u306E\u8272\u3092\u305D\u306E\u307E\u307E", layers: [["scanline", { gap: 2, op: 12 }], ["vignette", { strength: 16 }]] },
+  { id: "bloom-polished", name: "\u30AF\u30EA\u30B9\u30BF\u30EB", icon: "\u{1F3A8}", desc: "\u900F\u660E\u611F\u3068\u304D\u3089\u3081\u304D\u3092\u30D7\u30E9\u30B9", layers: [["adjust", { brightness: 8, contrast: 16, saturation: 45, hue: 8 }], ["glow", { intensity: 12 }], ["scanline", { gap: 2, op: 8 }], ["vignette", { strength: 20 }]] },
+  { id: "bloom-amethyst", name: "\u30A2\u30E1\u30B8\u30B9\u30C8", icon: "\u{1F3A8}", desc: "\u6DF1\u307F\u306E\u3042\u308B\u7D2B\u6676\u30AB\u30E9\u30FC", layers: [["adjust", { brightness: 3, contrast: 18, saturation: 55, hue: 104 }], ["glow", { intensity: 10 }], ["noise", { amount: 3 }], ["scanline", { gap: 2, op: 14 }], ["vignette", { strength: 22 }]] },
+  { id: "bloom-nether", name: "\u30CD\u30B6\u30FC\u30E9\u30A4\u30C8", icon: "\u{1F3A8}", desc: "\u8D64\u9285\u8272\u306E\u91CD\u539A\u306A\u30C8\u30FC\u30F3", layers: [["adjust", { brightness: -6, contrast: 30, saturation: 42, hue: -128 }], ["glow", { intensity: 6 }], ["noise", { amount: 10 }], ["scanline", { gap: 2, op: 18 }], ["vignette", { strength: 30 }]] },
+  { id: "bloom-frost", name: "\u30D5\u30ED\u30B9\u30C8", icon: "\u{1F3A8}", desc: "\u51B7\u305F\u304F\u6F84\u3093\u3060\u6C37\u306E\u8CEA\u611F", layers: [["adjust", { brightness: 16, contrast: 8, saturation: 26, hue: -25 }], ["glow", { intensity: 14 }], ["noise", { amount: 4 }], ["scanline", { gap: 2, op: 10 }], ["vignette", { strength: 22 }]] },
+  { id: "bloom-gold", name: "\u30B4\u30FC\u30EB\u30C9", icon: "\u{1F3A8}", desc: "\u9EC4\u91D1\u306E\u5149\u6CA2\u3068\u91CD\u307F", layers: [["adjust", { brightness: 9, contrast: 24, saturation: 70, hue: -22 }], ["glow", { intensity: 18 }], ["noise", { amount: 5 }], ["scanline", { gap: 2, op: 12 }], ["vignette", { strength: 28 }]] },
+  { id: "bloom-ender", name: "\u30A8\u30F3\u30C0\u30FC", icon: "\u{1F3A8}", desc: "\u6B6A\u3093\u3060\u7D2B\u306E\u7570\u754C\u30C8\u30FC\u30F3", layers: [["adjust", { brightness: -2, contrast: 22, saturation: 50, hue: 145 }], ["glow", { intensity: 20 }], ["noise", { amount: 8 }], ["scanline", { gap: 2, op: 16 }], ["vignette", { strength: 34 }]] },
+  { id: "bloom-redstone", name: "\u30EC\u30C3\u30C9\u30B9\u30C8\u30FC\u30F3", icon: "\u{1F3A8}", desc: "\u8D64\u304F\u71B1\u3092\u5E2F\u3073\u305F\u767A\u5149", layers: [["adjust", { brightness: 2, contrast: 34, saturation: 80, hue: -158 }], ["glow", { intensity: 26 }], ["noise", { amount: 6 }], ["scanline", { gap: 2, op: 14 }], ["vignette", { strength: 30 }]] },
+  { id: "bloom-deepslate", name: "\u6DF1\u5C64\u5CA9", icon: "\u{1F3A8}", desc: "\u6C88\u307F\u8FBC\u3080\u3088\u3046\u306A\u6DF1\u3044\u9752\u7DD1", layers: [["adjust", { brightness: -12, contrast: 20, saturation: -10, hue: 145 }], ["noise", { amount: 16 }], ["scanline", { gap: 2, op: 18 }], ["vignette", { strength: 32 }]] },
+  { id: "bloom-prismarine", name: "\u30D7\u30EA\u30BA\u30DE\u30EA\u30F3", icon: "\u{1F3A8}", desc: "\u6D77\u5E95\u907A\u8DE1\u306E\u30B7\u30A2\u30F3", layers: [["adjust", { brightness: 0, contrast: 16, saturation: 40, hue: 70 }], ["glow", { intensity: 12 }], ["noise", { amount: 7 }], ["scanline", { gap: 2, op: 12 }], ["vignette", { strength: 24 }]] },
+  { id: "bloom-enchanted", name: "\u30A8\u30F3\u30C1\u30E3\u30F3\u30C8", icon: "\u{1F3A8}", desc: "\u7D2B\u306B\u714C\u3081\u304F\u9B54\u6CD5\u306E\u8CEA\u611F", layers: [["adjust", { brightness: 12, contrast: 18, saturation: 55, hue: 120 }], ["glow", { intensity: 28 }], ["noise", { amount: 5 }], ["scanline", { gap: 2, op: 10 }], ["vignette", { strength: 26 }]] },
+  { id: "bloom-grass", name: "\u8349\u539F\u30D6\u30ED\u30C3\u30AF", icon: "\u{1F3A8}", desc: "\u9BAE\u3084\u304B\u3067\u81EA\u7136\u306A\u7DD1", layers: [["adjust", { brightness: 6, contrast: 8, saturation: 50, hue: 35 }], ["glow", { intensity: 4 }], ["noise", { amount: 12 }], ["scanline", { gap: 2, op: 14 }], ["vignette", { strength: 22 }]] },
+  { id: "bloom-oak", name: "\u30AA\u30FC\u30AF\u6750", icon: "\u{1F3A8}", desc: "\u81EA\u7136\u306A\u6E29\u304B\u307F\u306E\u6728\u76EE", layers: [["adjust", { brightness: 4, contrast: 8, saturation: 32, hue: -20 }], ["noise", { amount: 9 }], ["scanline", { gap: 2, op: 16 }], ["vignette", { strength: 20 }]] },
+  { id: "bloom-spruce", name: "\u30C0\u30FC\u30AF\u6750", icon: "\u{1F3A8}", desc: "\u6DF1\u3044\u8272\u5473\u306E\u6728\u76EE", layers: [["adjust", { brightness: -8, contrast: 12, saturation: 20, hue: -14 }], ["noise", { amount: 10 }], ["scanline", { gap: 2, op: 14 }], ["vignette", { strength: 22 }]] },
+  { id: "bloom-birch", name: "\u30B7\u30E9\u30AB\u30D0", icon: "\u{1F3A8}", desc: "\u767D\u6728\u3068\u9ED2\u3044\u6591\u70B9\u306E\u6728\u5DE5\u7D20\u6750", layers: [["adjust", { brightness: 12, contrast: 4, saturation: 26, hue: -8 }], ["noise", { amount: 7 }], ["scanline", { gap: 2, op: 14 }], ["vignette", { strength: 18 }]] },
+  { id: "bloom-acacia", name: "\u30A2\u30AB\u30B7\u30A2\u6750", icon: "\u{1F3A8}", desc: "\u7D05\u3044\u8272\u5408\u3044\u3068\u8352\u308C\u76EE\u306E\u6728\u7D0B", layers: [["adjust", { brightness: 5, contrast: 14, saturation: 46, hue: -42 }], ["noise", { amount: 10 }], ["scanline", { gap: 2, op: 15 }], ["vignette", { strength: 22 }]] },
+  { id: "bloom-stone", name: "\u30B9\u30C8\u30FC\u30F3", icon: "\u{1F3A8}", desc: "\u5CA9\u3084\u77F3\u7573\u306B\u9069\u3057\u305F\u4E2D\u6027\u30C8\u30FC\u30F3", layers: [["adjust", { brightness: 2, contrast: 8, saturation: -8, hue: 0 }], ["noise", { amount: 13 }], ["scanline", { gap: 2, op: 14 }], ["vignette", { strength: 24 }]] },
+  { id: "bloom-dirt", name: "\u30C0\u30FC\u30C8", icon: "\u{1F3A8}", desc: "\u571F\u3084\u8015\u5730\u306B\u81EA\u7136\u306A\u6E7F\u5EA6\u611F", layers: [["adjust", { brightness: 2, contrast: 8, saturation: 28, hue: -28 }], ["noise", { amount: 14 }], ["scanline", { gap: 2, op: 14 }], ["vignette", { strength: 22 }]] },
+  { id: "bloom-cobblestone", name: "\u4E38\u77F3", icon: "\u{1F3A8}", desc: "\u5272\u308C\u76EE\u3068\u584A\u306E\u5BC6\u5EA6\u3092\u5F37\u8ABF", layers: [["adjust", { brightness: 2, contrast: 16, saturation: -12, hue: 0 }], ["noise", { amount: 18 }], ["scanline", { gap: 2, op: 16 }], ["vignette", { strength: 26 }]] },
+  { id: "bloom-bricks", name: "\u30D6\u30EA\u30C3\u30AF", icon: "\u{1F3A8}", desc: "\u7802\u8272\u306E\u7D99\u304E\u76EE\u3068\u5E03\u77F3\u306E\u898F\u5247", layers: [["adjust", { brightness: 3, contrast: 18, saturation: 18, hue: -18 }], ["noise", { amount: 12 }], ["scanline", { gap: 2, op: 16 }], ["vignette", { strength: 24 }]] },
+  { id: "bloom-obsidian", name: "\u9ED2\u66DC\u77F3", icon: "\u{1F3A8}", desc: "\u6DF1\u3044\u9ED2\u3068\u7D2B\u306E\u7D50\u6676", layers: [["adjust", { brightness: -14, contrast: 34, saturation: 30, hue: 135 }], ["glow", { intensity: 6 }], ["noise", { amount: 11 }], ["scanline", { gap: 2, op: 14 }], ["vignette", { strength: 34 }]] }
+];
+var presetLayers = (p) => p.layers.map(([t, params]) => newLayer(t, params));
 
 // src/lib/samples.ts
 function make(w, h, fn) {
@@ -7907,9 +8595,9 @@ var cobble = () => {
   const pal2 = ["#5a5a5a", "#6e6e6e", "#7f7f7f", "#8d8d8d", "#9c9c9c"];
   return make(16, 16, (x, y) => {
     let d1 = 1e9, d2 = 1e9, id = 0;
-    pts.forEach(([px2, py2], i) => {
+    pts.forEach(([px3, py2], i) => {
       for (const ox of [-16, 0, 16]) for (const oy of [-16, 0, 16]) {
-        const d = Math.hypot(x + 0.5 - px2 - ox, y + 0.5 - py2 - oy);
+        const d = Math.hypot(x + 0.5 - px3 - ox, y + 0.5 - py2 - oy);
         if (d < d1) {
           d2 = d1;
           d1 = d;
@@ -7918,8 +8606,8 @@ var cobble = () => {
       }
     });
     if (d2 - d1 < 1.1) return "#3e3e3e";
-    const [px, py] = pts[id];
-    const lit = px - x + (py - y) > 0 ? 0.25 : -0.1;
+    const [px2, py] = pts[id];
+    const lit = px2 - x + (py - y) > 0 ? 0.25 : -0.1;
     return shade(pal2, 0.35 + lit + hash2(x, y, id) * 0.35);
   });
 };
@@ -8037,14 +8725,14 @@ function oreTexture(color2, seed = 15) {
     for (const [dx, dy] of shape) occupied.add((cy + dy) * 16 + cx + dx);
   }
   for (let y = 0; y < 32; y++) for (let x = 0; x < 32; x++) {
-    const i = (y * 32 + x) * 4, px = x >> 1, py = y >> 1, k = py * 16 + px;
+    const i = (y * 32 + x) * 4, px2 = x >> 1, py = y >> 1, k = py * 16 + px2;
     const grain = (hash2(x, y, seed) - 0.5) * 10;
     if (occupied.has(k)) {
       const top = !occupied.has(k - 16) && y % 2 === 0;
       const left = !occupied.has(k - 1) && x % 2 === 0;
       const bottom = !occupied.has(k + 16) && y % 2 === 1;
       const right = !occupied.has(k + 1) && x % 2 === 1;
-      const light = top || left ? 0.35 : bottom || right ? -0.38 : (hash2(px, py, seed + 1) - 0.5) * 0.25;
+      const light = top || left ? 0.35 : bottom || right ? -0.38 : (hash2(px2, py, seed + 1) - 0.5) * 0.25;
       for (let q = 0; q < 3; q++) base.d[i + q] = c[q] + (light > 0 ? (255 - c[q]) * light : c[q] * light) + grain;
     } else {
       const edge = occupied.has(k + 1) || occupied.has(k - 1) || occupied.has(k + 16) || occupied.has(k - 16);
@@ -8097,13 +8785,13 @@ var potion = () => fromMap([
 var skin = () => {
   const t = createTex(64, 64);
   const rect = (x, y, w, h, c) => {
-    const rgb = hexToRgb(c);
-    for (let py = y; py < y + h; py++) for (let px = x; px < x + w; px++) {
-      const i = (py * 64 + px) * 4;
-      const noise = hash2(px, py, 2) * 8;
-      t.d[i] = rgb[0] + noise;
-      t.d[i + 1] = rgb[1] + noise;
-      t.d[i + 2] = rgb[2] + noise;
+    const rgb2 = hexToRgb(c);
+    for (let py = y; py < y + h; py++) for (let px2 = x; px2 < x + w; px2++) {
+      const i = (py * 64 + px2) * 4;
+      const noise = hash2(px2, py, 2) * 8;
+      t.d[i] = rgb2[0] + noise;
+      t.d[i + 1] = rgb2[1] + noise;
+      t.d[i + 2] = rgb2[2] + noise;
       t.d[i + 3] = 255;
     }
   };
@@ -8182,6 +8870,12 @@ function fail(message) {
   process.exit(1);
 }
 var [command] = process.argv.slice(2);
+function loadBase(size) {
+  const input = arg("in");
+  if (input) return decodePng(new Uint8Array(readFileSync(input)));
+  const sample2 = SAMPLES.find((s) => s.id === (arg("sample") ?? "sword")) ?? fail(`unknown sample: ${arg("sample")}`);
+  return resizeTex(sample2.make(), size, size);
+}
 if (command === "list-effects") {
   for (const e of EFFECTS) console.log(`${e.id}	${e.category}	${e.name}`);
 } else if (command === "list-presets") {
@@ -8193,15 +8887,15 @@ if (command === "list-effects") {
 } else if (command === "render") {
   const out = arg("out") ?? fail("usage: render --preset <id> [--sample <id>] [--size 16] [--seed N] --out file.png");
   const preset = PRESETS.find((p) => p.id === arg("preset")) ?? fail(`unknown preset: ${arg("preset")}`);
-  const sample = SAMPLES.find((s) => s.id === (arg("sample") ?? "sword")) ?? fail(`unknown sample: ${arg("sample")}`);
+  const sample2 = SAMPLES.find((s) => s.id === (arg("sample") ?? "sword")) ?? fail(`unknown sample: ${arg("sample")}`);
   const size = Number(arg("size", "16"));
   const seed = Number(arg("seed", "7"));
   void seed;
   const layers = presetLayers(preset);
-  const base = resizeTex(sample.make(), size, size);
+  const base = resizeTex(sample2.make(), size, size);
   const result = applyStack(base, layers, 0.5);
   writeFileSync(out, encodePng(result));
-  console.log(`wrote ${out} (${result.w}x${result.h}, preset=${preset.id}, sample=${sample.id})`);
+  console.log(`wrote ${out} (${result.w}x${result.h}, preset=${preset.id}, sample=${sample2.id})`);
 } else if (command === "convert") {
   const input = arg("in") ?? fail("usage: convert --in file.png [--palette <name>|kmeans] [--colors 16] --out file.png");
   const out = arg("out") ?? fail("usage: convert --in file.png [--palette <name>|kmeans] [--colors 16] --out file.png");
@@ -8215,18 +8909,75 @@ if (command === "list-effects") {
   const result = reduceTex(src, auto ? null : palette, colors);
   writeFileSync(out, encodePng(result));
   console.log(`wrote ${out} (${result.w}x${result.h}, palette=${palette}${auto ? `, colors=${colors}` : ""})`);
+} else if (command === "list-textures") {
+  const group = arg("group");
+  for (const t of TEXTURES) {
+    if (group && t.group !== group) continue;
+    console.log(`${t.id}	${t.group}	${t.name}`);
+  }
+} else if (command === "texture") {
+  const id = arg("id") ?? fail("usage: texture --id <texture> [--size 16] [--seed 7] --out file.png");
+  const out = arg("out") ?? fail("usage: texture --id <texture> [--size 16] [--seed 7] --out file.png");
+  if (!TEXTURES.some((t) => t.id === id)) fail(`unknown texture: ${id} (see list-textures)`);
+  const size = Number(arg("size", "16"));
+  const seed = Number(arg("seed", "7"));
+  const img = generateTexture(id, size, seed);
+  const tex = { w: img.width, h: img.height, d: new Uint8ClampedArray(img.data) };
+  writeFileSync(out, encodePng(tex));
+  console.log(`wrote ${out} (${tex.w}x${tex.h}, texture=${id}, seed=${seed})`);
+} else if (command === "list-parts") {
+  const cat = arg("category");
+  for (const p of PARTS) {
+    if (cat && p.category !== cat) continue;
+    console.log(`${p.id}	${p.category}	${p.name}`);
+  }
+} else if (command === "stamp") {
+  const id = arg("part") ?? fail("usage: stamp --part <id> [--in file.png] [--sample <id>] [--size 16] [--recolor #hex] --out file.png");
+  const out = arg("out") ?? fail("usage: stamp --part <id> [--in file.png] [--sample <id>] [--size 16] [--recolor #hex] --out file.png");
+  const part = PART_MAP[id] ?? fail(`unknown part: ${id} (see list-parts)`);
+  const base = loadBase(Number(arg("size", "16")));
+  const result = stampPart(base, part, "over", 100, arg("recolor"));
+  writeFileSync(out, encodePng(result));
+  console.log(`wrote ${out} (${result.w}x${result.h}, part=${part.id})`);
+} else if (command === "list-variants") {
+  const group = arg("group");
+  for (const v of VARIANTS) {
+    if (group && v.group !== group) continue;
+    console.log(`${v.id}	${v.group}	${v.name}${v.animated ? "	animated" : ""}`);
+  }
+} else if (command === "list-groups") {
+  for (const g of GROUPS) console.log(`${g.id}	${g.name}`);
+  console.log(`groups: ${TEX_GROUPS.join(" / ")}`);
+} else if (command === "variant") {
+  const id = arg("id") ?? fail("usage: variant --id <variant> [--in file.png] [--sample <id>] [--size 16] [--seed 7] [--accent #hex] [--frame 0|strip] --out file.png");
+  const out = arg("out") ?? fail("usage: variant --id <variant> [--in file.png] [--sample <id>] [--size 16] [--seed 7] [--accent #hex] [--frame 0|strip] --out file.png");
+  const def = VARIANT_MAP[id] ?? fail(`unknown variant: ${id} (see list-variants)`);
+  const base = loadBase(Number(arg("size", "16")));
+  const seed = Number(arg("seed", "7"));
+  const frames = def.build({ base, accent: arg("accent", "#ffcf3d"), seed, frames: def.animated ? 6 : 1 });
+  const want = arg("frame", "0");
+  if (want === "strip") {
+    const strip = { w: base.w, h: base.h * frames.length, d: new Uint8ClampedArray(base.w * base.h * frames.length * 4) };
+    frames.forEach((f, i) => strip.d.set(f.d, i * base.w * base.h * 4));
+    writeFileSync(out, encodePng(strip));
+    console.log(`wrote ${out} (${strip.w}x${strip.h}, variant=${def.id}, frames=${frames.length})`);
+  } else {
+    const frame = frames[Number(want)] ?? frames[0];
+    writeFileSync(out, encodePng(frame));
+    console.log(`wrote ${out} (${frame.w}x${frame.h}, variant=${def.id}, frame=${want}/${frames.length})`);
+  }
 } else if (command === "effect") {
   const id = arg("id") ?? fail("usage: effect --id <effect> [--sample <id>] [--size 16] [--params k=v,k=v] --out file.png");
   const out = arg("out") ?? fail("usage: effect --id <effect> [--sample <id>] [--size 16] [--params k=v,k=v] --out file.png");
   const def = EFFECTS.find((e) => e.id === id) ?? fail(`unknown effect: ${id}`);
-  const sample = SAMPLES.find((s) => s.id === (arg("sample") ?? "sword")) ?? fail(`unknown sample: ${arg("sample")}`);
+  const sample2 = SAMPLES.find((s) => s.id === (arg("sample") ?? "sword")) ?? fail(`unknown sample: ${arg("sample")}`);
   const size = Number(arg("size", "16"));
   const params = { ...defaultParams(def) };
   for (const pair of (arg("params", "") ?? "").split(",").filter(Boolean)) {
     const [k, v] = pair.split("=");
     if (k && v !== void 0) params[k] = Number.isNaN(Number(v)) ? v : Number(v);
   }
-  const base = resizeTex(sample.make(), size, size);
+  const base = resizeTex(sample2.make(), size, size);
   const result = applyStack(base, [newLayer(def.id, params)], 0.5);
   writeFileSync(out, encodePng(result));
   console.log(`wrote ${out} (${result.w}x${result.h}, effect=${def.id})`);
@@ -8234,7 +8985,11 @@ if (command === "list-effects") {
   console.log(`mcasset \u2014 TexCraft CLI
 usage:
   mcasset list-effects|list-presets|list-samples|list-palettes
+  mcasset list-textures [--group <name>] | list-parts [--category <id>] | list-variants [--group <id>] | list-groups
   mcasset render --preset <id> [--sample <id>] [--size 16] --out file.png
   mcasset convert --in file.png [--palette <name>] [--colors 16] --out file.png
-  mcasset effect --id <effect> [--sample <id>] [--size 16] [--params k=v,k=v] --out file.png`);
+  mcasset effect --id <effect> [--sample <id>] [--size 16] [--params k=v,k=v] --out file.png
+  mcasset texture --id <texture> [--size 16] [--seed 7] --out file.png
+  mcasset stamp --part <id> [--in file.png] [--sample <id>] [--size 16] [--recolor #hex] --out file.png
+  mcasset variant --id <variant> [--in file.png] [--sample <id>] [--size 16] [--seed 7] [--accent #hex] [--frame 0|strip] --out file.png`);
 }

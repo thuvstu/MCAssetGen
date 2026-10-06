@@ -21,10 +21,17 @@ npm run mcasset -- <studio>:<command> [options]
 |---|---|
 | `tex` | texcraft CLIに委譲(下記参照) |
 | `sky` | `sky:items` / `sky:render --item hyperion --seed 7 --res 16 --out mm/tex.png` |
+| `sky2` | `sky2:items` / `sky2:render --item hyperion --size 32 --out mm/tex.png` (旧 `skyblock/hypixel-skyblock-texture-generator`、ヘッドレス描画) |
+| `forge` | `forge:items` / `forge:render --item HYPERION --res 32 --anim pulse --strip --out mm/forge.png` / `forge:pack --items HYPERION,TERMINATOR --target catharsis --out pack.zip` |
 | `vox` | `vox:kinds` / `vox:generate --kind sword --seed 42 --out model.bbmodel` |
+| `adv` | `adv:shapes` / `adv:materials` / `adv:render --shape sword --material ruby --out mm/w.png` / `adv:model --shape sword --out model.json` / `adv:anim --layers glow_pulse,sparkle --frames 4 --out strip.png` |
 | `arcane` | `arcane:render --random --size 64 --out mm/staff.png` / `arcane:config` |
+| `spell` | `spell:elements` / `spell:render --element fire --size 64 --out mm/staff.png` |
+| `sword` | `sword:render --preset Hyperion --size 64 --out mm/sword.png` |
 | `mythic` | `mythic:build --project proj.json --out moddev/mymod` |
 | `mythiccraft` | `mythiccraft:sample --name mymod --out project.json` / `mythiccraft:build --project file.json --out dir/` |
+
+`forge:pack --target` は `catharsis`(1.21.11+ Mod) / `optifine`(1.8.9 CIT) / `vanilla`(1.21.4+ item_model + datapack) の3系統。`--items all` でカタログ全件を同梱できる。
 
 ## mcasset CLI (texcraft個別)
 
@@ -39,15 +46,24 @@ npm run asset -- <command>
 | `list-presets` | 66プリセット一覧 |
 | `list-samples` | サンプルテクスチャ一覧 |
 | `list-palettes` | 8パレット一覧 |
+| `list-textures [--group <name>]` | 手続き生成テクスチャ(350種)一覧(`pfTextures`) |
+| `list-parts [--category <id>]` | パーツスタンプ(47種)一覧 |
+| `list-variants [--group <id>]` / `list-groups` | 武器バリエーション(95種)/強化グループ一覧 |
 | `render --preset <id> [--sample <id>] [--size 16] --out file.png` | プリセット適用レンダリング |
 | `convert --in file.png [--palette <name>] [--colors 16] --out file.png` | 減色変換(PNGのみ入力可、パレット名は前方一致可) |
 | `effect --id <effect> [--sample <id>] [--size 16] [--params k=v,k=v] --out file.png` | 単体エフェクト適用 |
+| `texture --id <texture> [--size 16] [--seed 7] --out file.png` | 手続きテクスチャの直接生成 |
+| `stamp --part <id> [--in file.png\|--sample <id>] [--size 16] [--recolor #hex] --out file.png` | パーツスタンプ合成 |
+| `variant --id <variant> [--in file.png\|--sample <id>] [--size 16] [--accent #hex] [--frame 0\|strip] --out file.png` | 進化/限界突破/形態変化バリエーション生成(`strip`で縦ストリップ) |
 
 例:
 ```bash
 npm run asset -- render --preset legendary --sample sword --size 32 --out mm/tex.png
 npm run asset -- convert --in mm/tex.png --palette PICO-8 --out mm/tex-dot.png
 npm run asset -- effect --id bloom --params threshold=150,radius=3 --out mm/glow.png
+npm run asset -- texture --id diamond_ore --size 32 --seed 7 --out mm/diamond.png
+npm run asset -- stamp --part blade_long --sample sword --size 32 --out mm/stamped.png
+npm run asset -- variant --id tier5 --sample sword --size 32 --frame strip --out mm/tier5.png
 ```
 
 ## MythicCraft API (:5141)
@@ -117,6 +133,9 @@ curl 'localhost:5142/api/compile/artifact?mod=mymod' -o mymod.jar
 
 ## 注意
 
+- CLIは `bun scripts/mcasset.mjs <studio>:<command>` でも実行可能(bun優先。`process.execPath` で子プロセスもbunが使われる)
+- `sky2:render` はヘッドレス実装のため、ブラウザ版と異なり放射グロー背景とアニメーションフレームは出力しない(本体ピクセル・アウトライン・エレメント・ウェアは同等)
+- `mythic:build` はMythicForge形式のプロジェクトJSONが必要(`mythiccraft:sample` の出力は `mythiccraft:build` 用で別スキーマ)
 - DB要アプリは `.env` の `DATABASE_URL` (Supabaseプーラー) が必要。未設定では5xxになる
 - `/api/compile` のビルドは JDK21 + Gradle が必要(手元は8/17/24のため未検証)
 - ブラウザFile System Access APIはChrome/Edgeのみ対応
