@@ -373,3 +373,40 @@
     margin-bottom: 0;
   }
 }
+
+/* GeckoLib export options: namespace / model id / mirror toggle. */
+.export-geckolib-fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.export-geckolib-fields > label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: #9a8bab;
+  font-size: 8.5px;
+}
+
+.export-geckolib-fields input[type="text"],
+.export-geckolib-fields input:not([type]) {
+  width: 148px;
+  height: 26px;
+  padding: 0 8px;
+  border: 1px solid #3a3343;
+  border-radius: 6px;
+  background: #1b1924;
+  color: #e6dcf2;
+  font-size: 9px;
+}
+
+.export-geckolib-fields > label.export-geckolib-toggle {
+  flex-direction: row;
+  align-items: center;
+  gap: 6px;
+  color: #bda5ce;
+  font-size: 9px;
+}

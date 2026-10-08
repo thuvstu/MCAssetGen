@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@playwright/test": "^1.63.0",
+    "@rolldown/binding-linux-x64-gnu": "^1.2.13",
     "@types/pngjs": "^6.0.5",
     "@types/three": "^0.186.0",
     "dotenv": "17.3.1",

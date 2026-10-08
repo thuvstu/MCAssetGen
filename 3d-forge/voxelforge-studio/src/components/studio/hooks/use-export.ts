@@ -2,8 +2,9 @@
 
 import { useCallback, useState } from "react";
 import * as api from "@/lib/api-client";
+import { DEFAULT_GECKOLIB_OPTIONS as DEFAULT_GECKOLIB_EXPORT } from "@/lib/export";
 import { saveBlob } from "@/lib/download";
-import type { ExportFormat } from "@/lib/export";
+import type { ExportFormat, GeckolibGeneration } from "@/lib/export";
 import type { ModelSettings } from "@/lib/model-types";
 import type { VariantFamily } from "@/lib/variants";
 import type { ToastController } from "./use-toasts";
@@ -13,6 +14,9 @@ export interface ExportController {
   setFormat: (format: ExportFormat) => void;
   family: VariantFamily;
   setFamily: (family: VariantFamily) => void;
+  /** GeckoLib export options (namespace / model id / API generation). */
+  geckolib: GeckolibExportSettings;
+  setGeckolib: (settings: Partial<GeckolibExportSettings>) => void;
   exporting: boolean;
   download: (
     settings: ModelSettings,
@@ -21,10 +25,28 @@ export interface ExportController {
 }
 
 /** Requests an export from the server and hands the file to the browser. */
+export interface GeckolibExportSettings {
+  namespace: string;
+  modelId: string;
+  generation: GeckolibGeneration;
+  mirrorX: boolean;
+}
+
 export function useExport(notify: ToastController["notify"]): ExportController {
   const [format, setFormat] = useState<ExportFormat>("bbmodel");
   const [family, setFamily] = useState<VariantFamily>("all");
+  const [geckolib, setGeckolibState] = useState<GeckolibExportSettings>({
+    namespace: DEFAULT_GECKOLIB_EXPORT.namespace,
+    modelId: DEFAULT_GECKOLIB_EXPORT.modelId,
+    generation: DEFAULT_GECKOLIB_EXPORT.generation,
+    mirrorX: DEFAULT_GECKOLIB_EXPORT.mirrorX,
+  });
   const [exporting, setExporting] = useState(false);
+  const setGeckolib = useCallback(
+    (settings: Partial<GeckolibExportSettings>) =>
+      setGeckolibState((current) => ({ ...current, ...settings })),
+    [],
+  );
 
   const download = useCallback<ExportController["download"]>(
     async (settings, overrides) => {
@@ -36,6 +58,12 @@ export function useExport(notify: ToastController["notify"]): ExportController {
           settings,
           chosenFormat,
           chosenFormat === "variantpack" ? chosenFamily : undefined,
+          chosenFormat === "geckolib"
+            ? {
+                ...geckolib,
+                modelId: geckolib.modelId || `voxelforge_${settings.kind}`,
+              }
+            : undefined,
         );
         saveBlob(blob, filename);
         notify("モデルを書き出しました。ダウンロードを確認してください。");
@@ -52,8 +80,17 @@ export function useExport(notify: ToastController["notify"]): ExportController {
         setExporting(false);
       }
     },
-    [family, format, notify],
+    [family, format, geckolib, notify],
   );
 
-  return { format, setFormat, family, setFamily, exporting, download };
+  return {
+    format,
+    setFormat,
+    family,
+    setFamily,
+    geckolib,
+    setGeckolib,
+    exporting,
+    download,
+  };
 }

@@ -6,6 +6,26 @@ export {
   customModelDataDefinition,
   type PackVariant,
 } from "./variant-pack";
+export {
+  GECKOLIB_GENERATIONS,
+  DEFAULT_GECKOLIB_OPTIONS,
+  buildGeckolibLayout,
+  geckolibAnimations,
+  geckolibAtlas,
+  geckolibDependencySnippet,
+  geckolibFileList,
+  geckolibGeoModel,
+  geckolibJavaSources,
+  isGeckolibGeneration,
+  resolveGeckolibOptions,
+  sanitizeModelId,
+  sanitizeNamespace,
+  toGeckolibBundle,
+  type GeckolibBundle,
+  type GeckolibGeneration,
+  type GeckolibLayout,
+  type GeckolibOptions,
+} from "./geckolib";
 export { VANILLA_ITEM_BY_KIND } from "./display";
 
 export const EXPORT_FORMATS = [
@@ -13,6 +33,7 @@ export const EXPORT_FORMATS = [
   "resourcepack",
   "png",
   "variantpack",
+  "geckolib",
 ] as const;
 export type ExportFormat = (typeof EXPORT_FORMATS)[number];
 
