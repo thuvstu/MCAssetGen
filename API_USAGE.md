@@ -16,7 +16,7 @@ HTTP APIとCLIの使い方まとめ。ベースURLは各アプリのdevポート
 
 | メソッド | パス | 用途 |
 |---|---|---|
-| GET | `/api/studio/engines` | エンジン/コマンド一覧 |
+| GET | `/api/studio/engines` | エンジン/コマンド一覧 (各コマンドの `sample` 引数つき) |
 | POST | `/api/studio/run` | `{"engine","command","args"}` → `{ok,text,files[],data}` (files は base64) |
 
 ```bash
@@ -25,7 +25,9 @@ curl -X POST localhost:5131/api/studio/run -H 'Content-Type: application/json' \
   -d '{"engine":"voxel","command":"export","args":{"format":"geckolib","kind":"sword","seed":42}}'
 ```
 
-ブラウザからは `http://localhost:5131/engines` のコンソールで同じ操作ができる。
+ブラウザからは `http://localhost:5131/engines` のコンソールで同じ操作ができる
+(引数は `sample` が事前入力され、結果PNGのプレビューとダウンロードも付く)。
+`tests/studio-command-samples.test.ts` が全コマンドのサンプルを実行検証している。
 
 ## mcasset 統合CLI (全スタジオ / API駆動)
 
@@ -33,10 +35,14 @@ curl -X POST localhost:5131/api/studio/run -H 'Content-Type: application/json' \
 cd MCAssetGen/cli
 npm run mcasset -- <studio>:<command> [options] [--out file|dir]
 npm run mcasset -- engines                      # エンジン一覧
+npm run mcasset -- engines --json               # コマンド定義 (sample引数つき)
+npm run mcasset -- tex:render --out mm/x.png    # 引数省略=サンプル引数で実行
 MCASSET_STUDIO_URL=http://host:5131 npm run mcasset -- sky:items
 ```
 
 CLIは統合スタジオAPIへのHTTPクライアント(スタジオのソースはimportしない)。
+起動時に `/api/studio/engines` からコマンド定義を取得し、**引数を省略すると
+サンプル引数で実行**する (`--no-sample` で無効化、`--dry-run` で送信内容を確認)。
 `--out` を省略した場合は各ファイルの既定パスに書き出し、複数ファイル出力
 (`build` など)では `--out` をディレクトリとして扱う。`--in` はPNG等をbase64で
 アップロード、`--project`/`--config` はJSONファイルを読んで送信する。

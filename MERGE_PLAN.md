@@ -149,8 +149,15 @@
 - `src/lib/studio/` の登録エンジン: voxel / armor / mob / structure / material /
   skyforge / sky2 / forge / spell / arcane / sword / adv / tex / mythic / mythiccraft
 - `GET /api/studio/engines` + `POST /api/studio/run`(+`/engines` コンソールページ)
+- 各コマンドは実行サンプル (`sample`) を持ち、コンソールとCLIが同じ引数を
+  事前入力する。`tests/studio-command-samples.test.ts` が全サンプルを実行検証
 - `cli/` はAPIクライアント化(`cli/src/*.ts` と esbuild は削除)。スタジオのソースを
   直接importしないため、各エンジンの移植元を削除してもCLIは動き続ける
+- 2026-10-09 修正: API経由で失敗していた実バグを解消 —
+  モブbundleのDOM依存(`document is not defined`)をpngjs描画へ、
+  `mythic:sample` の `data` 欠落、`tex:convert --palette auto|kmeans`、
+  `material:folder` 未登録、`sword:presets` 未実装。DB無し起動も可
+  (`DATABASE_URL` 未設定時はメモリ保存へフォールバック)
 
 ## mod群(両維持)
 
