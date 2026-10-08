@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import type { StudioCommand, StudioEngine, StudioGroup } from "@/lib/studio/engine-utils";
 
 interface RunFile {
@@ -14,6 +15,15 @@ interface RunResult {
   error?: string;
   files?: RunFile[];
   data?: unknown;
+  asset?: { id: string; name: string; files: string[] };
+}
+
+interface AssetSummary {
+  id: string;
+  name: string;
+  studio: string;
+  kind: string;
+  files: string[];
 }
 
 const GROUP_LABEL: Record<StudioGroup, string> = {
@@ -46,20 +56,39 @@ const sampleText = (command: StudioCommand | undefined) =>
 /**
  * Runs any registered engine command straight from the browser.
  *
- * This is the visible side of the unified engine registry (MERGE_PLAN): every
- * ported studio is reachable from one place, with the same command shape the
- * `mcasset` CLI uses. Args are pre-filled from the registry samples so the
- * whole catalog can be exercised without memorising any flag.
+ * アセットバス連携:
+ *   - 出力を名前をつけて保存 → 別スタジオが `--asset <名前>` で取り込める
+ *   - 保存済みアセットを入力として受け取る (`?asset=` で外部からも指定可)
  */
 export default function EngineConsole({ engines }: { engines: StudioEngine[] }) {
+  const searchParams = useSearchParams();
+  // ?engine=tex&command=render&asset=名前 で事前選択 (スタジオGUIからの導線)
+  const wantedEngine = searchParams.get("engine") ?? "";
+  const wantedCommand = searchParams.get("command") ?? "";
+  const initialEngine =
+    engines.find((entry) => entry.id === wantedEngine) ?? engines[0];
+  const initialCommand =
+    initialEngine?.commands.find((entry) => entry.id === wantedCommand) ?? initialEngine?.commands[0];
   const [group, setGroup] = useState<StudioGroup | "all">("all");
-  const [engineId, setEngineId] = useState(engines[0]?.id ?? "voxel");
-  const [command, setCommand] = useState(engines[0]?.commands[0]?.id ?? "");
-  // null = サンプル引数を表示中 / 文字列 = ユーザーが編集した内容
+  const [engineId, setEngineId] = useState(initialEngine?.id ?? "voxel");
+  const [command, setCommand] = useState(initialCommand?.id ?? "");
   const [argsOverride, setArgsOverride] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<RunResult | null>(null);
   const [showData, setShowData] = useState(false);
+  const [assets, setAssets] = useState<AssetSummary[]>([]);
+  const [assetIn, setAssetIn] = useState(searchParams.get("asset") ?? "");
+  const [saveName, setSaveName] = useState("");
+
+  const refreshAssets = () =>
+    fetch("/api/assets")
+      .then((response) => response.json())
+      .then((body: { assets?: AssetSummary[] }) => setAssets(body.assets ?? []))
+      .catch(() => setAssets([]));
+
+  useEffect(() => {
+    void refreshAssets();
+  }, []);
 
   const visibleEngines = useMemo(
     () => (group === "all" ? engines : engines.filter((entry) => entry.group === group)),
@@ -67,7 +96,6 @@ export default function EngineConsole({ engines }: { engines: StudioEngine[] }) 
   );
   const engine = visibleEngines.find((entry) => entry.id === engineId) ?? visibleEngines[0];
   const selected = engine?.commands.find((entry) => entry.id === command) ?? engine?.commands[0];
-  // 表示中の引数は「編集値 ?? サンプル」。選択変更時に編集値を捨てるので effect 不要。
   const argsText = argsOverride ?? sampleText(selected);
 
   const run = async () => {
@@ -87,9 +115,16 @@ export default function EngineConsole({ engines }: { engines: StudioEngine[] }) 
       const response = await fetch("/api/studio/run", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ engine: engine.id, command: selected.id, args }),
+        body: JSON.stringify({
+          engine: engine.id,
+          command: selected.id,
+          args,
+          ...(assetIn ? { asset: assetIn } : {}),
+          ...(saveName.trim() ? { save: saveName.trim() } : {}),
+        }),
       });
       setResult((await response.json()) as RunResult);
+      if (saveName.trim()) void refreshAssets();
     } catch (error) {
       setResult({ ok: false, error: error instanceof Error ? error.message : "実行に失敗しました。" });
     } finally {
@@ -102,9 +137,11 @@ export default function EngineConsole({ engines }: { engines: StudioEngine[] }) 
       <header className="flex flex-col gap-1">
         <h1 className="text-xl font-semibold">統一スタジオ / エンジンコンソール</h1>
         <p className="text-sm opacity-70">
-          移植済みの全エンジン ({engines.length}) を API 経由で実行します。引数はサンプルが入力済みなので、
-          そのまま「実行」で結果を確認できます。CLI の{" "}
-          <code className="rounded bg-black/10 px-1">mcasset &lt;engine&gt;:&lt;command&gt;</code> と同じコマンド体系です。
+          全エンジン ({engines.length}) を API 経由で実行します。引数はサンプルが入力済み。
+          <a className="underline" href="/assets">
+            アセットバス
+          </a>
+          に保存すれば、別スタジオの入力として取り回せます。
         </p>
       </header>
 
@@ -177,6 +214,34 @@ export default function EngineConsole({ engines }: { engines: StudioEngine[] }) 
         />
       </label>
 
+      <div className="grid gap-3 md:grid-cols-2">
+        <label className="flex flex-col gap-1 text-sm">
+          アセットから入力 (別スタジオの出力)
+          <select
+            className="rounded border bg-transparent px-2 py-1"
+            value={assetIn}
+            onChange={(event) => setAssetIn(event.target.value)}
+          >
+            <option value="">使わない</option>
+            {assets.map((asset) => (
+              <option key={asset.id} value={asset.name}>
+                {asset.name} ({asset.studio}:{asset.kind}, {asset.files.length}件)
+              </option>
+            ))}
+          </select>
+        </label>
+
+        <label className="flex flex-col gap-1 text-sm">
+          アセットバスへ保存 (空なら保存しない)
+          <input
+            className="rounded border bg-transparent px-2 py-1"
+            placeholder="例: grass_texture"
+            value={saveName}
+            onChange={(event) => setSaveName(event.target.value)}
+          />
+        </label>
+      </div>
+
       <div className="flex flex-wrap items-center gap-3">
         <button
           className="rounded bg-sky-600 px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50"
@@ -190,7 +255,11 @@ export default function EngineConsole({ engines }: { engines: StudioEngine[] }) 
         </button>
         <button
           className="rounded border px-3 py-1.5 text-xs"
-          onClick={() => navigator.clipboard?.writeText(`mcasset ${engine?.id}:${selected?.id}`)}
+          onClick={() =>
+            navigator.clipboard?.writeText(
+              `mcasset ${engine?.id}:${selected?.id}${assetIn ? ` --asset ${assetIn}` : ""}${saveName.trim() ? ` --save ${saveName.trim()}` : ""}`,
+            )
+          }
         >
           CLIコマンドをコピー
         </button>
@@ -202,6 +271,15 @@ export default function EngineConsole({ engines }: { engines: StudioEngine[] }) 
           {result.ok ? (
             <>
               {result.text ? <pre className="max-h-80 overflow-auto whitespace-pre-wrap">{result.text}</pre> : null}
+              {result.asset ? (
+                <p className="mt-2 text-xs">
+                  保存しました:{" "}
+                  <a className="underline" href="/assets">
+                    {result.asset.name}
+                  </a>{" "}
+                  — 別スタジオでは <code className="rounded bg-black/10 px-1">--asset {result.asset.name}</code> で取り込めます
+                </p>
+              ) : null}
               {result.files?.length ? (
                 <ul className="mt-3 flex flex-col gap-2">
                   {result.files.map((entry) => (

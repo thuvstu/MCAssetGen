@@ -19,6 +19,8 @@ export interface StudioEntry {
   description: string;
   /** 元アプリのパス (リポジトリ内) */
   origin: string;
+  /** 対応する統合エンジン id (未指定なら id と同じ) */
+  engine?: string;
   status: StudioStatus;
 }
 

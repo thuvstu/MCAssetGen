@@ -43,9 +43,16 @@ export default function StudiosPage() {
         </section>
       ))}
 
-      <footer className="text-xs opacity-60">
-        モデル制作は <Link className="underline" href="/">VoxelForge ホーム</Link>、
-        全エンジンの実行は <Link className="underline" href="/engines">エンジンコンソール</Link>。
+      <footer className="flex flex-wrap gap-x-4 gap-y-1 text-xs opacity-60">
+        <Link className="underline" href="/">
+          VoxelForge ホーム (モデル制作)
+        </Link>
+        <Link className="underline" href="/engines">
+          エンジンコンソール
+        </Link>
+        <Link className="underline" href="/assets">
+          アセットバス (スタジオ間の受け渡し)
+        </Link>
       </footer>
     </main>
   );

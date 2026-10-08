@@ -1,0 +1,44 @@
+{
+  "meta": {
+    "modId": "mymod",
+    "name": "My Mod",
+    "version": "1.0.0",
+    "author": "Me",
+    "description": "Created with MythicForge",
+    "packageName": "com.example.mymod",
+    "license": "MIT"
+  },
+  "mana": {
+    "max": 100,
+    "regenPerSecond": 2
+  },
+  "items": [],
+  "blocks": [],
+  "skills": [],
+  "recipes": [],
+  "mobs": [],
+  "drops": [],
+  "materials": [],
+  "effects": [],
+  "advancements": [],
+  "shops": [],
+  "skillPoints": [],
+  "customImports": "",
+  "config": {
+    "maxMana": 100,
+    "regenPerSecond": 2,
+    "hud": true,
+    "slots": [
+      "",
+      "",
+      "",
+      ""
+    ],
+    "slotKeys": [
+      82,
+      71,
+      72,
+      86
+    ]
+  }
+}

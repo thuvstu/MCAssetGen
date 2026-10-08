@@ -9,6 +9,8 @@
  *
  *   npm run mcasset -- <studio>:<command> [--flag value] --out file
  *   npm run mcasset -- engines [--json]
+ *   npm run mcasset -- tex:render --save grass_tex     # アセットバスへ
+ *   npm run mcasset -- tex:convert --asset grass_tex   # 別スタジオの出力を入力に
  *
  * Flags default to the command's sample (the same values the /engines console
  * pre-fills), so every command runs with no arguments at all.
@@ -44,7 +46,8 @@ const STUDIOS = {
 const FILE_ARGS = new Set(["in"]);
 const JSON_ARGS = new Set(["project", "config", "params"]);
 /** Flags consumed by the client itself. */
-const CLIENT_FLAGS = new Set(["out", "out-dir", "url", "json", "sample", "dry-run"]);
+const CLIENT_FLAGS = new Set(["out", "out-dir", "url", "json", "sample", "dry-run", "save", "asset"]);
+/** バス連携フラグ: 送信payloadには入れず、リクエスト直下の save / asset として渡す */
 
 const USAGE = `mcasset — MCAssetGen unified CLI (API mode)
 
@@ -53,6 +56,8 @@ usage: npm run mcasset -- <studio>:<command> [options] [--out file|dir]
 options:
   --out <file>       1ファイルの出力先
   --out-dir <dir>    複数ファイルの出力先ディレクトリ
+  --save <名前>      出力をアセットバスへ保存 (別スタジオの入力に使える)
+  --asset <名前>     アセットバスから入力を取り込む
   --no-sample        コマンド既定のサンプル引数を使わない
   --dry-run          送信するリクエストだけ表示
 
@@ -73,7 +78,11 @@ studios:
   mythic     MythicForge Fabric MOD
   mythiccraft MythicCraft MOD
 
+  assets     アセットバスの一覧 (スタジオ間の受け渡し)
+
 examples:
+  npm run mcasset -- tex:render --sample stone --save grass_tex --out mm/grass.png
+  npm run mcasset -- tex:convert --asset grass_tex --palette PICO-8 --out mm/dot.png
   npm run mcasset -- sky:items
   npm run mcasset -- sky:render --item hyperion --seed 7 --res 32 --out mm/tex.png
   npm run mcasset -- forge:pack --style furfsky --res 32 --out mm/pack.zip
@@ -182,6 +191,18 @@ if (!target || target === "--help" || target === "-h") {
   process.exit(0);
 }
 
+if (target === "assets") {
+  const { body } = await api("/api/assets", { method: "GET" });
+  if (!body?.ok) fail(`アセット一覧の取得に失敗しました: ${JSON.stringify(body)}`);
+  if (rest.includes("--json")) {
+    console.log(JSON.stringify(body.assets, null, 2));
+    process.exit(0);
+  }
+  for (const asset of body.assets)
+    console.log(`${asset.name}\t${asset.studio}:${asset.kind}\t${asset.files.length}件\t${asset.files.join(",")}`);
+  process.exit(0);
+}
+
 if (target === "engines" || target === "--engines") {
   const { body } = await api("/api/studio/engines", { method: "GET" });
   if (!body?.ok) fail(`engine一覧の取得に失敗しました: ${JSON.stringify(body)}`);
@@ -204,6 +225,9 @@ if (!command || !engine) {
 const args = parseArgs(rest);
 const out = args.out;
 const outDir = args["out-dir"];
+// CLIENT_FLAGS を消す前に読む (save/asset はバス連携用)
+const saveName = typeof args.save === "string" ? args.save : "";
+const assetName = typeof args.asset === "string" ? args.asset : "";
 if (args.url) {
   // per-call override, mainly for tests
   process.env.MCASSET_STUDIO_URL = String(args.url);
@@ -225,7 +249,7 @@ delete args.sample;
 const payload = { ...(useSample && known?.sample ? known.sample : {}), ...loadInputs(args) };
 if (args["dry-run"]) {
   delete args["dry-run"];
-  console.log(JSON.stringify({ engine, command, args: payload }, null, 2));
+  console.log(JSON.stringify({ engine, command, args: payload, ...(assetName ? { asset: assetName } : {}), ...(saveName ? { save: saveName } : {}) }, null, 2));
   process.exit(0);
 }
 delete args["dry-run"];
@@ -233,7 +257,13 @@ delete args["dry-run"];
 const { body } = await api("/api/studio/run", {
   method: "POST",
   headers: { "Content-Type": "application/json" },
-  body: JSON.stringify({ engine, command, args: payload }),
+  body: JSON.stringify({
+    engine,
+    command,
+    args: payload,
+    ...(assetName ? { asset: assetName } : {}),
+    ...(saveName ? { save: saveName } : {}),
+  }),
 });
 
 if (!body?.ok) {
@@ -242,6 +272,7 @@ if (!body?.ok) {
 }
 
 if (body.text) console.log(body.text);
+if (body.asset?.name) console.log(`saved asset: ${body.asset.name} (${body.asset.files.length} files) — 取り出しは --asset ${body.asset.name}`);
 const written = writeOutputs(body.files, out, outDir);
 for (const path of written) console.log(`wrote ${path}`);
 

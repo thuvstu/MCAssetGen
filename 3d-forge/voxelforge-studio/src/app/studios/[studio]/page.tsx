@@ -32,6 +32,15 @@ export default async function StudioPage({ params }: RouteContext) {
           ← スタジオ一覧
         </Link>
         <span className="font-medium">{entry.label}</span>
+        <Link className="underline" href="/">
+          VoxelForge
+        </Link>
+        <Link className="underline" href="/assets">
+          アセットバス
+        </Link>
+        <Link className="underline" href={`/engines?engine=${entry.engine ?? entry.id}`}>
+          このエンジンを実行
+        </Link>
         <span className="opacity-60">{entry.origin}</span>
         {!isPortedGui(entry.id) ? (
           <span className="rounded bg-amber-500/20 px-1">GUI移植待ち — エンジンは /engines で実行可</span>
