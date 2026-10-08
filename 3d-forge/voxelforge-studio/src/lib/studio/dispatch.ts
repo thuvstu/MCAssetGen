@@ -15,6 +15,7 @@ import {
   type StudioResult,
 } from "./engine-utils";
 import { PORTED_ENGINES } from "./engines-ported";
+import { sampleFor } from "./command-samples";
 import { MOD_ENGINES } from "./engines-mod";
 import { DEFAULT_SETTINGS, TEMPLATES, type ModelSettings } from "../model-types";
 import { generateModel } from "../model-generator";
@@ -509,6 +510,7 @@ const CORE_ENGINES: RegisteredEngine[] = [
       { id: "presets", summary: "素材プリセット一覧" },
       { id: "render", summary: "PNG生成", args: ["preset", "shape", "scale", "seed"] },
       { id: "pack", summary: "リソースパックZIP", args: ["preset", "modId", "scale"] },
+      { id: "folder", summary: "フォルダ出力ZIP", args: ["preset", "modId", "scale"] },
     ],
     run: runMaterial,
   },
@@ -522,7 +524,11 @@ export function listEngines(): StudioEngine[] {
     label,
     group,
     description,
-    commands,
+    // サンプル引数をここで合流させ、コンソールと CLI が同じ情報を見る
+    commands: commands.map((command) => {
+      const sample = sampleFor(id, command.id);
+      return sample ? { ...command, sample } : command;
+    }),
   }));
 }
 

@@ -56,6 +56,8 @@ export const MOD_ENGINES: RegisteredEngine[] = [
           engine: "mythic",
           command,
           text: "sample project",
+          // CLI 連鎖 (sample → build) のため data にも同じJSONを入れる
+          data: forgeEmptyProject(),
           files: [jsonFile("mythic_project.json", forgeEmptyProject())],
         };
       if (command !== "build") fail(`unknown mythic command: ${command} (sample|build)`);

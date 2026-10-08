@@ -34,6 +34,9 @@ import { DEFAULT_CONFIG as ARCANE_CONFIG } from "../compat/engines/arcane/defaul
 import { randomConfig } from "../compat/engines/arcane/random";
 import { renderPixels as arcaneRenderPixels } from "../compat/engines/arcane/render";
 import { DEFAULT_OPTIONS, optionsForPreset } from "../compat/engines/sword/engine/options";
+import { PRESETS as SWORD_PRESETS } from "../compat/engines/sword/engine/presets";
+
+const SWORD_PRESETS_KEYS = Object.keys(SWORD_PRESETS);
 import { renderPixels as swordRenderPixels } from "../compat/engines/sword/engine/render";
 import { ANIM_TYPES, buildAnimation, infoFromPix, type AnimLayer, type AnimType } from "../compat/engines/pixelgen/animations";
 import { framesToStrip, mcmeta } from "../compat/engines/pixelgen/export";
@@ -280,9 +283,15 @@ function runArcane(command: string, args: Args): StudioResult {
 
 function runSword(command: string, args: Args): StudioResult {
   if (command === "presets") {
-    return { ok: true, engine: "sword", command, text: "use sword:render --preset <name>" };
+    return {
+      ok: true,
+      engine: "sword",
+      command,
+      text: SWORD_PRESETS_KEYS.map((key) => `${key}\t${SWORD_PRESETS[key].category}\t${SWORD_PRESETS[key].tier}\t${SWORD_PRESETS[key].name}`).join("\n"),
+      data: SWORD_PRESETS_KEYS.map((key) => ({ id: key, category: SWORD_PRESETS[key].category, tier: SWORD_PRESETS[key].tier, name: SWORD_PRESETS[key].name })),
+    };
   }
-  if (command !== "render") fail(`unknown sword command: ${command} (render)`);
+  if (command !== "render") fail(`unknown sword command: ${command} (presets|render)`);
   const preset = asString(args, "preset", "Hyperion");
   const options = optionsForPreset(preset, DEFAULT_OPTIONS);
   const frame = swordRenderPixels(options, asNumber(args, "seconds", 0));
@@ -443,15 +452,20 @@ function runTexCraft(command: string, args: Args): StudioResult {
     case "convert": {
       const inline = asString(args, "in") || fail("usage: convert --in <base64 png> [--palette <name>|kmeans] [--colors 16]");
       const names = Object.keys(PALETTES);
-      const want = asString(args, "palette", names[0]);
-      const palette = names.includes(want)
-        ? want
-        : names.find((name) => name.toLowerCase().startsWith(want.toLowerCase())) ??
-          names.find((name) => name.toLowerCase().includes(want.toLowerCase()));
+      const autoName = names.find((name) => PALETTES[name] === null) ?? names[0];
+      const want = asString(args, "palette", "auto");
+      // "auto" / "kmeans" は自動パレット。以降は前方一致→部分一致で解決する。
+      const isAuto = /^(auto|kmeans|自動)/i.test(want);
+      const palette = isAuto
+        ? autoName
+        : names.includes(want)
+          ? want
+          : names.find((name) => name.toLowerCase().startsWith(want.toLowerCase())) ??
+            names.find((name) => name.toLowerCase().includes(want.toLowerCase()));
       const resolved = palette ?? fail(`unknown palette: ${want} (see list-palettes)`);
       const source = decodePng(new Uint8Array(Buffer.from(inline, "base64")));
-      const auto = PALETTES[resolved] === null;
-      const result = reduceTex(source, auto ? null : resolved, asNumber(args, "colors", 16));
+      const useAuto = PALETTES[resolved] === null;
+      const result = reduceTex(source, useAuto ? null : resolved, asNumber(args, "colors", 16));
       return { ok: true, engine: "tex", command, text: `converted (${result.w}x${result.h}, palette=${resolved})`, files: [file(`converted.png`, encodePng(result))] };
     }
     case "stamp": {
@@ -559,7 +573,10 @@ export const PORTED_ENGINES: RegisteredEngine[] = [
     label: "AegisBlade 剣",
     group: "weapon",
     description: "剣テクスチャ生成 (プリセット/サイズ)",
-    commands: [{ id: "render", summary: "剣PNG", args: ["preset", "size", "seconds"] }],
+    commands: [
+      { id: "presets", summary: "プリセット一覧" },
+      { id: "render", summary: "剣PNG", args: ["preset", "size", "seconds"] },
+    ],
     run: runSword,
   },
   {

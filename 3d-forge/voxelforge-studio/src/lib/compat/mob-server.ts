@@ -22,6 +22,7 @@ import {
 } from "./mob-export";
 import { buildFabric12111Project } from "./mob-fabric";
 import { packBoxUV } from "./mob-boxuv";
+import { renderEntityTexturePng } from "./mob-texture-server";
 import { packTexture, FACE_LIGHT } from "./mob-texture";
 import {
   canvasToPng,
@@ -47,26 +48,9 @@ const hashNoise = (seed: number): number => {
   return s - Math.floor(s);
 };
 
-/** Java-style entity texture: dark background, shaded faces, thin outline. */
-export function renderMobTexture(mob: MobDraft): {
-  png: Uint8Array;
-  size: number;
-} {
-  const { size, faces } = packTexture(mob);
-  const canvas = createCanvas(size, size);
-  fillRect(canvas, 0, 0, size, size, parseColor("#1a120c"));
-  for (const face of faces) {
-    const [r, g, b] = parseColor(face.color);
-    const light = FACE_LIGHT[face.face];
-    fillRect(canvas, face.u, face.v, face.w, face.h, [
-      Math.min(255, Math.round(r * light)),
-      Math.min(255, Math.round(g * light)),
-      Math.min(255, Math.round(b * light)),
-      255,
-    ]);
-    strokeRect(canvas, face.u, face.v, face.w, face.h, [0, 0, 0, 115]);
-  }
-  return { png: canvasToPng(canvas), size };
+/** Java-style entity texture (DOM非依存: mob-texture-server と共通実装). */
+export function renderMobTexture(mob: MobDraft): { png: Uint8Array; size: number } {
+  return renderEntityTexturePng(mob);
 }
 
 /** Bedrock box-UV texture: per-pixel noise, transparent unused area. */

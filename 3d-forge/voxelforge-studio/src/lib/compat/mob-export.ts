@@ -14,7 +14,8 @@ import {
   warningsOf,
 } from "./mob-model";
 import JSZip from "jszip";
-import { drawTexture, type PackedFace } from "./mob-texture";
+import { type PackedFace, FACE_LIGHT, drawTexture, packTexture } from "./mob-texture";
+import { entityTextureDataUrl } from "./mob-texture-server";
 import {
   buildFabric12111Project,
   clientMainClass,
@@ -907,8 +908,8 @@ export function renderExport(mob: MobDraft, kind: ExportKind): string {
   if (kind === "bedrock") return behaviorEntity(mob);
   if (kind === "loot") return lootTable(mob);
   if (kind === "lang") return langFiles(mob).ja;
-  const tex = drawTexture(mob);
-  return geometryJson(mob, tex.faces, tex.size);
+  const packed = packTexture(mob);
+  return geometryJson(mob, packed.faces, packed.size);
 }
 
 export function spawnEggModel(): string {
@@ -917,7 +918,8 @@ export function spawnEggModel(): string {
 
 // Blockbench (.bbmodel) 形式の生成
 export function blockbenchModel(mob: MobDraft): string {
-  const tex = drawTexture(mob);
+  const packed = packTexture(mob);
+  const tex = { ...packed };
   const parts = resolveParts(mob);
   const elements = parts.map((part, i) => {
     const ox = round2(part.origin[0] * mob.scale);
@@ -957,7 +959,7 @@ export function blockbenchModel(mob: MobDraft): string {
   });
 
   const outlines = elements.map((e) => e.uuid);
-  const textureDataUrl = tex.canvas.toDataURL("image/png");
+  const textureDataUrl = entityTextureDataUrl(mob).dataUrl;
 
   return JSON.stringify(
     {

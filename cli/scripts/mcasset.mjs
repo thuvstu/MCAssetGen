@@ -8,7 +8,10 @@
  * returned files, so it never imports studio sources.
  *
  *   npm run mcasset -- <studio>:<command> [--flag value] --out file
- *   npm run mcasset -- engines
+ *   npm run mcasset -- engines [--json]
+ *
+ * Flags default to the command's sample (the same values the /engines console
+ * pre-fills), so every command runs with no arguments at all.
  *
  * Environment:
  *   MCASSET_STUDIO_URL  studio base URL (default http://127.0.0.1:5131)
@@ -41,12 +44,17 @@ const STUDIOS = {
 const FILE_ARGS = new Set(["in"]);
 const JSON_ARGS = new Set(["project", "config", "params"]);
 /** Flags consumed by the client itself. */
-const CLIENT_FLAGS = new Set(["out", "out-dir", "url"]);
+const CLIENT_FLAGS = new Set(["out", "out-dir", "url", "json", "sample", "dry-run"]);
 
 const USAGE = `mcasset — MCAssetGen unified CLI (API mode)
 
 usage: npm run mcasset -- <studio>:<command> [options] [--out file|dir]
-       npm run mcasset -- engines
+       npm run mcasset -- engines [--json]
+options:
+  --out <file>       1ファイルの出力先
+  --out-dir <dir>    複数ファイルの出力先ディレクトリ
+  --no-sample        コマンド既定のサンプル引数を使わない
+  --dry-run          送信するリクエストだけ表示
 
 studios:
   vox        VoxelForge 3Dモデル (kind/seed/format: bbmodel|json|resourcepack|geckolib)
@@ -177,6 +185,10 @@ if (!target || target === "--help" || target === "-h") {
 if (target === "engines" || target === "--engines") {
   const { body } = await api("/api/studio/engines", { method: "GET" });
   if (!body?.ok) fail(`engine一覧の取得に失敗しました: ${JSON.stringify(body)}`);
+  if (rest.includes("--json")) {
+    console.log(JSON.stringify(body, null, 2));
+    process.exit(0);
+  }
   for (const engine of body.engines)
     console.log(`${engine.id}\t${engine.group}\t${engine.label}\t${engine.commands.map((c) => c.id).join("|")}`);
   process.exit(0);
@@ -198,7 +210,26 @@ if (args.url) {
 }
 for (const key of CLIENT_FLAGS) delete args[key];
 
-const payload = loadInputs(args);
+// コマンド定義を取得して、既定サンプル + 実引数をマージする。
+const catalog = (await api("/api/studio/engines", { method: "GET" })).body;
+const definition = catalog?.engines?.find((entry) => entry.id === engine);
+const known = definition?.commands?.find((entry) => entry.id === command);
+if (definition && !known) {
+  fail(
+    `unknown command: ${studio}:${command}\n` +
+      `  利用可能: ${definition.commands.map((entry) => entry.id).join(" | ")}`,
+  );
+}
+const useSample = args.sample !== false;
+delete args.sample;
+const payload = { ...(useSample && known?.sample ? known.sample : {}), ...loadInputs(args) };
+if (args["dry-run"]) {
+  delete args["dry-run"];
+  console.log(JSON.stringify({ engine, command, args: payload }, null, 2));
+  process.exit(0);
+}
+delete args["dry-run"];
+
 const { body } = await api("/api/studio/run", {
   method: "POST",
   headers: { "Content-Type": "application/json" },

@@ -33,6 +33,8 @@ export interface StudioCommand {
   id: string;
   summary: string;
   args?: string[];
+  /** 実行サンプル。コンソール/CLI が引数を事前入力するために使う */
+  sample?: Args;
 }
 
 export type StudioGroup =
