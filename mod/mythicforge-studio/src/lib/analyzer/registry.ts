@@ -152,6 +152,17 @@ export const KNOWN_FQNS: string[] = [
   // --- client (サーバー/共通コードでは使用不可) ---
   "net.minecraft.client.MinecraftClient",
   "net.minecraft.client.network.ClientPlayerEntity",
+  "net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry",
+  // --- GeckoLib (生成MODのモブ描画で使用) ---
+  "software.bernie.geckolib.animatable.GeoReplacedEntity",
+  "software.bernie.geckolib.animatable.instance.AnimatableInstanceCache",
+  "software.bernie.geckolib.animatable.manager.AnimatableManager",
+  "software.bernie.geckolib.animation.AnimationController",
+  "software.bernie.geckolib.animation.RawAnimation",
+  "software.bernie.geckolib.animation.object.PlayState",
+  "software.bernie.geckolib.model.DefaultedEntityGeoModel",
+  "software.bernie.geckolib.renderer.GeoReplacedEntityRenderer",
+  "software.bernie.geckolib.util.GeckoLibUtil",
   // --- Kotlin / Java / logging ---
   "kotlin.math.max",
   "kotlin.math.min",

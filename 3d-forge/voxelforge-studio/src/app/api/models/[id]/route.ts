@@ -1,7 +1,5 @@
-import { eq } from "drizzle-orm";
-import { db } from "@/db";
-import { projects } from "@/db/schema";
 import { jsonError } from "@/lib/http";
+import { deleteProject, getProject } from "@/db/projects-repo";
 
 export const dynamic = "force-dynamic";
 
@@ -14,10 +12,7 @@ export async function GET(_request: Request, context: RouteContext) {
   const { id } = await context.params;
   if (!UUID_PATTERN.test(id)) return jsonError("無効なモデルIDです。", 400);
   try {
-    const [project] = await db
-      .select()
-      .from(projects)
-      .where(eq(projects.id, id));
+    const project = await getProject(id);
     if (!project) return jsonError("モデルが見つかりません。", 404);
     return Response.json({ project });
   } catch (error) {
@@ -30,11 +25,8 @@ export async function DELETE(_request: Request, context: RouteContext) {
   const { id } = await context.params;
   if (!UUID_PATTERN.test(id)) return jsonError("無効なモデルIDです。", 400);
   try {
-    const deleted = await db
-      .delete(projects)
-      .where(eq(projects.id, id))
-      .returning({ id: projects.id });
-    if (!deleted.length) return jsonError("モデルが見つかりません。", 404);
+    const deleted = await deleteProject(id);
+    if (!deleted) return jsonError("モデルが見つかりません。", 404);
     return Response.json({ ok: true });
   } catch (error) {
     console.error("Delete model:", error);

@@ -151,6 +151,10 @@ export interface MobDef {
   wearableArmorId?: string;
   spawnBiomes?: string[];
   spawnChance?: number;
+  /** GeckoLib の置き換えレンダラ + geo/animation アセットを生成する */
+  geckolib?: boolean;
+  /** 追加スケール (未使用なら 1) */
+  scale?: number;
 }
 
 export interface DropRule {

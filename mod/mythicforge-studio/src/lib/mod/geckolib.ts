@@ -1,4 +1,4 @@
-import { PNG } from "pngjs";
+import { encodePng } from "./png";
 import { DEFAULT_PROFILE } from "./targets";
 import type { GeneratedFile, MobDef, ModProject } from "./types";
 
@@ -162,14 +162,14 @@ export function geckolibAnimationJson(mob: ModDef): string {
   );
 }
 
-/** Flat 64x64 RGBA skin derived from the mob id, so every mob looks distinct. */
+/** Flat 64x64 skin derived from the mob id, so every mob looks distinct. */
 export function geckolibTexturePng(mob: ModDef): Uint8Array {
   const size = 64;
-  const png = new PNG({ width: size, height: size });
+  const rgb = new Uint8Array(size * size * 3);
   let hash = 2166136261;
   for (const ch of mob.id) hash = Math.imul(hash ^ ch.charCodeAt(0), 16777619) >>> 0;
   const hue = (hash % 360) / 360;
-  const rgb = [0, 1, 2].map((index) => {
+  const tint = [0, 1, 2].map((index) => {
     const k = (n: number) => (n + hue * 12) % 12;
     const a = 0.45 * Math.min(0.65, 1 - 0.65);
     const f = (n: number) => 0.55 - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
@@ -177,15 +177,24 @@ export function geckolibTexturePng(mob: ModDef): Uint8Array {
   });
   for (let y = 0; y < size; y++) {
     for (let x = 0; x < size; x++) {
-      const offset = (y * size + x) * 4;
+      const offset = (y * size + x) * 3;
       const noise = ((x * 7 + y * 13 + hash) % 17) - 8;
-      png.data[offset] = Math.max(0, Math.min(255, rgb[0] + noise * 2));
-      png.data[offset + 1] = Math.max(0, Math.min(255, rgb[1] + noise * 2));
-      png.data[offset + 2] = Math.max(0, Math.min(255, rgb[2] + noise * 2));
-      png.data[offset + 3] = 255;
+      rgb[offset] = Math.max(0, Math.min(255, tint[0] + noise * 2));
+      rgb[offset + 1] = Math.max(0, Math.min(255, tint[1] + noise * 2));
+      rgb[offset + 2] = Math.max(0, Math.min(255, tint[2] + noise * 2));
     }
   }
-  return new Uint8Array(PNG.sync.write(png));
+  return encodePng(size, size, rgb);
+}
+
+function toBase64(bytes: Uint8Array): string {
+  const globalScope = globalThis as { btoa?: (text: string) => string; Buffer?: { from: (data: Uint8Array) => { toString: (encoding: string) => string } } };
+  if (typeof globalScope.btoa === "function") {
+    let binary = "";
+    for (let i = 0; i < bytes.length; i += 0x8000) binary += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+    return globalScope.btoa(binary);
+  }
+  return globalScope.Buffer ? globalScope.Buffer.from(bytes).toString("base64") : "";
 }
 
 /**
@@ -272,7 +281,7 @@ export function geckolibMobFiles(project: ModProject): GeneratedFile[] {
     });
     files.push({
       path: `src/main/resources/assets/${modId}/textures/entity/${mob.id}.png`,
-      content: Buffer.from(geckolibTexturePng(mob as ModDef)).toString("base64"),
+      content: toBase64(geckolibTexturePng(mob as ModDef)),
       kind: "binary",
       encoding: "base64",
     });

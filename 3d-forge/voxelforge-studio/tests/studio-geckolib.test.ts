@@ -38,8 +38,9 @@ describe("mod GeckoLib support", () => {
     expect(paths).toContain("src/main/resources/assets/testmod/geo/entity/cinderling.geo.json");
     expect(paths).toContain("src/main/resources/assets/testmod/animations/entity/cinderling.animation.json");
     expect(paths).toContain("src/main/resources/assets/testmod/textures/entity/cinderling.png");
-    expect(paths).toContain("src/main/kotlin/com/example/testmod/mobs/GeckoMobs.kt");
     expect(paths).toContain("src/main/kotlin/com/example/testmod/client/GeckoMobRenderers.kt");
+    // 単一クライアントファイル方式: 旧 mobs/GeckoMobs.kt は出力しない
+    expect(paths).not.toContain("src/main/kotlin/com/example/testmod/mobs/GeckoMobs.kt");
     expect(paths).toContain("GECKOLIB.md");
 
     const geo = JSON.parse(files.find((entry) => entry.path.endsWith(".geo.json"))!.content);
@@ -65,8 +66,14 @@ describe("mod GeckoLib support", () => {
     expect(read("gradle.properties")).toContain("geckolib_version=5.4.4");
     const mod = JSON.parse(read("src/main/resources/fabric.mod.json"));
     expect(mod.entrypoints.client?.[0]?.value).toBe("com.example.testmod.client.GeckoMobRenderers");
-    expect(read("src/main/kotlin/com/example/testmod/client/GeckoMobRenderers.kt")).toContain("GeoReplacedEntityRenderer");
-    expect(read("src/main/kotlin/com/example/testmod/mobs/GeckoMobs.kt")).toContain("GeoReplacedEntity");
+    const client = read("src/main/kotlin/com/example/testmod/client/GeckoMobRenderers.kt");
+    expect(client).toContain("GeoReplacedEntityRenderer");
+    expect(client).toContain("object CinderlingAnimatable : GeoReplacedEntity");
+    expect(client).toContain("object GeckoMobRenderers : ClientModInitializer");
+    expect(client).toContain("DefaultedEntityGeoModel<CinderlingAnimatable>(Identifier.of(\"testmod\", \"cinderling\")");
+    // import は自動生成 (yarn プロファイル)
+    expect(client).toContain("import software.bernie.geckolib.animatable.GeoReplacedEntity");
+    expect(client).toContain("import net.minecraft.entity.EntityType");
   });
 
   it("leaves regular mods untouched", () => {

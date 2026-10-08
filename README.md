@@ -90,7 +90,11 @@ Kotlin + Gradle依存を追加出力する(MythicForge側)。
 統合CLI(APIクライアント)を使う場合:
 
 ```bash
-cd 3d-forge/voxelforge-studio && npm run dev   # :5131 統合スタジオ
+cd 3d-forge/voxelforge-studio
+npm install && npm run dev                     # :5131 統合スタジオ / ブラウザで開く
+# → http://localhost:5131          … VoxelForge (モデル制作・書き出し)
+# → http://localhost:5131/engines  … 統合エンジンコンソール (全エンジンをAPIで実行)
+
 cd MCAssetGen/cli && npm run mcasset -- engines
 npm run mcasset -- sky:render --item hyperion --res 32 --out mm/tex.png
 npm run mcasset -- tex:effect --id edgewear --sample sword --out mm/edge.png
@@ -105,7 +109,11 @@ npm install
 npm run dev        # Next.jsは :3000、Viteは :5173 (重複時は --port 指定)
 ```
 
-Next.js+Drizzle系はPostgresが必要。各フォルダに`.env`で`DATABASE_URL`を設定すること。
+**Postgresは無くても起動する**(統合スタジオ `3d-forge/voxelforge-studio` は
+`DATABASE_URL` 未設定だと保存だけ自動でメモリ保存に切り替わり、生成・書き出し・
+`/engines` はそのまま使える。DBを使う場合は `.env` に `DATABASE_URL` を設定)。
+Drizzle系の他アプリ(`mod/*`)もDBを使うが、資産生成の検証は `npx tsx scripts/verify.ts`
+で行えるためDB無しで確認できる。
 
 ## 履歴
 

@@ -47,6 +47,12 @@ function kitchen(): ModProject {
     p.skills.push({ id: `t_${t.toLowerCase()}`, name: t, description: "", cooldown: 0, manaCost: 0, trigger: { type: t, intervalSec: 5, heldItem: t === "WEAR" ? `${id}:mythril_helmet` : "" }, conditions: [], actions: [newAction("message")] });
   const staff = p.items.find((x) => x.id === "fire_staff");
   if (staff) { staff.shiftSkillId = "dash"; staff.leftClickSkillId = "kitchen"; }
+  // GeckoLib モブ (geo/animation/テクスチャ + Kotlin + Gradle依存) も検証対象に含める
+  if (!p.mobs.some((m) => m.geckolib))
+    p.mobs.push({
+      id: "gecko_dummy", name: "Gecko Dummy", baseMob: "ZOMBIE", maxHealth: 20, movementSpeed: 0.3,
+      attackDamage: 3, drops: [], behavior: "hostile", geckolib: true,
+    });
   return p;
 }
 

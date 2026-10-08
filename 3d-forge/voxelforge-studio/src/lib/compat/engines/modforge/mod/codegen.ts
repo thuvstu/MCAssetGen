@@ -1,7 +1,7 @@
 import { lexKotlin } from "../analyzer/kotlin";
 import { makeEffectIconBase64, makeIconPngBase64, parsePngDataUrl } from "./png";
 import { gradleFiles } from "./gradleGen";
-import { geckolibMobFiles, hasGeckolib } from "./geckolib";
+import { geckolibClientBody, geckolibMobFiles, geckolibMobs, hasGeckolib } from "./geckolib";
 import { extrasMojBody, extrasYarnStub, itemAttributesMojBody, itemAttributesYarnStub } from "./extrasgen";
 import { materialOf, scaledDurability } from "./materials";
 import { BLOCK_SOUND_MAP, mojBlocksBody, mojClientBody, mojGroupBody, mojItemsBody, mojModItemBody, mojNetworkBody, translateBody, type MojHelpers } from "./codegenMojmap";
@@ -1872,6 +1872,11 @@ export function generateProject(project: ModProject): GeneratedFile[] {
   kt("skill/SkillTriggers.kt", triggersKt(project));
   kt("ModMobs.kt", mobsKt(project));
   files.push(...geckolibMobFiles(project));
+  if (hasGeckolib(project))
+    kt(
+      "client/GeckoMobRenderers.kt",
+      buildKotlin(project, `${meta.packageName}.client`, geckolibClientBody(project, geckolibMobs(project))),
+    );
   const exH = { q, d, f, i, ind, ns: (id: string) => ns(project, id) };
   kt("ModItemAttributes.kt", moj ? buildKotlin(project, meta.packageName, itemAttributesMojBody(project, exH), { raw: true }) : buildKotlin(project, meta.packageName, itemAttributesYarnStub()));
   kt("ModExtras.kt", moj ? buildKotlin(project, meta.packageName, extrasMojBody(project, exH), { raw: true }) : buildKotlin(project, meta.packageName, extrasYarnStub()));
