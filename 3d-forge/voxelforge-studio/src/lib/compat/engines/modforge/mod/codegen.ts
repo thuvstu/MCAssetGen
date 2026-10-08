@@ -1,6 +1,7 @@
 import { lexKotlin } from "../analyzer/kotlin";
 import { makeEffectIconBase64, makeIconPngBase64, parsePngDataUrl } from "./png";
 import { gradleFiles } from "./gradleGen";
+import { geckolibMobFiles, hasGeckolib } from "./geckolib";
 import { extrasMojBody, extrasYarnStub, itemAttributesMojBody, itemAttributesYarnStub } from "./extrasgen";
 import { materialOf, scaledDurability } from "./materials";
 import { BLOCK_SOUND_MAP, mojBlocksBody, mojClientBody, mojGroupBody, mojItemsBody, mojModItemBody, mojNetworkBody, translateBody, type MojHelpers } from "./codegenMojmap";
@@ -1870,6 +1871,7 @@ export function generateProject(project: ModProject): GeneratedFile[] {
   kt("skill/Skills.kt", skillsKt(project));
   kt("skill/SkillTriggers.kt", triggersKt(project));
   kt("ModMobs.kt", mobsKt(project));
+  files.push(...geckolibMobFiles(project));
   const exH = { q, d, f, i, ind, ns: (id: string) => ns(project, id) };
   kt("ModItemAttributes.kt", moj ? buildKotlin(project, meta.packageName, itemAttributesMojBody(project, exH), { raw: true }) : buildKotlin(project, meta.packageName, itemAttributesYarnStub()));
   kt("ModExtras.kt", moj ? buildKotlin(project, meta.packageName, extrasMojBody(project, exH), { raw: true }) : buildKotlin(project, meta.packageName, extrasYarnStub()));
@@ -1878,7 +1880,12 @@ export function generateProject(project: ModProject): GeneratedFile[] {
     schemaVersion: 1, id: meta.modId, version: meta.version, name: meta.name, description: meta.description,
     authors: [meta.author], license: meta.license, environment: "*",
     icon: `assets/${meta.modId}/icon.png`,
-    entrypoints: { main: [{ adapter: "kotlin", value: `${meta.packageName}.ModMain` }] },
+    entrypoints: {
+      main: [{ adapter: "kotlin", value: `${meta.packageName}.ModMain` }],
+      ...(hasGeckolib(project)
+        ? { client: [{ adapter: "kotlin", value: `${meta.packageName}.client.GeckoMobRenderers` }] }
+        : {}),
+    },
     depends: { fabricloader: `>=${FABRIC.loader}`, minecraft: `~${FABRIC.minecraft}`, java: `>=${FABRIC.java}`, "fabric-api": "*", "fabric-language-kotlin": "*" },
   }));
 

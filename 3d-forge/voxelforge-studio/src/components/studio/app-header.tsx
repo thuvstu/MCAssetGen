@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   Box,
   BookOpen,
@@ -11,6 +12,7 @@ import {
   FileBox,
   FolderOpen,
   Grid2X2,
+  Layers,
   Plus,
 } from "lucide-react";
 import { ForgeLogo } from "@/components/pixel-art";
@@ -111,6 +113,10 @@ export default function AppHeader() {
       </div>
 
       <div className="header-actions">
+        <Link className="text-button docs-button" href="/engines">
+          <Layers size={15} />
+          <span>エンジン</span>
+        </Link>
         <button
           className="text-button docs-button"
           onClick={() => openModal("help")}

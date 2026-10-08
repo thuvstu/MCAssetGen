@@ -1,5 +1,6 @@
 import type { GeneratedFile, ModProject } from "./types";
 import type { TargetEnv } from "./targets";
+import { GECKOLIB_MAVEN, GECKOLIB_VERSION, hasGeckolib } from "./geckolib";
 import { GRADLEW, GRADLEW_BAT, WRAPPER_JAR_B64, WRAPPER_PROPERTIES } from "./wrapperData";
 import { GRADLEW9, GRADLEW9_BAT, WRAPPER9_JAR_B64, WRAPPER9_PROPERTIES } from "./wrapperData9";
 
@@ -21,6 +22,7 @@ function wrapperFiles(env: TargetEnv): GeneratedFile[] {
 export function gradleFiles(project: ModProject, env: TargetEnv): GeneratedFile[] {
   const { meta } = project;
   const mojmap = env.mappings === "mojmap";
+  const geckolib = hasGeckolib(project);
 
   const mappingsLine = mojmap
     ? `    mappings(loom.officialMojangMappings())`
@@ -39,7 +41,12 @@ version = project.property("mod_version") as String
 group = project.property("maven_group") as String
 
 repositories {
-    mavenCentral()
+    mavenCentral()${geckolib ? `
+    // GeckoLib (generated mobs use the geo/animation pipeline)
+    maven {
+        name = "GeckoLib"
+        url = uri("${GECKOLIB_MAVEN}")
+    }` : ""}
 }
 
 dependencies {
@@ -47,7 +54,8 @@ dependencies {
 ${mappingsLine}
     modImplementation("net.fabricmc:fabric-loader:\${project.property("loader_version")}")
     modImplementation("net.fabricmc.fabric-api:fabric-api:\${project.property("fabric_version")}")
-    modImplementation("net.fabricmc:fabric-language-kotlin:\${project.property("kotlin_loader_version")}")
+    modImplementation("net.fabricmc:fabric-language-kotlin:\${project.property("kotlin_loader_version")}")${geckolib ? `
+    modImplementation("software.bernie.geckolib:geckolib-fabric-\${project.property("minecraft_version")}:\${project.property("geckolib_version")}")` : ""}
 }
 
 tasks.withType<JavaCompile>().configureEach {
@@ -104,7 +112,8 @@ minecraft_version=${env.minecraft}
 ${mojmap ? "# mappings: Mojang official (loom.officialMojangMappings)" : `yarn_mappings=${env.yarn}`}
 loader_version=${env.loader}
 kotlin_loader_version=${env.kotlinLoader}
-fabric_version=${env.fabricApi}
+fabric_version=${env.fabricApi}${geckolib ? `
+geckolib_version=${GECKOLIB_VERSION}` : ""}
 
 # --- Mod ---
 mod_version=${meta.version}

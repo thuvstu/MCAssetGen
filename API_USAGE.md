@@ -10,16 +10,40 @@ HTTP APIとCLIの使い方まとめ。ベースURLは各アプリのdevポート
 | mythiccraft-studio | :5141 |
 | mythicforge-studio | :5142 |
 
-## mcasset 統合CLI (全スタジオ)
+## 統合スタジオAPI (VoxelForge :5131)
+
+移植済みの全エンジンは統合レジストリ経由で実行する。CLIもこれだけを使う。
+
+| メソッド | パス | 用途 |
+|---|---|---|
+| GET | `/api/studio/engines` | エンジン/コマンド一覧 |
+| POST | `/api/studio/run` | `{"engine","command","args"}` → `{ok,text,files[],data}` (files は base64) |
+
+```bash
+curl localhost:5131/api/studio/engines
+curl -X POST localhost:5131/api/studio/run -H 'Content-Type: application/json' \
+  -d '{"engine":"voxel","command":"export","args":{"format":"geckolib","kind":"sword","seed":42}}'
+```
+
+ブラウザからは `http://localhost:5131/engines` のコンソールで同じ操作ができる。
+
+## mcasset 統合CLI (全スタジオ / API駆動)
 
 ```bash
 cd MCAssetGen/cli
-npm run mcasset -- <studio>:<command> [options]
+npm run mcasset -- <studio>:<command> [options] [--out file|dir]
+npm run mcasset -- engines                      # エンジン一覧
+MCASSET_STUDIO_URL=http://host:5131 npm run mcasset -- sky:items
 ```
+
+CLIは統合スタジオAPIへのHTTPクライアント(スタジオのソースはimportしない)。
+`--out` を省略した場合は各ファイルの既定パスに書き出し、複数ファイル出力
+(`build` など)では `--out` をディレクトリとして扱う。`--in` はPNG等をbase64で
+アップロード、`--project`/`--config` はJSONファイルを読んで送信する。
 
 | スタジオ | コマンド例 |
 |---|---|
-| `tex` | texcraft CLIに委譲(下記参照) |
+| `tex` | `tex:list-effects` / `tex:effect --id edgewear --sample sword --out mm/edge.png` / `tex:texture --id diamond_ore --size 32 --out mm/d.png` / `tex:variant --id tier5 --sample sword --frame strip --out mm/tier5.png` / `tex:convert --in mm/tex.png --palette PICO-8 --out mm/dot.png` |
 | `sky` | `sky:items` / `sky:render --item hyperion --seed 7 --res 16 --out mm/tex.png` |
 | `sky2` | `sky2:items` / `sky2:render --item hyperion --size 32 --out mm/tex.png` (旧 `skyblock/hypixel-skyblock-texture-generator`、ヘッドレス描画) |
 | `forge` | `forge:items` / `forge:render --item HYPERION --res 32 --anim pulse --strip --out mm/forge.png` / `forge:pack --items HYPERION,TERMINATOR --target catharsis --out pack.zip` |
@@ -30,6 +54,10 @@ npm run mcasset -- <studio>:<command> [options]
 | `sword` | `sword:render --preset Hyperion --size 64 --out mm/sword.png` |
 | `mythic` | `mythic:build --project proj.json --out moddev/mymod` |
 | `mythiccraft` | `mythiccraft:sample --name mymod --out project.json` / `mythiccraft:build --project file.json --out dir/` |
+| `armor` | `armor:presets` / `armor:render --armorId test --geo` / `armor:bundle --armorId test --namespace mymod --geckolib` |
+| `mob` | `mob:presets` / `mob:render --archetype humanoid --entityId foo` / `mob:bundle --archetype humanoid` / `mob:geckolib --archetype humanoid` |
+| `structure` | `structure:samples` / `structure:nbt --sample house --out house.nbt` / `structure:export --sample house --out dir/` |
+| `material` | `material:shapes` / `material:render --preset iron --out dir/` / `material:pack --preset iron --modId mymod --out pack.zip` |
 
 `forge:pack --target` は `catharsis`(1.21.11+ Mod) / `optifine`(1.8.9 CIT) / `vanilla`(1.21.4+ item_model + datapack) の3系統。`--items all` でカタログ全件を同梱できる。
 
@@ -133,7 +161,8 @@ curl 'localhost:5142/api/compile/artifact?mod=mymod' -o mymod.jar
 
 ## 注意
 
-- CLIは `bun scripts/mcasset.mjs <studio>:<command>` でも実行可能(bun優先。`process.execPath` で子プロセスもbunが使われる)
+- CLIは統合スタジオ(`3d-forge/voxelforge-studio`, 既定 :5131)が起動している必要がある。接続先は `MCASSET_STUDIO_URL` で変更
+- GeckoLib: `vox:export --format geckolib`、`armor:*`(GeckoLib 5の8ボーン)、`mob:geckolib`、`mythic:build` で `geckolib: true` のモブ(geo/animation/Kotlin/Gradle依存)
 - `sky2:render` はヘッドレス実装のため、ブラウザ版と異なり放射グロー背景とアニメーションフレームは出力しない(本体ピクセル・アウトライン・エレメント・ウェアは同等)
 - `mythic:build` はMythicForge形式のプロジェクトJSONが必要(`mythiccraft:sample` の出力は `mythiccraft:build` 用で別スキーマ)
 - DB要アプリは `.env` の `DATABASE_URL` (Supabaseプーラー) が必要。未設定では5xxになる
