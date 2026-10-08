@@ -7,6 +7,7 @@ HTTP APIとCLIの使い方まとめ。ベースURLは各アプリのdevポート
 | texcraft | :5135 |
 | SkyForge (`skyblock/hypixel-skyblock-texture-generator (1)`) | :5132 |
 | voxelforge-studio | :5131 |
+| 統合された各スタジオ (取り込み済み) | :5131 の `/studios/<id>` (元ポートは不要) |
 | mythiccraft-studio | :5141 |
 | mythicforge-studio | :5142 |
 
@@ -41,7 +42,8 @@ curl -X POST localhost:5131/api/studio/run -H 'Content-Type: application/json' \
 エンジン実行に連携の口がある:
 `POST /api/studio/run {"engine","command","args","save":"名前","asset":"名前"}`
 - `save` : 成功した出力をバスへ保存
-- `asset`: バス内のアセットを入力に渡す (コマンドの宣言argsに応じて `in` / `project`)
+- `asset`: バス内のアセットを入力に渡す (コマンドの宣言argsに応じて `in` / `project` / `texture`)。
+  **配列で複数指定できる** (`{"asset": ["myproj", "mod_tex"]}`)
 
 ```bash
 # 素材スタジオの出力を保存し、テクスチャスタジオで使う
@@ -50,10 +52,34 @@ npm run mcasset -- tex:convert --asset iron_ingot_tex --palette PICO-8 --out mm/
 # MODプロジェクトの受け渡し
 npm run mcasset -- mythic:sample --save myproject
 npm run mcasset -- mythic:build --asset myproject --out-dir moddev/mymod
+
+# テクスチャ → MOD (一気通貫)。asset は複数指定できる
+npm run mcasset -- tex:render --sample stone --save mod_tex
+npm run mcasset -- mythic:build --asset myproject --asset mod_tex --out-dir moddev/mymod
+# → src/main/resources/assets/<modId>/textures/item/<item>.png に画像が入り、
+#    アイテム登録 (Kotlin) / モデルJSON / lang も同じ id で生成される
+npm run mcasset -- mythic:build --project proj.json --asset mod_tex --textureTarget bus_blade
+npm run mcasset -- mythiccraft:build --asset myproject --asset mod_tex --out-dir moddev/mcmod
 ```
 
 保存先は `3d-forge/voxelforge-studio/.mcasset-assets/` (gitignore済)。ブラウザでは
 `/assets` 一覧、`/engines` の「アセットから入力 / バスへ保存」から同じ操作ができる。
+
+## 取り込み済みスタジオのAPI (`:5131`)
+
+GUIを取り込んだスタジオも元アプリのAPIを `/api/studios/<id>/` 配下で使える
+(DBは `DATABASE_URL` があればPostgres、無ければメモリ保存)。
+
+| スタジオ | API | 備考 |
+|---|---|---|
+| SkyForge | `/api/studios/skyforge/...` | `packs` (GET/POST/PATCH/DELETE) `/packs/[id]/{export,icon,like,textures}` `/textures/[id]/{export,png,zip}` `/generate` `/masterworks/pack` `/health` |
+| MythicForge | `/api/studios/mythicforge/...` | `projects` + `compile` (JDK21/Gradleが無い環境では503と案内)、`compile/artifact` |
+| MythicCraft | `/api/studios/mythiccraft/...` | `projects` + `compile` |
+| Fabric | `/api/studios/fabric/...` | `projects` + `compile`、`compile/artifact` |
+
+SkyForgeのマスターワーク原画 (`public/masterworks/*.png`) は元アプリでも
+リポジトリ非同梱 (抽出スクリプトで生成) なので、`/masterworks/pack` は
+原画が無い環境ではエラーを返す。それ以外の生成・保存・書き出しは全て動作する。
 
 ## mcasset 統合CLI (全スタジオ / API駆動)
 

@@ -1,0 +1,46 @@
+/* 元: mod/mythicforge-studio/src/app/globals.css */
+.studio-mythicforge {
+  --bg: #0c0f14;
+  --panel: #141922;
+  --panel2: #1a212d;
+  --line: #262f3e;
+  --accent: #4ade80;
+}
+
+html,
+.studio-mythicforge {
+  background: var(--bg);
+  color: #e5e9f0;
+}
+
+.studio-mythicforge {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Hiragino Sans", "Noto Sans JP", sans-serif;
+}
+
+.font-code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+input,
+select,
+textarea {
+  color-scheme: dark;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: #2b3547;
+  border-radius: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.grid-bg {
+  background-image: linear-gradient(rgba(74, 222, 128, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(74, 222, 128, 0.04) 1px, transparent 1px);
+  background-size: 32px 32px;
+}

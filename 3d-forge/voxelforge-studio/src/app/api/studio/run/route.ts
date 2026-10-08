@@ -13,8 +13,8 @@ export const runtime = "nodejs";
  *
  * スタジオ間連携 (アセットバス):
  *   save: "名前"   … 成功した出力をアセットバスへ保存する
- *   asset: "名前"  … バス内のアセットをこのコマンドの入力として渡す
- *                    (宣言された args に応じて `in` / `project` へ入る)
+ *   asset: "名前"  … バス内のアセットをこのコマンドの入力として渡す (複数可)
+ *                    (宣言された args に応じて `in` / `project` / `texture` へ入る)
  */
 export async function POST(request: Request) {
   try {
@@ -28,23 +28,36 @@ export async function POST(request: Request) {
         : {};
 
     // --- アセットバスから入力 (別スタジオの出力を使う) ---
-    const assetName = typeof body.asset === "string" ? body.asset : "";
-    if (assetName) {
-      const record = readAsset(assetName);
-      if (!record) return jsonError(`アセットが見つかりません: ${assetName} (GET /api/assets)`, 400);
+    // asset は複数指定できる (例: プロジェクトJSON + テクスチャPNG を同時に MOD へ)
+    const assetNames = (Array.isArray(body.asset) ? body.asset : [body.asset])
+      .filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+      .map((value) => value.trim());
+    if (assetNames.length) {
+      const records = [];
+      for (const assetName of assetNames) {
+        const record = readAsset(assetName);
+        if (!record) return jsonError(`アセットが見つかりません: ${assetName} (GET /api/assets)`, 400);
+        records.push(record);
+      }
+      const files = records.flatMap((record) => record.files);
       const declared = listEngines()
         .find((entry) => entry.id === engine)
         ?.commands.find((entry) => entry.id === command)?.args ?? [];
-      const asJson = record.files.find((file) => file.path.endsWith(".json"));
-      if (!("in" in args) && declared.includes("in") && record.files.length >= 1) {
-        args.in = record.files[0].base64;
+      const asJson = files.find((file) => file.path.endsWith(".json"));
+      const asPng = files.find((file) => /\.png$/i.test(file.path));
+      if (!("in" in args) && declared.includes("in") && files.length >= 1) {
+        args.in = files[0].base64;
       } else if (!("project" in args) && declared.includes("project") && asJson) {
         args.project = JSON.parse(Buffer.from(asJson.base64, "base64").toString("utf8"));
-      } else if (record.files.length === 1) {
-        args.in = record.files[0].base64;
+        // 同じアセット群に PNG が混ざっていれば MOD のテクスチャとしても渡す
+        if (!("texture" in args) && declared.includes("texture") && asPng) args.texture = asPng.base64;
+      } else if (!("texture" in args) && declared.includes("texture") && asPng) {
+        args.texture = asPng.base64;
+      } else if (files.length === 1) {
+        args.in = files[0].base64;
       } else {
         return jsonError(
-          `アセット ${record.name} を ${engine}:${command} の入力に割り当てられません (args: ${declared.join(", ") || "なし"})`,
+          `アセット ${assetNames.join(", ")} を ${engine}:${command} の入力に割り当てられません (args: ${declared.join(", ") || "なし"})`,
           400,
         );
       }

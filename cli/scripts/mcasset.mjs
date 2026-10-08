@@ -47,6 +47,8 @@ const FILE_ARGS = new Set(["in"]);
 const JSON_ARGS = new Set(["project", "config", "params"]);
 /** Flags consumed by the client itself. */
 const CLIENT_FLAGS = new Set(["out", "out-dir", "url", "json", "sample", "dry-run", "save", "asset"]);
+/** 繰り返し指定できるフラグ (例: --asset project --asset texture)。配列でまとめる。 */
+const REPEATABLE_FLAGS = new Set(["asset"]);
 /** バス連携フラグ: 送信payloadには入れず、リクエスト直下の save / asset として渡す */
 
 const USAGE = `mcasset — MCAssetGen unified CLI (API mode)
@@ -57,7 +59,7 @@ options:
   --out <file>       1ファイルの出力先
   --out-dir <dir>    複数ファイルの出力先ディレクトリ
   --save <名前>      出力をアセットバスへ保存 (別スタジオの入力に使える)
-  --asset <名前>     アセットバスから入力を取り込む
+  --asset <名前>     アセットバスから入力を取り込む (複数指定可: MOD へプロジェクト+テクスチャ等)
   --no-sample        コマンド既定のサンプル引数を使わない
   --dry-run          送信するリクエストだけ表示
 
@@ -89,6 +91,9 @@ examples:
   npm run mcasset -- tex:effect --id edgewear --sample sword --out mm/edge.png
   npm run mcasset -- vox:export --kind sword --format geckolib --out mm/sword.zip
   npm run mcasset -- mythic:build --project proj.json --out moddev/mymod
+  npm run mcasset -- tex:render --sample stone --save mod_tex
+  npm run mcasset -- mythic:sample --save mymod
+  npm run mcasset -- mythic:build --asset mymod --asset mod_tex --out-dir moddev/mymod
 `;
 
 function parseArgs(argv) {
@@ -100,6 +105,9 @@ function parseArgs(argv) {
     const next = argv[i + 1];
     if (next === undefined || next.startsWith("--")) {
       args[key] = true;
+    } else if (REPEATABLE_FLAGS.has(key)) {
+      args[key] = args[key] === undefined ? next : [].concat(args[key], next);
+      i++;
     } else {
       args[key] = next;
       i++;
@@ -227,7 +235,8 @@ const out = args.out;
 const outDir = args["out-dir"];
 // CLIENT_FLAGS を消す前に読む (save/asset はバス連携用)
 const saveName = typeof args.save === "string" ? args.save : "";
-const assetName = typeof args.asset === "string" ? args.asset : "";
+const assetName = Array.isArray(args.asset) ? args.asset : typeof args.asset === "string" ? args.asset : "";
+const hasAssets = Array.isArray(assetName) ? assetName.length > 0 : assetName.length > 0;
 if (args.url) {
   // per-call override, mainly for tests
   process.env.MCASSET_STUDIO_URL = String(args.url);
@@ -249,7 +258,7 @@ delete args.sample;
 const payload = { ...(useSample && known?.sample ? known.sample : {}), ...loadInputs(args) };
 if (args["dry-run"]) {
   delete args["dry-run"];
-  console.log(JSON.stringify({ engine, command, args: payload, ...(assetName ? { asset: assetName } : {}), ...(saveName ? { save: saveName } : {}) }, null, 2));
+  console.log(JSON.stringify({ engine, command, args: payload, ...(hasAssets ? { asset: assetName } : {}), ...(saveName ? { save: saveName } : {}) }, null, 2));
   process.exit(0);
 }
 delete args["dry-run"];
@@ -261,7 +270,7 @@ const { body } = await api("/api/studio/run", {
     engine,
     command,
     args: payload,
-    ...(assetName ? { asset: assetName } : {}),
+    ...(hasAssets ? { asset: assetName } : {}),
     ...(saveName ? { save: saveName } : {}),
   }),
 });

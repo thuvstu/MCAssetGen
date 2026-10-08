@@ -54,13 +54,13 @@ export default function AppHeader() {
         >
           <Grid2X2 size={19} />
         </button>
-        <a className="brand" href="/" aria-label="VoxelForge ホーム">
+        <Link className="brand" href="/" aria-label="VoxelForge ホーム">
           <ForgeLogo />
           <span>
             Voxel<span className="brand-light">Forge</span>
           </span>
           <span className="brand-beta">BETA</span>
-        </a>
+        </Link>
       </div>
 
       <div className="header-breadcrumb">

@@ -16,6 +16,11 @@ export const PORTED_GUI_IDS = [
   "structure",
   "sky2",
   "adv",
+  // 複数ページ取り込み (実体は /studios/<id>/... の静的ルートが優先される)
+  "mythicforge",
+  "mythiccraft",
+  "fabric",
+  "skyforge",
 ] as const;
 
 export function isPortedGui(id: string): boolean {

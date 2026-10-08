@@ -119,7 +119,7 @@ export const STUDIOS: StudioEntry[] = [
     group: "MOD",
     description: "Kotlin/Fabric MOD の統合開発スタジオ (コンパイルAPIつき)",
     origin: "mod/mythicforge-studio",
-    status: "engines",
+    status: "ported",
   },
   {
     id: "mythiccraft",
@@ -127,7 +127,7 @@ export const STUDIOS: StudioEntry[] = [
     group: "MOD",
     description: "スキル/モブ/ショップを組む MOD スタジオ",
     origin: "mod/mythiccraft-studio",
-    status: "engines",
+    status: "ported",
   },
   {
     id: "fabric",
@@ -135,7 +135,7 @@ export const STUDIOS: StudioEntry[] = [
     group: "MOD",
     description: "ノーコードの Fabric MOD ビルダー",
     origin: "mod/no-coding-fabric-mod-builder",
-    status: "engines",
+    status: "ported",
   },
 ];
 
