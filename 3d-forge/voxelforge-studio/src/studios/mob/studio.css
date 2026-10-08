@@ -1,0 +1,86 @@
+/* 元: professional-minecraft-mob-maker/src/index.css (原本のスタイル。/mob でのみ読む) */
+@theme {
+  --font-sans: "Zen Kaku Gothic New", "Hiragino Sans", "Noto Sans JP", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --color-ink: #101216;
+  --color-panel: #181b20;
+  --color-panel-2: #21262e;
+  --color-line: #343b46;
+  --color-cream: #f4ecdf;
+  --color-muted: #a89b8c;
+  --color-emerald: #3ddc84;
+  --color-gold: #e2b657;
+  --color-rose: #ef6d6d;
+  --color-sky: #8eb7ff;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+.studio-mob {
+  margin: 0;
+  background: #101216;
+  color: #f4ecdf;
+  font-family: "Zen Kaku Gothic New", "Hiragino Sans", sans-serif;
+}
+
+button,
+input,
+textarea {
+  font-family: inherit;
+}
+
+::selection {
+  background: rgba(61, 220, 132, 0.35);
+}
+
+.mf-scroll::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+.mf-scroll::-webkit-scrollbar-thumb {
+  background: #3a424e;
+  border-radius: 99px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.mf-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.mf-range {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: 999px;
+  background: #343b46;
+  outline: none;
+}
+.mf-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: #3ddc84;
+  border: 2px solid #10281c;
+  cursor: pointer;
+}
+.mf-range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: #3ddc84;
+  border: 2px solid #10281c;
+  cursor: pointer;
+}
+
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid #3ddc84;
+  outline-offset: 2px;
+}

@@ -12,6 +12,7 @@ import {
   FileBox,
   FolderOpen,
   Grid2X2,
+  LayoutGrid,
   Layers,
   Plus,
 } from "lucide-react";
@@ -113,6 +114,10 @@ export default function AppHeader() {
       </div>
 
       <div className="header-actions">
+        <Link className="text-button docs-button" href="/studios">
+          <LayoutGrid size={15} />
+          <span>スタジオ</span>
+        </Link>
         <Link className="text-button docs-button" href="/engines">
           <Layers size={15} />
           <span>エンジン</span>

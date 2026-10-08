@@ -1,0 +1,6 @@
+/* 元: weapons/advanced-minecraft-asset-generator/src/app/globals.css */
+html, body { height: 100%; }
+* { scrollbar-width: thin; scrollbar-color: #3a3a4a transparent; }
+*::-webkit-scrollbar { width: 8px; height: 8px; }
+*::-webkit-scrollbar-thumb { background: #3a3a4a; border-radius: 4px; }
+input[type="range"] { cursor: pointer; }
