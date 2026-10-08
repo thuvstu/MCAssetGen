@@ -125,3 +125,7 @@ Drizzle系の他アプリ(`mod/*`)もDBを使うが、資産生成の検証は `
 - 2026-10-08: GeckoLib出力(3Dモデル/アーマー/モブ/生成MOD)、
   統合エンジンレジストリ(`/api/studio/*`, `/engines`)、
   API駆動CLI(`cli/` — スタジオソースを直接importしない)を追加。
+- 2026-10-09: 統合スタジオをDB無しで起動可能に(`DATABASE_URL`未設定時は
+  保存をメモリへフォールバック。`/api/health`・`/api/models` が500を返さない)。
+  GeckoLibモブのKotlinをクライアント1ファイルへ集約し、importを
+  マッピング(yarn/mojmap)へ自動追従(検証: `npx tsx scripts/verify.ts` errors=0)。
