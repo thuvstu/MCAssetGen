@@ -29,6 +29,32 @@ curl -X POST localhost:5131/api/studio/run -H 'Content-Type: application/json' \
 (引数は `sample` が事前入力され、結果PNGのプレビューとダウンロードも付く)。
 `tests/studio-command-samples.test.ts` が全コマンドのサンプルを実行検証している。
 
+## アセットバス (スタジオ間の受け渡し)
+
+| メソッド | パス | 用途 |
+|---|---|---|
+| GET | `/api/assets` | 保存済みアセット一覧 (サムネイル付き) |
+| POST | `/api/assets` | `{name,studio,kind,files:[{path,base64}]}` を保存 |
+| GET | `/api/assets/<id or 名前>` | ファイル本体 (base64) |
+| DELETE | `/api/assets/<id or 名前>` | 削除 |
+
+エンジン実行に連携の口がある:
+`POST /api/studio/run {"engine","command","args","save":"名前","asset":"名前"}`
+- `save` : 成功した出力をバスへ保存
+- `asset`: バス内のアセットを入力に渡す (コマンドの宣言argsに応じて `in` / `project`)
+
+```bash
+# 素材スタジオの出力を保存し、テクスチャスタジオで使う
+npm run mcasset -- material:render --preset iron --shape ingot --save iron_ingot_tex --out mm/ingot.png
+npm run mcasset -- tex:convert --asset iron_ingot_tex --palette PICO-8 --out mm/dot.png
+# MODプロジェクトの受け渡し
+npm run mcasset -- mythic:sample --save myproject
+npm run mcasset -- mythic:build --asset myproject --out-dir moddev/mymod
+```
+
+保存先は `3d-forge/voxelforge-studio/.mcasset-assets/` (gitignore済)。ブラウザでは
+`/assets` 一覧、`/engines` の「アセットから入力 / バスへ保存」から同じ操作ができる。
+
 ## mcasset 統合CLI (全スタジオ / API駆動)
 
 ```bash

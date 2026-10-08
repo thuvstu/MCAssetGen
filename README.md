@@ -13,9 +13,28 @@ Minecraft向けアセット生成スタジオ集。テクスチャ・3Dモデル
 | `weapons/` | 杖統合基盤(Arcane Forge)+剣(AegisBlade) | 2件 |
 | `mod/` | Fabric Modビルダー(単独) | 1件 |
 
-## 3d-forge/voxelforge-studio — 3D統合基盤 / エンジンハブ
+## 3d-forge/voxelforge-studio — 3D統合基盤 / エンジンハブ / スタジオGUI統合
 
 24刀種/強化派生/発光/UV/Blockbench・RP/GeckoLib出力、テスト付き。
+
+**スタジオGUI統合** (`src/studios/<id>/`): 別々に存在していたスタジオのGUIを
+**原本のまま**取り込み、1つのアプリから全部使える (`/studios` が一覧)。
+
+| スタジオ | URL | 元 |
+|---|---|---|
+| TexCraft / 剣 / Spellforge / Arcane | `/studios/texcraft` など | texture群・weapons群 (Vite) |
+| モブ / アーマー / マテリアル | `/studios/mob` など | 各Viteアプリ |
+| NBT構造物 / SkyBlock旧 | `/studios/structure` `/studios/sky2` | 各Viteアプリ |
+| Advanced武器 (Next) | `/studios/adv` | `/api/projects` も元パスで移植 (DB無しはメモリ保存) |
+
+Next連携の差分は「`"use client"` + studio.css import / `:root`→`.studio-<id>` スコープ /
+`@/` をコピー先へ / 画像は `.src`」のみで、ロジックは無変更。
+
+**アセットバス (スタジオ間連携)**: 出力を `.mcasset-assets/` に保存し、
+別スタジオの入力に渡せる。API `/api/assets`、ページ `/assets`、
+CLI `--save <名前>` / `--asset <名前>` / `mcasset assets`。
+例: `material:render --save iron_ingot_tex` → `tex:convert --asset iron_ingot_tex`。
+
 `src/lib/studio/` が **統合エンジンレジストリ**。移植済みの全スタジオを
 `<engine>:<command>` の同一コマンド体系で実行し、`/api/studio/run` と
 `/engines` のコンソール、およびCLI(`cli/`)から利用できる:
@@ -125,6 +144,10 @@ Drizzle系の他アプリ(`mod/*`)もDBを使うが、資産生成の検証は `
 - 2026-10-08: GeckoLib出力(3Dモデル/アーマー/モブ/生成MOD)、
   統合エンジンレジストリ(`/api/studio/*`, `/engines`)、
   API駆動CLI(`cli/` — スタジオソースを直接importしない)を追加。
+- 2026-10-09: 別スタジオのGUIを原本のまま取り込み (`src/studios/`, `/studios`)、
+  スタジオ間で成果物を受け渡すアセットバス (`/assets`, `--save`/`--asset`) を追加。
+  全エンジンの実行サンプルをレジストリに持たせ、`/engines` コンソールとCLIが
+  引数なしで実行できるように。モブbundleのDOM依存ほかAPI経由の実バグを修正。
 - 2026-10-09: 統合スタジオをDB無しで起動可能に(`DATABASE_URL`未設定時は
   保存をメモリへフォールバック。`/api/health`・`/api/models` が500を返さない)。
   GeckoLibモブのKotlinをクライアント1ファイルへ集約し、importを
