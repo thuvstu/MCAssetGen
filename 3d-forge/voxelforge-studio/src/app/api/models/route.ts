@@ -1,6 +1,3 @@
-import { desc } from "drizzle-orm";
-import { db } from "@/db";
-import { projects } from "@/db/schema";
 import {
   isPayloadTooLarge,
   jsonError,
@@ -8,6 +5,7 @@ import {
   readJsonBody,
 } from "@/lib/http";
 import { generateModel, validateSettings } from "@/lib/model-generator";
+import { insertProject, listProjects } from "@/db/projects-repo";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -16,11 +14,7 @@ const LIBRARY_LIMIT = 40;
 
 export async function GET() {
   try {
-    const data = await db
-      .select()
-      .from(projects)
-      .orderBy(desc(projects.updatedAt))
-      .limit(LIBRARY_LIMIT);
+    const data = await listProjects(LIBRARY_LIMIT);
     return Response.json({ projects: data });
   } catch (error) {
     console.error("Load models:", error);
@@ -39,10 +33,12 @@ export async function POST(request: Request) {
 
     if (body.persist === false) return Response.json({ model });
 
-    const [project] = await db
-      .insert(projects)
-      .values({ name: settings.name, kind: settings.kind, settings, model })
-      .returning();
+    const project = await insertProject({
+      name: settings.name,
+      kind: settings.kind,
+      settings,
+      model,
+    });
     return Response.json({ model, project }, { status: 201 });
   } catch (error) {
     if (isPayloadTooLarge(error)) return jsonError(error.message, 413);

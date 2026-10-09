@@ -1,14 +1,10 @@
 {
   "name": "mcasset-cli",
   "private": true,
-  "version": "1.0.0",
+  "version": "2.0.0",
   "type": "module",
-  "description": "Unified CLI for all MCAssetGen studios",
+  "description": "Unified API-driven CLI for all MCAssetGen studios",
   "scripts": {
     "mcasset": "node scripts/mcasset.mjs"
-  },
-  "devDependencies": {
-    "esbuild": "^0.25.0",
-    "typescript": "^5.9.3"
   }
 }

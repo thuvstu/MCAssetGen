@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   Box,
   BookOpen,
@@ -11,6 +12,8 @@ import {
   FileBox,
   FolderOpen,
   Grid2X2,
+  LayoutGrid,
+  Layers,
   Plus,
 } from "lucide-react";
 import { ForgeLogo } from "@/components/pixel-art";
@@ -51,13 +54,13 @@ export default function AppHeader() {
         >
           <Grid2X2 size={19} />
         </button>
-        <a className="brand" href="/" aria-label="VoxelForge ホーム">
+        <Link className="brand" href="/" aria-label="VoxelForge ホーム">
           <ForgeLogo />
           <span>
             Voxel<span className="brand-light">Forge</span>
           </span>
           <span className="brand-beta">BETA</span>
-        </a>
+        </Link>
       </div>
 
       <div className="header-breadcrumb">
@@ -111,6 +114,14 @@ export default function AppHeader() {
       </div>
 
       <div className="header-actions">
+        <Link className="text-button docs-button" href="/studios">
+          <LayoutGrid size={15} />
+          <span>スタジオ</span>
+        </Link>
+        <Link className="text-button docs-button" href="/engines">
+          <Layers size={15} />
+          <span>エンジン</span>
+        </Link>
         <button
           className="text-button docs-button"
           onClick={() => openModal("help")}

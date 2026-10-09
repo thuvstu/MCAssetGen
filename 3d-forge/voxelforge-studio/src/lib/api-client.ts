@@ -1,4 +1,4 @@
-import type { ExportFormat } from "./export";
+import type { ExportFormat, GeckolibGeneration } from "./export";
 import type {
   GeneratedModel,
   ModelCube,
@@ -72,12 +72,25 @@ export async function deleteProject(id: string): Promise<void> {
   if (!response.ok) throw await errorFrom(response, "削除できませんでした。");
 }
 
+export interface GeckolibExportRequest {
+  namespace: string;
+  modelId: string;
+  generation: GeckolibGeneration;
+  mirrorX: boolean;
+}
+
 export async function exportModel(
   settings: ModelSettings,
   format: ExportFormat,
   family?: VariantFamily,
+  geckolib?: GeckolibExportRequest,
 ): Promise<{ blob: Blob; filename: string }> {
-  const response = await postJson("/api/export", { settings, format, family });
+  const response = await postJson("/api/export", {
+    settings,
+    format,
+    family,
+    geckolib,
+  });
   if (!response.ok)
     throw await errorFrom(response, "エクスポートできませんでした。");
   const filename =

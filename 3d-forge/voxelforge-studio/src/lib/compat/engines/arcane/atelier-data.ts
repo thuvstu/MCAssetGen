@@ -1,0 +1,729 @@
+export type ElementId =
+  | "fire" | "ice" | "thunder" | "nature" | "water" | "light" | "dark" | "void" | "arcane"
+  | "blood" | "earth" | "wind" | "cosmic" | "time" | "sound" | "metal" | "poison" | "storm"
+  | "soul" | "crystal" | "gravity" | "plasma" | "sakura" | "dream" | "aurora" | "ink" | "luck" | "festival";
+export type MaterialId =
+  | "oak" | "darkoak" | "birch" | "crimson" | "warped" | "bone" | "gold" | "iron"
+  | "obsidian" | "netherite" | "amethyst" | "prismarine" | "quartz" | "blaze" | "endrod"
+  | "copper" | "diamond" | "emerald" | "lapis" | "redstone" | "bamboo" | "mangrove"
+  | "cherry" | "sculk" | "mud" | "brass" | "steel" | "silver" | "coral"
+  | "seaGlass" | "driftwood" | "pearlwood" | "jade" | "blackwood" | "cobalt" | "amber" | "seaweed"
+  | "ruby" | "sapphire" | "vanillaStick" | "holySilver" | "shadowSteel" | "prismAlloy";
+export type PatternId =
+  | "plain" | "grain" | "spiral" | "twisted" | "ribbed" | "runes" | "vine" | "gradient" | "filigree"
+  | "scales" | "bamboo" | "candy" | "cracked" | "mossy" | "frosted" | "lavavein" | "chainlink"
+  | "engraved" | "feathered" | "bark" | "gearwork" | "wave" | "riveted" | "gemInlay" | "woven" | "etched"
+  | "circuit" | "barnacle" | "chevron" | "crystalSeam" | "kintsugi" | "marquetry"
+  | "microEdge" | "tipTint" | "notch" | "speckle" | "thinBand" | "vanillaGrain";
+export type ShaftShapeId = "straight" | "curved" | "gnarled" | "hooked" | "swan";
+export type GripStyleId = "wrap" | "leather" | "chain" | "studded" | "cord" | "woven";
+export type PommelId = "none" | "cap" | "gem" | "spike" | "orb" | "roots" | "blade" | "skull" | "lantern" | "chain" | "hook" | "crystal" | "cog" | "shell" | "knot" | "anchor" | "gear" | "leaf" | "pearl" | "compass";
+export type MountId =
+  | "none" | "prongs" | "crown" | "crescent" | "ring" | "fork" | "curl" | "wings" | "cage"
+  | "antler" | "serpent" | "lantern" | "scythe" | "book" | "chain" | "claw" | "hourglass" | "arch"
+  | "lotus" | "astrolabe" | "tiara" | "lyre" | "coralCrown" | "trident"
+  | "collar" | "tinyCollar" | "guard" | "microRing" | "tipCap";
+export type CoreId =
+  | "crystal" | "cluster" | "orb" | "prism" | "star" | "skull" | "eye" | "flame" | "none"
+  | "lantern" | "book" | "hourglass" | "sun" | "moon" | "heart" | "diamond" | "serpenthead"
+  | "portal" | "totem" | "anvil" | "shell" | "conch" | "pearl" | "battery" | "compass" | "lanternCore" | "coralHeart"
+  | "blade" | "shortBlade" | "ruby" | "sapphire" | "emeraldGem" | "holyBlade" | "cursedBlade" | "prismBlade";
+export type FloaterId =
+  | "none" | "shards" | "runes" | "orbs" | "cubes" | "stars" | "halo" | "petals" | "chains"
+  | "wisps" | "bells" | "daggers" | "candles" | "books" | "moons" | "eyes" | "leaves" | "coins"
+  | "butterflies" | "keys" | "gears" | "lanterns" | "sigils" | "compasses" | "bubbles" | "fish" | "pearls"
+  | "bolts" | "cogs" | "shells" | "tadpoles" | "seeds" | "paperCrane"
+  | "motes" | "glints" | "dust" | "sparkCross";
+export type GemCutId = "raw" | "brilliant" | "emerald" | "rose" | "teardrop" | "rune" | "starcut" | "cracked" | "caged" | "soul";
+export type OrnamentId =
+  | "none" | "runeRing" | "crownJewels" | "vineCrest" | "hangingCharms" | "chainTassel"
+  | "sunDisk" | "lunarPhase" | "thornHalo" | "floatingPages" | "soulCage" | "clockwork"
+  | "featherCrest" | "serpentCoil" | "alchemicalRing" | "beadRosary" | "crystalLattice"
+  | "silkRibbons" | "arabesque" | "lotusPetals" | "celestialAstrolabe";
+export type FloaterPathId = "orbit" | "spiral" | "figure8" | "crown" | "helix" | "pendulum" | "constellation" | "rain";
+export type ArtifactFormId = "classic" | "asymmetric" | "bifurcated" | "levitating" | "constellation" | "shrine" | "totemic" | "bouquet";
+export type DesignMotifId = "unbound" | "clockwork" | "woodland" | "jewelled" | "maritime" | "industrial" | "minimal" | "astral" | "reliquary" | "botanical" | "dreamlike" | "alchemical" | "salvaged" | "aquarium" | "mechanical" | "wooden" | "gemstone" | "ocean" | "nonmagical" | "skyruin" | "vanillaRod" | "vanillaPlus" | "gemTool";
+export type ParticleId =
+  | "embers" | "snow" | "sparks" | "leaves" | "bubbles" | "twinkle" | "smoke" | "endbits"
+  | "glyphs" | "drips" | "pebbles" | "streaks" | "stardust" | "feathers" | "hearts"
+  | "fireflies" | "ashes" | "coins" | "notes" | "bolts" | "sand" | "crystalshards"
+  | "mote" | "glimmer" | "dustPuff" | "scatterSpark";
+export type OutlineId = "selout" | "color" | "black" | "none";
+export type TextureFinishId = "vanilla" | "forged" | "weathered" | "engraved" | "gilded" | "runic";
+export type RarityId = "common" | "uncommon" | "rare" | "epic" | "legendary" | "mythic" | "divine" | "artifact" | "relic";
+export type StaffTypeId =
+  | "wizard" | "scepter" | "wand" | "druid" | "lunar" | "necro" | "khakkhara" | "trident"
+  | "seraph" | "voidcaller" | "shaman" | "lanternbearer" | "reaper" | "serpentstaff"
+  | "chronomancer" | "bard" | "geomancer" | "stormcaller" | "soulreaper" | "archmage"
+  | "celestial" | "plaguedoctor" | "runesmith" | "dracolich" | "feywild" | "abyssal"
+  | "solar" | "bloodmage" | "ashen" | "skyfather"
+  | "valkyrie" | "lotus" | "astrolabe" | "court" | "sylphid" | "eclipse"
+  | "vanillaRod" | "vanillaPlus" | "apprentice" | "rubyTool" | "sapphireTool" | "emeraldTool"
+  | "prismSword" | "holySword" | "ominousSword";
+
+export type Config = Identity & Shaft & Head & Colors & Effects & Animation;
+
+export type Identity = {
+  seed: number;
+  size: 32 | 64 | 128 | 256;
+  type: StaffTypeId;
+  element: ElementId;
+  rarity: RarityId;
+  name: string;
+};
+export type Shaft = {
+  length: number;
+  thickness: number;
+  taper: boolean;
+  shaftMaterial: MaterialId;
+  pattern: PatternId;
+  shape: ShaftShapeId;
+  grip: boolean;
+  gripStyle: GripStyleId;
+  gripColor: string;
+  bands: number;
+  trimMaterial: MaterialId;
+  pommel: PommelId;
+};
+export type Head = {
+  form: ArtifactFormId;
+  motif: DesignMotifId;
+  mount: MountId;
+  core: CoreId;
+  coreSize: number;
+  gemCut: GemCutId;
+  ornament: OrnamentId;
+  ornamentScale: number;
+  accentGems: number;
+  floatingCore: boolean;
+  floater: FloaterId;
+  floaterPath: FloaterPathId;
+  floaterCount: number;
+  floaterRadius: number;
+};
+export type Colors = {
+  coreColor: string;
+  energyColor: string;
+  particle: ParticleId;
+  palette: PaletteId | "custom";
+};
+export type Effects = {
+  finish: TextureFinishId;
+  glow: number;
+  glowRadius: number;
+  dither: boolean;
+  aura: boolean;
+  rimLight: boolean;
+  trail: boolean;
+  particles: number;
+  glint: boolean;
+  pulse: boolean;
+  magicCircle: boolean;
+  rays: boolean;
+  specular: boolean;
+  aa: boolean;
+  outline: OutlineId;
+  effectPreset?: string;
+  scatter: number;
+  sparkle: number;
+  drift: number;
+};
+export type Animation = {
+  frames: number;
+  frametime: number;
+};
+
+export const CATEGORIES = ["identity", "shaft", "head", "colors", "effects", "animation"] as const;
+export type Category = (typeof CATEGORIES)[number];
+export { CATEGORY_LABELS } from "./atelier-labels";
+
+export type PresetScope = Category | "all" | "shaft+head" | "head+effects" | "shaft+head+colors";
+
+export const ELEMENTS: Record<ElementId, { label: string; icon: string; core: string; energy: string; particle: ParticleId; floater: FloaterId; stat: string; ability: string }> = {
+  fire: { label: "炎", icon: "🔥", core: "#ff5a1f", energy: "#ffc14d", particle: "embers", floater: "shards", stat: "火炎ダメージ", ability: "インフェルノ・バースト" },
+  ice: { label: "氷", icon: "❄", core: "#5fd2ff", energy: "#d8f6ff", particle: "snow", floater: "shards", stat: "凍結力", ability: "フロストノヴァ" },
+  thunder: { label: "雷", icon: "⚡", core: "#ffe03a", energy: "#fff7b0", particle: "sparks", floater: "orbs", stat: "雷撃ダメージ", ability: "チェインライトニング" },
+  nature: { label: "自然", icon: "🌿", core: "#5fd35a", energy: "#c8ff8a", particle: "leaves", floater: "petals", stat: "再生力", ability: "ワイルドグロース" },
+  water: { label: "水", icon: "💧", core: "#2f7dff", energy: "#8fe3ff", particle: "bubbles", floater: "orbs", stat: "潮流の力", ability: "タイダルウェイブ" },
+  light: { label: "光", icon: "✦", core: "#ffe9a3", energy: "#fffbe6", particle: "twinkle", floater: "halo", stat: "神聖力", ability: "ディバインレイ" },
+  dark: { label: "闇", icon: "☾", core: "#8a3cff", energy: "#d7a6ff", particle: "smoke", floater: "runes", stat: "闇の魔力", ability: "シャドウベール" },
+  void: { label: "虚空", icon: "◈", core: "#c03cff", energy: "#f0b8ff", particle: "endbits", floater: "cubes", stat: "虚空浸食", ability: "ヴォイドリフト" },
+  arcane: { label: "秘術", icon: "✧", core: "#6c7bff", energy: "#e2c8ff", particle: "glyphs", floater: "runes", stat: "魔力", ability: "アーケインミサイル" },
+  blood: { label: "血", icon: "♥", core: "#d9133b", energy: "#ff7a8f", particle: "drips", floater: "orbs", stat: "吸血", ability: "ブラッドパクト" },
+  earth: { label: "大地", icon: "⛰", core: "#c98a3a", energy: "#ffd99a", particle: "pebbles", floater: "cubes", stat: "防御力", ability: "アースクエイク" },
+  wind: { label: "風", icon: "🌀", core: "#6fe3c0", energy: "#e6fff7", particle: "streaks", floater: "petals", stat: "速度", ability: "ゲイルスラッシュ" },
+  cosmic: { label: "星辰", icon: "★", core: "#4b3cff", energy: "#ff9cf2", particle: "stardust", floater: "stars", stat: "星の加護", ability: "スターフォール" },
+  time: { label: "時間", icon: "⧗", core: "#e0c46a", energy: "#fff3c4", particle: "sand", floater: "candles", stat: "時間干渉", ability: "クロノシフト" },
+  sound: { label: "音", icon: "♪", core: "#ff7ad9", energy: "#ffd6f5", particle: "notes", floater: "bells", stat: "共鳴力", ability: "レゾナンスウェーブ" },
+  metal: { label: "鋼", icon: "⚒", core: "#c3ccd6", energy: "#eef4ff", particle: "sparks", floater: "daggers", stat: "攻撃力", ability: "アイアンメイデン" },
+  poison: { label: "毒", icon: "☠", core: "#8fd42a", energy: "#dcff8a", particle: "smoke", floater: "wisps", stat: "猛毒", ability: "ヴェノムクラウド" },
+  storm: { label: "嵐", icon: "🌩", core: "#7aa6ff", energy: "#cfe4ff", particle: "bolts", floater: "orbs", stat: "落雷威力", ability: "テンペストコール" },
+  soul: { label: "魂", icon: "👻", core: "#5ef2d6", energy: "#c9fff3", particle: "fireflies", floater: "wisps", stat: "魂の炎", ability: "ソウルバーン" },
+  crystal: { label: "水晶", icon: "◆", core: "#a9e8ff", energy: "#eafcff", particle: "crystalshards", floater: "shards", stat: "屈折率", ability: "プリズムバースト" },
+  gravity: { label: "重力", icon: "◎", core: "#8f7bff", energy: "#dcd2ff", particle: "pebbles", floater: "cubes", stat: "引力", ability: "グラビティウェル" },
+  plasma: { label: "プラズマ", icon: "✺", core: "#ff4fd8", energy: "#ffd6f8", particle: "bolts", floater: "orbs", stat: "電離力", ability: "プラズマランス" },
+  sakura: { label: "桜", icon: "✿", core: "#ef8fb2", energy: "#ffe4ef", particle: "leaves", floater: "butterflies", stat: "花霞", ability: "桜花夢幻" },
+  dream: { label: "夢", icon: "☁", core: "#ad8dff", energy: "#f1e8ff", particle: "stardust", floater: "keys", stat: "夢幻力", ability: "ドリームゲート" },
+  aurora: { label: "極光", icon: "≈", core: "#55e6c1", energy: "#d8fff7", particle: "streaks", floater: "sigils", stat: "極光共鳴", ability: "オーロラカーテン" },
+  ink: { label: "墨", icon: "●", core: "#27304f", energy: "#b8c4ff", particle: "smoke", floater: "books", stat: "墨影", ability: "墨染結界" },
+  luck: { label: "幸運", icon: "♣", core: "#55ce70", energy: "#fff0a8", particle: "coins", floater: "coins", stat: "幸運値", ability: "フォーチュンロール" },
+  festival: { label: "祭", icon: "✺", core: "#ff5f72", energy: "#ffe65c", particle: "fireflies", floater: "lanterns", stat: "祝祭力", ability: "百花祝砲" },
+};
+
+export const MATERIALS: Record<MaterialId, { label: string; color: string; metal?: boolean; glow?: boolean; contrast?: number }> = {
+  oak: { label: "オーク", color: "#9a6b3c" },
+  darkoak: { label: "ダークオーク", color: "#5a3a22" },
+  birch: { label: "シラカバ", color: "#d8c9a0" },
+  crimson: { label: "真紅の木", color: "#8e2f4d" },
+  warped: { label: "歪んだ木", color: "#2b8a82" },
+  bone: { label: "骨", color: "#e3dcc2" },
+  gold: { label: "金", color: "#f2b632", metal: true, contrast: 1.15 },
+  iron: { label: "鉄", color: "#b9bec7", metal: true },
+  obsidian: { label: "黒曜石", color: "#2e1f45", contrast: 0.8 },
+  netherite: { label: "ネザライト", color: "#4a4146", metal: true },
+  amethyst: { label: "アメジスト", color: "#9b62d9", metal: true },
+  prismarine: { label: "プリズマリン", color: "#5fb3a1" },
+  quartz: { label: "クォーツ", color: "#ece6dc", metal: true },
+  blaze: { label: "ブレイズロッド", color: "#ffb81f", glow: true, contrast: 1.2 },
+  endrod: { label: "エンドロッド", color: "#f4eee6", glow: true },
+  copper: { label: "銅", color: "#c1743f", metal: true, contrast: 1.1 },
+  diamond: { label: "ダイヤ", color: "#7fe9e2", metal: true, contrast: 1.2 },
+  emerald: { label: "エメラルド", color: "#3ad46a", metal: true },
+  lapis: { label: "ラピス", color: "#2f52b8", metal: true },
+  redstone: { label: "レッドストーン", color: "#c8262f", glow: true, contrast: 1.1 },
+  bamboo: { label: "竹", color: "#b9c962" },
+  mangrove: { label: "マングローブ", color: "#7a4a34" },
+  cherry: { label: "サクラ", color: "#c98a9c" },
+  sculk: { label: "スカルク", color: "#12262c", contrast: 0.75 },
+  mud: { label: "泥", color: "#6b5a48", contrast: 0.85 },
+  brass: { label: "真鍮", color: "#c69745", metal: true, contrast: 1.12 },
+  steel: { label: "鋼", color: "#75849a", metal: true, contrast: 1.18 },
+  silver: { label: "銀", color: "#d3d7e2", metal: true, contrast: 1.12 },
+  coral: { label: "珊瑚", color: "#e77868", contrast: 1.05 },
+  seaGlass: { label: "シーグラス", color: "#55bdb1", metal: true, contrast: 1.08 },
+  driftwood: { label: "流木", color: "#806e59", contrast: 0.9 },
+  pearlwood: { label: "真珠木", color: "#d8c7bb", contrast: 0.9 },
+  jade: { label: "翡翠", color: "#3fa487", metal: true, contrast: 1.08 },
+  blackwood: { label: "黒檀", color: "#33252a", contrast: 1.08 },
+  cobalt: { label: "藍鋼", color: "#3d5d91", metal: true, contrast: 1.15 },
+  amber: { label: "琥珀", color: "#d78329", contrast: 1.12 },
+  seaweed: { label: "海藻木", color: "#526a48", contrast: 0.98 },
+  ruby: { label: "ルビー", color: "#e0314f", metal: true, contrast: 1.22 },
+  sapphire: { label: "サファイア", color: "#2f6fe4", metal: true, contrast: 1.22 },
+  vanillaStick: { label: "バニラ棒", color: "#8a6239", contrast: 0.92 },
+  holySilver: { label: "聖銀", color: "#dfe6f5", metal: true, contrast: 1.1 },
+  shadowSteel: { label: "影鋼", color: "#2b2b38", metal: true, contrast: 0.85 },
+  prismAlloy: { label: "虹彩合金", color: "#9fb7ff", metal: true, contrast: 1.15 },
+};
+
+export const PATTERNS: Record<PatternId, string> = {
+  plain: "無地", grain: "木目", spiral: "螺旋巻き", twisted: "ねじれ", ribbed: "節",
+  runes: "ルーン刻印", vine: "蔦", gradient: "魔力グラデ", filigree: "金線細工",
+  scales: "鱗", bamboo: "竹節", candy: "ストライプ", cracked: "亀裂", mossy: "苔むす",
+  frosted: "霜", lavavein: "溶岩脈", chainlink: "鎖編み", engraved: "彫金", feathered: "羽根", bark: "樹皮",
+  gearwork: "歯車刻み", wave: "潮紋", riveted: "鋲打ち", gemInlay: "宝石象嵌", woven: "蔓編み", etched: "酸蝕刻印",
+  circuit: "導線回路", barnacle: "フジツボ", chevron: "山形紋", crystalSeam: "晶脈", kintsugi: "金継ぎ", marquetry: "寄木細工",
+  microEdge: "微細縁", tipTint: "先端染め", notch: "刻み目", speckle: "斑点", thinBand: "細帯", vanillaGrain: "バニラ木目",
+};
+export const SHAPES: Record<ShaftShapeId, string> = {
+  straight: "まっすぐ", curved: "緩やかな弧", gnarled: "瘤立つ古木", hooked: "鉤状", swan: "白鳥の首",
+};
+export const GRIP_STYLES: Record<GripStyleId, string> = {
+  wrap: "布巻き", leather: "革", chain: "鎖", studded: "鋲付き", cord: "紐", woven: "編み込み",
+};
+export const POMMELS: Record<PommelId, string> = {
+  none: "なし", cap: "キャップ", gem: "宝石", spike: "スパイク", orb: "オーブ",
+  roots: "根", blade: "刃", skull: "髑髏", lantern: "ランタン", chain: "鎖", hook: "鉤", crystal: "結晶",
+  cog: "歯車", shell: "貝殻", knot: "木瘤", anchor: "錨", gear: "機械歯車", leaf: "木葉", pearl: "真珠", compass: "羅針盤",
+};
+export const MOUNTS: Record<MountId, string> = {
+  none: "なし", prongs: "爪", crown: "王冠", crescent: "三日月", ring: "光輪",
+  fork: "三叉", curl: "渦巻き", wings: "翼", cage: "檻", antler: "鹿角",
+  serpent: "蛇", lantern: "吊灯", scythe: "鎌", book: "魔導書", chain: "鎖吊り",
+  claw: "猛禽爪", hourglass: "砂時計", arch: "拱門",
+  lotus: "蓮華座", astrolabe: "渾天儀", tiara: "ティアラ冠", lyre: "竪琴枠", coralCrown: "珊瑚冠", trident: "三叉槍",
+  collar: "首輪金具", tinyCollar: "微小襟", guard: "鍔", microRing: "細環", tipCap: "先端冠",
+};
+export const CORES: Record<CoreId, string> = {
+  crystal: "クリスタル", cluster: "晶簇", orb: "オーブ", prism: "プリズム", star: "星",
+  skull: "髑髏", eye: "魔眼", flame: "霊炎", lantern: "ランタン", book: "書",
+  hourglass: "砂時計", sun: "太陽", moon: "月", heart: "心臓", diamond: "ダイヤ",
+  serpenthead: "蛇頭", portal: "裂け目", totem: "トーテム", anvil: "金床", none: "なし",
+  shell: "貝殻", conch: "巻貝", pearl: "真珠", battery: "蓄電セル", compass: "羅針盤", lanternCore: "灯火核", coralHeart: "珊瑚心臓",
+  blade: "剣刃", shortBlade: "短剣刃", ruby: "ルビー", sapphire: "サファイア", emeraldGem: "エメラルド", holyBlade: "聖剣刃", cursedBlade: "禍剣刃", prismBlade: "虹彩刃",
+};
+export const FLOATERS: Record<FloaterId, string> = {
+  none: "なし", shards: "結晶片", runes: "ルーン", orbs: "小球", cubes: "キューブ",
+  stars: "星屑", halo: "ハロー", petals: "花弁", chains: "鎖環", wisps: "鬼火",
+  bells: "鈴", daggers: "短剣", candles: "蝋燭", books: "浮遊書", moons: "三日月",
+  eyes: "監視の眼", leaves: "葉", coins: "金貨",
+  butterflies: "光蝶", keys: "鍵", gears: "歯車", lanterns: "小提灯", sigils: "紋章札", compasses: "羅針盤",
+  bubbles: "気泡", fish: "小魚", pearls: "真珠粒", bolts: "鋲", cogs: "歯車片", shells: "貝殻片",
+  tadpoles: "仔魚", seeds: "木の実", paperCrane: "紙鶴",
+  motes: "光塵", glints: "瞬き", dust: "粉塵", sparkCross: "十字星",
+};
+export const ARTIFACT_FORMS: Record<ArtifactFormId, string> = {
+  classic: "古典杖型", asymmetric: "非対称アート型", bifurcated: "双核分岐型", levitating: "完全浮遊型",
+  constellation: "星座連結型", shrine: "祭壇・祠型", totemic: "積層トーテム型", bouquet: "宝石花束型",
+};
+export const DESIGN_MOTIFS: Record<DesignMotifId, { label: string; desc: string; recipe: Partial<Config> }> = {
+  unbound: { label: "自由ミックス", desc: "型・パーツを個別に選ぶ", recipe: {} },
+  clockwork: {
+    label: "機械仕掛け", desc: "真鍮歯車・鋲・鋼の細工",
+    recipe: { shaftMaterial: "brass", trimMaterial: "steel", pattern: "gearwork", shape: "straight", grip: true, gripStyle: "studded", bands: 4, pommel: "cog", mount: "astrolabe", core: "battery", gemCut: "caged", ornament: "clockwork", floater: "gears", floaterPath: "orbit", finish: "forged", glow: 18, rays: false, magicCircle: false },
+  },
+  woodland: {
+    label: "素朴な木杖", desc: "ほぼ一本の古木、飾り控えめ",
+    recipe: { shaftMaterial: "oak", trimMaterial: "driftwood", pattern: "bark", shape: "gnarled", grip: false, bands: 0, pommel: "knot", mount: "none", core: "none", gemCut: "raw", ornament: "none", accentGems: 0, floater: "none", glow: 0, particles: 0, rays: false, magicCircle: false, aura: false, finish: "weathered", outline: "color", effectPreset: undefined },
+  },
+  jewelled: {
+    label: "宝石尽くし", desc: "主石・メレ石・象嵌で全面宝飾",
+    recipe: { shaftMaterial: "silver", trimMaterial: "gold", pattern: "gemInlay", shape: "straight", thickness: 1, grip: false, bands: 3, pommel: "gem", mount: "tiara", core: "diamond", gemCut: "brilliant", ornament: "crystalLattice", accentGems: 7, floater: "pearls", floaterPath: "crown", floaterCount: 7, finish: "gilded", specular: true },
+  },
+  maritime: {
+    label: "海洋・珊瑚", desc: "流木・シーグラス・貝殻・気泡",
+    recipe: { shaftMaterial: "driftwood", trimMaterial: "seaGlass", pattern: "barnacle", shape: "curved", grip: true, gripStyle: "woven", gripColor: "#236d70", bands: 2, pommel: "shell", mount: "lotus", core: "conch", gemCut: "rose", ornament: "lotusPetals", accentGems: 3, floater: "bubbles", floaterPath: "spiral", finish: "weathered" },
+  },
+  industrial: {
+    label: "工業遺構", desc: "鋼板・リベット・導線と蓄電核",
+    recipe: { shaftMaterial: "steel", trimMaterial: "iron", pattern: "riveted", shape: "straight", thickness: 4, grip: true, gripStyle: "leather", bands: 4, pommel: "gear", mount: "cage", core: "battery", gemCut: "caged", ornament: "clockwork", floater: "bolts", floaterPath: "helix", finish: "forged", glow: 24 },
+  },
+  minimal: {
+    label: "ミニマル", desc: "細い輪郭、小さな真珠核ひとつ",
+    recipe: { shaftMaterial: "birch", trimMaterial: "silver", pattern: "plain", shape: "straight", thickness: 1, grip: false, bands: 0, pommel: "none", mount: "none", core: "pearl", coreSize: 0.7, gemCut: "rose", ornament: "none", accentGems: 0, floater: "none", glow: 8, glowRadius: 2, particles: 0, rays: false, magicCircle: false, aura: false, finish: "vanilla", outline: "color", effectPreset: undefined },
+  },
+  astral: {
+    label: "星図・天体", desc: "羅針盤・天球儀・星座線",
+    recipe: { shaftMaterial: "lapis", trimMaterial: "silver", pattern: "etched", core: "star", gemCut: "starcut", mount: "astrolabe", ornament: "celestialAstrolabe", accentGems: 6, floater: "stars", floaterPath: "constellation", finish: "runic", rays: true },
+  },
+  reliquary: {
+    label: "聖遺物", desc: "古木・封蝋・封じられた真珠核",
+    recipe: { shaftMaterial: "pearlwood", trimMaterial: "brass", pattern: "etched", shape: "gnarled", grip: true, gripStyle: "cord", bands: 2, pommel: "shell", mount: "cage", core: "pearl", gemCut: "caged", ornament: "runeRing", floater: "sigils", floaterPath: "pendulum", finish: "weathered" },
+  },
+  botanical: {
+    label: "植物標本", desc: "蔓・木瘤・葉脈を集めた標本杖",
+    recipe: { shaftMaterial: "pearlwood", trimMaterial: "jade", pattern: "woven", shape: "swan", grip: false, bands: 1, pommel: "leaf", mount: "curl", core: "coralHeart", gemCut: "rose", ornament: "vineCrest", floater: "seeds", floaterPath: "figure8", finish: "weathered" },
+  },
+  dreamlike: {
+    label: "夢の遺物", desc: "浮遊する鍵と形の揺らぐ裂け目",
+    recipe: { shaftMaterial: "amethyst", trimMaterial: "silver", pattern: "gradient", shape: "curved", grip: false, bands: 1, pommel: "orb", mount: "crescent", core: "portal", gemCut: "soul", ornament: "silkRibbons", floater: "keys", floaterPath: "rain", finish: "runic", glow: 24, rays: false },
+  },
+  alchemical: {
+    label: "錬金工房", desc: "ガラス器・真鍮・泡立つ薬液",
+    recipe: { shaftMaterial: "copper", trimMaterial: "brass", pattern: "etched", shape: "straight", grip: true, gripStyle: "leather", bands: 3, pommel: "cog", mount: "hourglass", core: "lanternCore", gemCut: "caged", ornament: "alchemicalRing", floater: "bubbles", floaterPath: "orbit", finish: "forged" },
+  },
+  salvaged: {
+    label: "漂着物・サルベージ", desc: "錆びた錨と珊瑚を結び直した海の杖",
+    recipe: { shaftMaterial: "driftwood", trimMaterial: "copper", pattern: "barnacle", shape: "gnarled", grip: true, gripStyle: "woven", bands: 1, pommel: "anchor", mount: "trident", core: "shell", gemCut: "raw", ornament: "hangingCharms", floater: "shells", floaterPath: "pendulum", finish: "weathered" },
+  },
+  aquarium: {
+    label: "小さな水槽", desc: "透きとおる海色と小魚、真珠の泡",
+    recipe: { shaftMaterial: "seaGlass", trimMaterial: "silver", pattern: "wave", shape: "curved", grip: false, bands: 2, pommel: "pearl", mount: "cage", core: "pearl", gemCut: "emerald", ornament: "celestialAstrolabe", floater: "fish", floaterPath: "orbit", finish: "gilded" },
+  },
+  mechanical: {
+    label: "機械・歯車", desc: "発条式の駆動棒、露出した歯車と導線",
+    recipe: { shaftMaterial: "steel", trimMaterial: "brass", pattern: "circuit", shape: "straight", grip: true, gripStyle: "studded", bands: 4, pommel: "gear", mount: "astrolabe", core: "battery", gemCut: "caged", ornament: "clockwork", floater: "cogs", floaterPath: "helix", finish: "forged", glow: 20, magicCircle: false },
+  },
+  wooden: {
+    label: "ただの木の杖", desc: "節のある一本枝。宝石も魔法陣もない",
+    recipe: { shaftMaterial: "oak", trimMaterial: "driftwood", pattern: "grain", shape: "gnarled", thickness: 2, grip: false, bands: 0, pommel: "knot", mount: "none", core: "none", gemCut: "raw", ornament: "none", accentGems: 0, floater: "none", glow: 0, particles: 0, rays: false, magicCircle: false, aura: false, glint: false, finish: "weathered", outline: "color", effectPreset: undefined },
+  },
+  gemstone: {
+    label: "宝石だけのワンド", desc: "柄まで宝石で連ねた短杖、金属を使わない",
+    recipe: { shaftMaterial: "amethyst", trimMaterial: "quartz", pattern: "crystalSeam", shape: "straight", thickness: 1, grip: false, bands: 0, pommel: "crystal", mount: "prongs", core: "diamond", coreSize: 1.12, gemCut: "brilliant", ornament: "crystalLattice", ornamentScale: 1.2, accentGems: 7, floater: "pearls", floaterPath: "crown", floaterCount: 7, finish: "gilded", glow: 48, rays: false },
+  },
+  ocean: {
+    label: "海の漂流遺物", desc: "流木、真珠、貝殻、気泡。海神ではない海の品",
+    recipe: { shaftMaterial: "driftwood", trimMaterial: "seaGlass", pattern: "barnacle", shape: "curved", grip: false, bands: 1, pommel: "anchor", mount: "coralCrown", core: "conch", gemCut: "rose", ornament: "arabesque", floater: "bubbles", floaterPath: "orbit", finish: "weathered", glow: 18, magicCircle: false },
+  },
+  nonmagical: {
+    label: "非魔法の道具", desc: "探索用の測量杖、発光やエネルギーを持たない",
+    recipe: { shaftMaterial: "bamboo", trimMaterial: "iron", pattern: "runes", shape: "straight", thickness: 2, grip: true, gripStyle: "woven", gripColor: "#77634d", bands: 2, pommel: "compass", mount: "none", core: "compass", gemCut: "raw", ornament: "none", accentGems: 0, floater: "none", glow: 0, glowRadius: 2, particles: 0, aura: false, rays: false, magicCircle: false, trail: false, glint: false, finish: "vanilla", outline: "color", effectPreset: undefined },
+  },
+  skyruin: {
+    label: "天空文明の残骸", desc: "欠けた石英、割れた回路、動かない浮遊片",
+    recipe: { shaftMaterial: "sculk", trimMaterial: "cobalt", pattern: "cracked", shape: "curved", grip: false, bands: 1, pommel: "crystal", mount: "cage", core: "portal", gemCut: "cracked", ornament: "crystalLattice", floater: "cubes", floaterPath: "constellation", finish: "weathered", glow: 22, particles: 12, effectPreset: undefined },
+  },
+  vanillaRod: {
+    label: "バニラの細杖", desc: "太さ1px、棒と小さな先端だけの純正風",
+    recipe: { shaftMaterial: "vanillaStick", trimMaterial: "oak", pattern: "vanillaGrain", shape: "straight", thickness: 1, grip: false, bands: 0, pommel: "none", mount: "tipCap", core: "orb", coreSize: 0.62, gemCut: "raw", ornament: "none", accentGems: 0, floater: "none", glow: 0, glowRadius: 2, particles: 0, rays: false, magicCircle: false, aura: false, finish: "vanilla", outline: "color", effectPreset: undefined },
+  },
+  vanillaPlus: {
+    label: "バニラ＋", desc: "細杖に微細な縁光と先端染め",
+    recipe: { shaftMaterial: "vanillaStick", trimMaterial: "copper", pattern: "microEdge", shape: "straight", thickness: 1, grip: false, bands: 1, pommel: "cap", mount: "tinyCollar", core: "prism", coreSize: 0.66, gemCut: "rose", ornament: "none", accentGems: 1, floater: "motes", floaterCount: 2, floaterPath: "orbit", finish: "vanilla", outline: "color", effectPreset: undefined },
+  },
+  gemTool: {
+    label: "宝石細工", desc: "ルビー・サファイア・エメラルドの工具系",
+    recipe: { shaftMaterial: "ruby", trimMaterial: "sapphire", pattern: "gemInlay", shape: "straight", thickness: 2, grip: false, bands: 1, pommel: "cap", mount: "collar", core: "ruby", coreSize: 0.85, gemCut: "emerald", ornament: "none", accentGems: 1, floater: "glints", floaterCount: 2, floaterPath: "orbit", finish: "forged", effectPreset: undefined },
+  },
+};
+export const GEM_CUTS: Record<GemCutId, string> = {
+  raw: "原石", brilliant: "ブリリアント", emerald: "エメラルドカット", rose: "ローズカット", teardrop: "ティアドロップ",
+  rune: "ルーンカット", starcut: "スターカット", cracked: "亀裂晶", caged: "ケージド", soul: "ソウルコア",
+};
+export const ORNAMENTS: Record<OrnamentId, string> = {
+  none: "なし", runeRing: "ルーン環", crownJewels: "王冠宝飾", vineCrest: "蔦の冠", hangingCharms: "吊り下げ護符",
+  chainTassel: "鎖房", sunDisk: "日輪飾り", lunarPhase: "月相飾り", thornHalo: "棘の光輪", floatingPages: "浮遊頁",
+  soulCage: "魂の檻", clockwork: "歯車機構", featherCrest: "翼冠", serpentCoil: "蛇の螺旋",
+  alchemicalRing: "錬金環", beadRosary: "数珠飾り", crystalLattice: "晶格子",
+  silkRibbons: "天衣リボン", arabesque: "アラベスク唐草", lotusPetals: "蓮華光背", celestialAstrolabe: "天球リング",
+};
+export const FLOATER_PATHS: Record<FloaterPathId, string> = {
+  orbit: "周回", spiral: "渦巻き", figure8: "8の字", crown: "王冠配列", helix: "二重螺旋", pendulum: "振り子", constellation: "星座", rain: "降下",
+};
+export const PARTICLES: Record<ParticleId, string> = {
+  embers: "火の粉", snow: "雪", sparks: "火花", leaves: "木の葉", bubbles: "泡", twinkle: "煌めき",
+  smoke: "瘴気", endbits: "エンド粒子", glyphs: "魔法文字", drips: "滴", pebbles: "礫", streaks: "風筋",
+  stardust: "星塵", feathers: "羽根", hearts: "ハート", fireflies: "蛍", ashes: "灰", coins: "金貨",
+  notes: "音符", bolts: "稲妻", sand: "砂", crystalshards: "水晶片",
+  mote: "微光塵", glimmer: "瞬光", dustPuff: "淡塵", scatterSpark: "散布星",
+};
+export const OUTLINES: Record<OutlineId, string> = { selout: "選択的(推奨)", color: "色付き", black: "黒", none: "なし" };
+export const TEXTURE_FINISHES: Record<TextureFinishId, { label: string; desc: string }> = {
+  vanilla: { label: "バニラ寄り", desc: "少数の色と硬い輪郭" },
+  forged: { label: "鍛造", desc: "金属の斜め反射と打痕" },
+  weathered: { label: "風化", desc: "古い木目と深い影" },
+  engraved: { label: "彫金", desc: "細い刻線と明暗の段差" },
+  gilded: { label: "金彩", desc: "縁に金の象嵌を施す" },
+  runic: { label: "刻印", desc: "間隔を揃えた発光ルーン" },
+};
+
+export const RARITIES: Record<RarityId, { label: string; color: string; tier: number }> = {
+  common: { label: "COMMON", color: "#ffffff", tier: 0 },
+  uncommon: { label: "UNCOMMON", color: "#55ff55", tier: 1 },
+  rare: { label: "RARE", color: "#5599ff", tier: 2 },
+  epic: { label: "EPIC", color: "#c055ff", tier: 3 },
+  legendary: { label: "LEGENDARY", color: "#ffaa00", tier: 4 },
+  mythic: { label: "MYTHIC", color: "#ff55ff", tier: 5 },
+  divine: { label: "DIVINE", color: "#55ffff", tier: 6 },
+  artifact: { label: "ARTIFACT", color: "#ff7a4d", tier: 7 },
+  relic: { label: "RELIC", color: "#ffe066", tier: 8 },
+};
+
+export type PaletteId = "element" | "ember" | "frost" | "toxic" | "royal" | "void" | "solar" | "lunar"
+  | "blood" | "forest" | "ocean" | "storm" | "candy" | "bronze" | "ghost" | "sunset"
+  | "pearl" | "rosegold" | "celadon" | "imperial"
+  | "ruby" | "sapphire" | "holy" | "ominous" | "prism";
+export const PALETTES: Record<Exclude<PaletteId, "element">, { label: string; core: string; energy: string }> = {
+  ember: { label: "燃え殻", core: "#ff6a2a", energy: "#ffd08a" },
+  frost: { label: "極寒", core: "#7fd8ff", energy: "#e8fbff" },
+  toxic: { label: "瘴毒", core: "#9ede2a", energy: "#e4ffa8" },
+  royal: { label: "王家", core: "#f0c04a", energy: "#fff2c0" },
+  void: { label: "深淵", core: "#b03cff", energy: "#eab8ff" },
+  solar: { label: "太陽", core: "#ffb300", energy: "#fff6d0" },
+  lunar: { label: "月夜", core: "#cfd8ff", energy: "#f2f6ff" },
+  blood: { label: "鮮血", core: "#c8102e", energy: "#ff8a9a" },
+  forest: { label: "深森", core: "#3fae5a", energy: "#b6f0a8" },
+  ocean: { label: "深海", core: "#1f6fd0", energy: "#8fe8ff" },
+  storm: { label: "雷雲", core: "#7d8cff", energy: "#dfe6ff" },
+  candy: { label: "甘味", core: "#ff6fb5", energy: "#ffe0f2" },
+  bronze: { label: "古銅", core: "#c08040", energy: "#ffe0b0" },
+  ghost: { label: "幽霊", core: "#8ff5e0", energy: "#e6fffb" },
+  sunset: { label: "夕焼", core: "#ff7a45", energy: "#ffd9a0" },
+  pearl: { label: "真珠母", core: "#e8dff5", energy: "#fff9f5" },
+  rosegold: { label: "薔薇金", core: "#e68a9e", energy: "#ffe8ee" },
+  celadon: { label: "秘色青磁", core: "#6ec9b7", energy: "#e4fff8" },
+  imperial: { label: "紫禁皇室", core: "#9d50e5", energy: "#ffe699" },
+  ruby: { label: "ルビー", core: "#e0314f", energy: "#ffb3c0" },
+  sapphire: { label: "サファイア", core: "#2f6fe4", energy: "#bcd6ff" },
+  holy: { label: "聖光", core: "#f2e9c8", energy: "#fffdf2" },
+  ominous: { label: "禍々", core: "#5b1f2e", energy: "#ff4d5e" },
+  prism: { label: "虹彩", core: "#9fb7ff", energy: "#e8f4ff" },
+};
+
+export const STAFF_TYPES: Record<StaffTypeId, { label: string; desc: string; preset: Partial<Config> }> = {
+  wizard: {
+    label: "魔導師の杖", desc: "爪で抱えた結晶。王道のロングスタッフ",
+    preset: { length: 1, thickness: 2, taper: true, shape: "straight", shaftMaterial: "darkoak", pattern: "grain", grip: true, gripStyle: "wrap", bands: 2, trimMaterial: "gold", pommel: "cap", mount: "prongs", core: "crystal", coreSize: 1, floatingCore: false },
+  },
+  scepter: {
+    label: "王笏", desc: "短く豪奢。王冠とオーブ",
+    preset: { length: 0.62, thickness: 3, taper: false, shape: "straight", shaftMaterial: "gold", pattern: "filigree", grip: false, bands: 3, trimMaterial: "gold", pommel: "gem", mount: "crown", core: "orb", coreSize: 1.05, floatingCore: false },
+  },
+  wand: {
+    label: "ワンド", desc: "細身で繊細。星の先端",
+    preset: { length: 0.55, thickness: 1, taper: false, shape: "straight", shaftMaterial: "birch", pattern: "spiral", grip: true, gripStyle: "leather", bands: 1, trimMaterial: "iron", pommel: "orb", mount: "none", core: "star", coreSize: 0.8, floatingCore: true },
+  },
+  druid: {
+    label: "ドルイドの杖", desc: "蔦の絡む渦巻き木杖",
+    preset: { length: 0.95, thickness: 3, taper: true, shape: "gnarled", shaftMaterial: "oak", pattern: "vine", grip: false, bands: 0, trimMaterial: "gold", pommel: "roots", mount: "curl", core: "orb", coreSize: 0.85, floatingCore: false },
+  },
+  lunar: {
+    label: "月の杖", desc: "三日月が浮遊する宝石を抱く",
+    preset: { length: 0.92, thickness: 2, taper: false, shape: "curved", shaftMaterial: "quartz", pattern: "ribbed", grip: true, gripStyle: "cord", bands: 2, trimMaterial: "iron", pommel: "spike", mount: "crescent", core: "prism", coreSize: 0.85, floatingCore: true },
+  },
+  necro: {
+    label: "死霊術の杖", desc: "骨の柄と光る眼の髑髏",
+    preset: { length: 0.95, thickness: 2, taper: true, shape: "gnarled", shaftMaterial: "bone", pattern: "ribbed", grip: true, gripStyle: "chain", bands: 1, trimMaterial: "netherite", pommel: "skull", mount: "none", core: "skull", coreSize: 1, floatingCore: false },
+  },
+  khakkhara: {
+    label: "錫杖", desc: "光輪と揺れる輪",
+    preset: { length: 1, thickness: 2, taper: false, shape: "straight", shaftMaterial: "crimson", pattern: "plain", grip: true, gripStyle: "wrap", bands: 2, trimMaterial: "gold", pommel: "cap", mount: "ring", core: "orb", coreSize: 0.7, floatingCore: false },
+  },
+  trident: {
+    label: "三叉の杖", desc: "海神の如き三叉の先端",
+    preset: { length: 1, thickness: 2, taper: false, shape: "straight", shaftMaterial: "prismarine", pattern: "spiral", grip: false, bands: 2, trimMaterial: "gold", pommel: "spike", mount: "fork", core: "orb", coreSize: 0.7, floatingCore: false },
+  },
+  seraph: {
+    label: "熾天使の杖", desc: "翼を広げた神聖な杖",
+    preset: { length: 0.95, thickness: 2, taper: false, shape: "straight", shaftMaterial: "quartz", pattern: "filigree", grip: false, bands: 2, trimMaterial: "gold", pommel: "gem", mount: "wings", core: "prism", coreSize: 0.9, floatingCore: true },
+  },
+  voidcaller: {
+    label: "虚空召喚の杖", desc: "檻に封じた魔眼",
+    preset: { length: 0.95, thickness: 2, taper: true, shape: "straight", shaftMaterial: "obsidian", pattern: "runes", grip: true, gripStyle: "chain", bands: 2, trimMaterial: "amethyst", pommel: "orb", mount: "cage", core: "eye", coreSize: 0.9, floatingCore: false },
+  },
+  shaman: {
+    label: "シャーマンの杖", desc: "鹿角とトーテムの原始的な杖",
+    preset: { length: 0.98, thickness: 3, taper: true, shape: "gnarled", shaftMaterial: "mangrove", pattern: "bark", grip: true, gripStyle: "cord", bands: 1, trimMaterial: "bone", pommel: "roots", mount: "antler", core: "totem", coreSize: 0.95, floatingCore: false },
+  },
+  lanternbearer: {
+    label: "夜の提灯杖", desc: "霊炎を灯した吊りランタン",
+    preset: { length: 0.9, thickness: 2, taper: false, shape: "hooked", shaftMaterial: "darkoak", pattern: "grain", grip: true, gripStyle: "leather", bands: 2, trimMaterial: "copper", pommel: "lantern", mount: "lantern", core: "lantern", coreSize: 0.95, floatingCore: false },
+  },
+  reaper: {
+    label: "死神の鎌杖", desc: "魂を刈る大鎌を冠する",
+    preset: { length: 1, thickness: 2, taper: false, shape: "straight", shaftMaterial: "netherite", pattern: "cracked", grip: true, gripStyle: "chain", bands: 1, trimMaterial: "netherite", pommel: "blade", mount: "scythe", core: "skull", coreSize: 0.9, floatingCore: false },
+  },
+  serpentstaff: {
+    label: "蛇杖", desc: "絡みつく二匹の蛇と蛇頭",
+    preset: { length: 1, thickness: 2, taper: false, shape: "swan", shaftMaterial: "emerald", pattern: "scales", grip: false, bands: 2, trimMaterial: "gold", pommel: "hook", mount: "serpent", core: "serpenthead", coreSize: 0.95, floatingCore: false },
+  },
+  chronomancer: {
+    label: "時術師の杖", desc: "砂時計が時を刻む",
+    preset: { length: 0.92, thickness: 2, taper: false, shape: "straight", shaftMaterial: "copper", pattern: "engraved", grip: true, gripStyle: "leather", bands: 3, trimMaterial: "gold", pommel: "gem", mount: "hourglass", core: "hourglass", coreSize: 0.9, floatingCore: true },
+  },
+  bard: {
+    label: "吟遊詩人の杖", desc: "鈴と音符が舞う楽器杖",
+    preset: { length: 0.85, thickness: 2, taper: false, shape: "curved", shaftMaterial: "cherry", pattern: "candy", grip: true, gripStyle: "cord", bands: 2, trimMaterial: "gold", pommel: "orb", mount: "arch", core: "star", coreSize: 0.8, floatingCore: true },
+  },
+  geomancer: {
+    label: "地術師の杖", desc: "岩と金床の重い杖",
+    preset: { length: 0.9, thickness: 4, taper: false, shape: "straight", shaftMaterial: "mud", pattern: "cracked", grip: true, gripStyle: "studded", bands: 2, trimMaterial: "iron", pommel: "spike", mount: "arch", core: "anvil", coreSize: 0.95, floatingCore: false },
+  },
+  stormcaller: {
+    label: "嵐呼びの杖", desc: "三叉に稲妻が走る",
+    preset: { length: 1, thickness: 2, taper: false, shape: "hooked", shaftMaterial: "lapis", pattern: "lavavein", grip: true, gripStyle: "chain", bands: 2, trimMaterial: "iron", pommel: "spike", mount: "fork", core: "prism", coreSize: 0.9, floatingCore: true },
+  },
+  soulreaper: {
+    label: "魂狩りの杖", desc: "鬼火が揺らめく鎖杖",
+    preset: { length: 0.95, thickness: 2, taper: true, shape: "curved", shaftMaterial: "sculk", pattern: "chainlink", grip: true, gripStyle: "chain", bands: 1, trimMaterial: "netherite", pommel: "chain", mount: "chain", core: "flame", coreSize: 0.95, floatingCore: true },
+  },
+  archmage: {
+    label: "大魔導師の杖", desc: "三連晶簇の重厚な杖",
+    preset: { length: 1, thickness: 3, taper: true, shape: "straight", shaftMaterial: "amethyst", pattern: "runes", grip: true, gripStyle: "wrap", bands: 4, trimMaterial: "gold", pommel: "crystal", mount: "prongs", core: "cluster", coreSize: 1.1, floatingCore: false },
+  },
+  celestial: {
+    label: "天界の杖", desc: "太陽と月を戴く",
+    preset: { length: 0.95, thickness: 2, taper: false, shape: "straight", shaftMaterial: "quartz", pattern: "engraved", grip: false, bands: 3, trimMaterial: "gold", pommel: "gem", mount: "arch", core: "sun", coreSize: 0.95, floatingCore: true },
+  },
+  plaguedoctor: {
+    label: "疫病医の杖", desc: "瘴気を纏う鳥頭の杖",
+    preset: { length: 0.95, thickness: 2, taper: true, shape: "hooked", shaftMaterial: "bone", pattern: "mossy", grip: true, gripStyle: "leather", bands: 1, trimMaterial: "copper", pommel: "skull", mount: "claw", core: "eye", coreSize: 0.85, floatingCore: false },
+  },
+  runesmith: {
+    label: "ルーン鍛冶の杖", desc: "全面に彫られた古代文字",
+    preset: { length: 0.9, thickness: 3, taper: false, shape: "straight", shaftMaterial: "iron", pattern: "engraved", grip: true, gripStyle: "studded", bands: 3, trimMaterial: "gold", pommel: "cap", mount: "cage", core: "diamond", coreSize: 0.9, floatingCore: false },
+  },
+  dracolich: {
+    label: "竜骨の杖", desc: "竜の骨と燃える眼",
+    preset: { length: 1, thickness: 3, taper: true, shape: "gnarled", shaftMaterial: "bone", pattern: "cracked", grip: true, gripStyle: "chain", bands: 2, trimMaterial: "netherite", pommel: "skull", mount: "antler", core: "skull", coreSize: 1.05, floatingCore: false },
+  },
+  feywild: {
+    label: "妖精郷の杖", desc: "花弁と蛍が舞う",
+    preset: { length: 0.8, thickness: 1, taper: false, shape: "swan", shaftMaterial: "cherry", pattern: "feathered", grip: false, bands: 1, trimMaterial: "gold", pommel: "gem", mount: "curl", core: "heart", coreSize: 0.8, floatingCore: true },
+  },
+  abyssal: {
+    label: "深淵の杖", desc: "裂け目が覗く不吉な杖",
+    preset: { length: 0.95, thickness: 2, taper: true, shape: "curved", shaftMaterial: "sculk", pattern: "lavavein", grip: true, gripStyle: "chain", bands: 2, trimMaterial: "obsidian", pommel: "hook", mount: "claw", core: "portal", coreSize: 1, floatingCore: true },
+  },
+  solar: {
+    label: "太陽の杖", desc: "光輪を背負う日輪杖",
+    preset: { length: 1, thickness: 2, taper: false, shape: "straight", shaftMaterial: "gold", pattern: "filigree", grip: false, bands: 3, trimMaterial: "gold", pommel: "gem", mount: "ring", core: "sun", coreSize: 1, floatingCore: false },
+  },
+  bloodmage: {
+    label: "血術師の杖", desc: "心臓と短剣が漂う",
+    preset: { length: 0.95, thickness: 2, taper: false, shape: "curved", shaftMaterial: "crimson", pattern: "cracked", grip: true, gripStyle: "leather", bands: 2, trimMaterial: "netherite", pommel: "blade", mount: "claw", core: "heart", coreSize: 0.9, floatingCore: true },
+  },
+  ashen: {
+    label: "灰燼の杖", desc: "焼け焦げた木と燃えさし",
+    preset: { length: 0.92, thickness: 3, taper: true, shape: "gnarled", shaftMaterial: "darkoak", pattern: "cracked", grip: true, gripStyle: "wrap", bands: 1, trimMaterial: "copper", pommel: "spike", mount: "prongs", core: "flame", coreSize: 1, floatingCore: false },
+  },
+  skyfather: {
+    label: "天空神の杖", desc: "雲を裂く荘厳な大杖",
+    preset: { length: 1, thickness: 3, taper: false, shape: "straight", shaftMaterial: "quartz", pattern: "engraved", grip: false, bands: 4, trimMaterial: "gold", pommel: "crystal", mount: "wings", core: "moon", coreSize: 1, floatingCore: true },
+  },
+  valkyrie: {
+    label: "戦乙女の天槍杖", desc: "白銀の翼と天衣リボンが舞う気高き杖",
+    preset: { length: 1, thickness: 2, taper: true, shape: "straight", shaftMaterial: "quartz", pattern: "filigree", grip: true, gripStyle: "cord", bands: 3, trimMaterial: "gold", pommel: "gem", mount: "wings", core: "diamond", coreSize: 0.95, floatingCore: true },
+  },
+  lotus: {
+    label: "睡蓮華の宝杖", desc: "咲き誇る蓮華座と雫の宝珠、舞う花弁",
+    preset: { length: 0.92, thickness: 2, taper: true, shape: "swan", shaftMaterial: "cherry", pattern: "spiral", grip: true, gripStyle: "wrap", bands: 2, trimMaterial: "gold", pommel: "gem", mount: "lotus", core: "prism", coreSize: 0.9, floatingCore: true },
+  },
+  astrolabe: {
+    label: "渾天儀の星詠杖", desc: "交差する天球儀リングと輝く恒星核",
+    preset: { length: 0.96, thickness: 2, taper: false, shape: "straight", shaftMaterial: "lapis", pattern: "engraved", grip: true, gripStyle: "leather", bands: 3, trimMaterial: "gold", pommel: "orb", mount: "astrolabe", core: "star", coreSize: 0.9, floatingCore: true },
+  },
+  court: {
+    label: "宮廷魔導の宝杖", desc: "白磁と金線唐草、ティアラ冠の典雅な杖",
+    preset: { length: 0.9, thickness: 2, taper: true, shape: "straight", shaftMaterial: "quartz", pattern: "filigree", grip: true, gripStyle: "leather", bands: 3, trimMaterial: "gold", pommel: "crystal", mount: "tiara", core: "diamond", coreSize: 0.95, floatingCore: false },
+  },
+  sylphid: {
+    label: "風精の竪琴杖", desc: "竪琴フレームと羽衣が奏でる優美な杖",
+    preset: { length: 0.88, thickness: 1, taper: true, shape: "swan", shaftMaterial: "birch", pattern: "feathered", grip: false, bands: 2, trimMaterial: "gold", pommel: "gem", mount: "lyre", core: "prism", coreSize: 0.85, floatingCore: true },
+  },
+  eclipse: {
+    label: "皆既日食の杖", desc: "黒曜の月とコロナ光輪が重なる神秘の杖",
+    preset: { length: 0.98, thickness: 2, taper: true, shape: "curved", shaftMaterial: "obsidian", pattern: "filigree", grip: true, gripStyle: "cord", bands: 3, trimMaterial: "gold", pommel: "crystal", mount: "astrolabe", core: "moon", coreSize: 1, floatingCore: true },
+  },
+  vanillaRod: {
+    label: "バニラの細杖", desc: "太さ1px。棒と小さな先端だけの純正風",
+    preset: { length: 1, thickness: 1, taper: false, shape: "straight", shaftMaterial: "vanillaStick", pattern: "vanillaGrain", grip: false, bands: 0, trimMaterial: "oak", pommel: "none", mount: "tipCap", core: "orb", coreSize: 0.62, floatingCore: false },
+  },
+  vanillaPlus: {
+    label: "バニラ＋の杖", desc: "細杖に微細な縁・刻み・先端染めを足した改良純正風",
+    preset: { length: 1, thickness: 1, taper: false, shape: "straight", shaftMaterial: "vanillaStick", pattern: "microEdge", grip: false, bands: 1, trimMaterial: "copper", pommel: "cap", mount: "tinyCollar", core: "prism", coreSize: 0.66, floatingCore: false },
+  },
+  apprentice: {
+    label: "見習いの枝杖", desc: "節と斑点のある素朴な一本枝",
+    preset: { length: 0.92, thickness: 2, taper: true, shape: "gnarled", shaftMaterial: "oak", pattern: "notch", grip: false, bands: 0, trimMaterial: "driftwood", pommel: "knot", mount: "none", core: "none", coreSize: 0.7, floatingCore: false },
+  },
+  rubyTool: {
+    label: "ルビーツール", desc: "バニラ工具風の赤い宝石ロッド",
+    preset: { length: 0.88, thickness: 2, taper: false, shape: "straight", shaftMaterial: "oak", pattern: "thinBand", grip: true, gripStyle: "leather", bands: 1, trimMaterial: "ruby", pommel: "cap", mount: "collar", core: "ruby", coreSize: 0.85, floatingCore: false },
+  },
+  sapphireTool: {
+    label: "サファイアツール", desc: "バニラ工具風の青い宝石ロッド",
+    preset: { length: 0.88, thickness: 2, taper: false, shape: "straight", shaftMaterial: "birch", pattern: "thinBand", grip: true, gripStyle: "leather", bands: 1, trimMaterial: "sapphire", pommel: "cap", mount: "collar", core: "sapphire", coreSize: 0.85, floatingCore: false },
+  },
+  emeraldTool: {
+    label: "エメラルドツール", desc: "バニラ工具風の緑の宝石ロッド",
+    preset: { length: 0.88, thickness: 2, taper: false, shape: "straight", shaftMaterial: "darkoak", pattern: "thinBand", grip: true, gripStyle: "leather", bands: 1, trimMaterial: "emerald", pommel: "cap", mount: "collar", core: "emeraldGem", coreSize: 0.85, floatingCore: false },
+  },
+  prismSword: {
+    label: "虹彩の剣杖", desc: "細身に虹色の刃を載せたバニラ寄りの剣",
+    preset: { length: 0.9, thickness: 2, taper: false, shape: "straight", shaftMaterial: "vanillaStick", pattern: "tipTint", grip: true, gripStyle: "wrap", bands: 1, trimMaterial: "prismAlloy", pommel: "cap", mount: "guard", core: "prismBlade", coreSize: 0.95, floatingCore: false },
+  },
+  holySword: {
+    label: "聖なる剣杖", desc: "白銀の刃と小さな光輪。清らかな聖剣",
+    preset: { length: 0.9, thickness: 2, taper: false, shape: "straight", shaftMaterial: "birch", pattern: "speckle", grip: true, gripStyle: "leather", bands: 1, trimMaterial: "holySilver", pommel: "orb", mount: "guard", core: "holyBlade", coreSize: 0.95, floatingCore: false },
+  },
+  ominousSword: {
+    label: "禍々しい剣杖", desc: "影鋼の刃と赤い目。禍々しい呪剣",
+    preset: { length: 0.92, thickness: 2, taper: true, shape: "straight", shaftMaterial: "blackwood", pattern: "notch", grip: true, gripStyle: "chain", bands: 1, trimMaterial: "shadowSteel", pommel: "spike", mount: "microRing", core: "cursedBlade", coreSize: 0.95, floatingCore: false },
+  },
+};
+
+/**
+ * Every archetype receives a distinct head composition on top of its structural preset.
+ * Keeping these as data lets `applyType` stay small while making each staff read as its own relic.
+ */
+export type TypeSignature = Pick<Head, "gemCut" | "ornament" | "ornamentScale" | "accentGems" | "floaterPath"> & Partial<Pick<Head, "floater" | "floaterCount" | "floaterRadius">>;
+export const TYPE_SIGNATURES: Record<StaffTypeId, TypeSignature> = {
+  wizard: { gemCut: "brilliant", ornament: "runeRing", ornamentScale: 1, accentGems: 3, floaterPath: "orbit", floater: "runes", floaterCount: 3 },
+  scepter: { gemCut: "emerald", ornament: "crownJewels", ornamentScale: 1.15, accentGems: 5, floaterPath: "crown", floater: "orbs", floaterCount: 5 },
+  wand: { gemCut: "starcut", ornament: "silkRibbons", ornamentScale: 0.88, accentGems: 3, floaterPath: "spiral", floater: "stars", floaterCount: 4 },
+  druid: { gemCut: "raw", ornament: "vineCrest", ornamentScale: 1.2, accentGems: 2, floaterPath: "figure8", floater: "leaves", floaterCount: 5 },
+  lunar: { gemCut: "teardrop", ornament: "lunarPhase", ornamentScale: 1.12, accentGems: 4, floaterPath: "orbit", floater: "moons", floaterCount: 4 },
+  necro: { gemCut: "cracked", ornament: "soulCage", ornamentScale: 1, accentGems: 2, floaterPath: "helix", floater: "wisps", floaterCount: 5 },
+  khakkhara: { gemCut: "caged", ornament: "beadRosary", ornamentScale: 1.16, accentGems: 4, floaterPath: "pendulum", floater: "bells", floaterCount: 5 },
+  trident: { gemCut: "emerald", ornament: "alchemicalRing", ornamentScale: 1, accentGems: 3, floaterPath: "orbit", floater: "orbs", floaterCount: 4 },
+  seraph: { gemCut: "brilliant", ornament: "featherCrest", ornamentScale: 1.2, accentGems: 5, floaterPath: "crown", floater: "petals", floaterCount: 5 },
+  voidcaller: { gemCut: "rune", ornament: "thornHalo", ornamentScale: 1.05, accentGems: 4, floaterPath: "helix", floater: "eyes", floaterCount: 4 },
+  shaman: { gemCut: "raw", ornament: "beadRosary", ornamentScale: 1.15, accentGems: 3, floaterPath: "pendulum", floater: "leaves", floaterCount: 5 },
+  lanternbearer: { gemCut: "soul", ornament: "hangingCharms", ornamentScale: 1, accentGems: 2, floaterPath: "pendulum", floater: "candles", floaterCount: 3 },
+  reaper: { gemCut: "cracked", ornament: "chainTassel", ornamentScale: 1.18, accentGems: 2, floaterPath: "rain", floater: "daggers", floaterCount: 4 },
+  serpentstaff: { gemCut: "emerald", ornament: "serpentCoil", ornamentScale: 1.22, accentGems: 4, floaterPath: "helix", floater: "eyes", floaterCount: 4 },
+  chronomancer: { gemCut: "rose", ornament: "clockwork", ornamentScale: 1.16, accentGems: 4, floaterPath: "constellation", floater: "candles", floaterCount: 5 },
+  bard: { gemCut: "starcut", ornament: "silkRibbons", ornamentScale: 1.05, accentGems: 4, floaterPath: "figure8", floater: "bells", floaterCount: 5 },
+  geomancer: { gemCut: "raw", ornament: "crystalLattice", ornamentScale: 1.2, accentGems: 3, floaterPath: "crown", floater: "cubes", floaterCount: 4 },
+  stormcaller: { gemCut: "brilliant", ornament: "alchemicalRing", ornamentScale: 1.05, accentGems: 4, floaterPath: "spiral", floater: "orbs", floaterCount: 5 },
+  soulreaper: { gemCut: "soul", ornament: "soulCage", ornamentScale: 1.12, accentGems: 3, floaterPath: "helix", floater: "wisps", floaterCount: 5 },
+  archmage: { gemCut: "rune", ornament: "crystalLattice", ornamentScale: 1.25, accentGems: 6, floaterPath: "constellation", floater: "runes", floaterCount: 6 },
+  celestial: { gemCut: "brilliant", ornament: "sunDisk", ornamentScale: 1.2, accentGems: 6, floaterPath: "crown", floater: "stars", floaterCount: 6 },
+  plaguedoctor: { gemCut: "caged", ornament: "alchemicalRing", ornamentScale: 1, accentGems: 3, floaterPath: "figure8", floater: "wisps", floaterCount: 4 },
+  runesmith: { gemCut: "rune", ornament: "runeRing", ornamentScale: 1.1, accentGems: 5, floaterPath: "orbit", floater: "runes", floaterCount: 5 },
+  dracolich: { gemCut: "cracked", ornament: "thornHalo", ornamentScale: 1.28, accentGems: 4, floaterPath: "helix", floater: "eyes", floaterCount: 5 },
+  feywild: { gemCut: "rose", ornament: "lotusPetals", ornamentScale: 1.15, accentGems: 5, floaterPath: "figure8", floater: "petals", floaterCount: 6 },
+  abyssal: { gemCut: "soul", ornament: "soulCage", ornamentScale: 1.18, accentGems: 5, floaterPath: "spiral", floater: "eyes", floaterCount: 5 },
+  solar: { gemCut: "starcut", ornament: "sunDisk", ornamentScale: 1.32, accentGems: 6, floaterPath: "crown", floater: "stars", floaterCount: 6 },
+  bloodmage: { gemCut: "teardrop", ornament: "thornHalo", ornamentScale: 1.08, accentGems: 4, floaterPath: "rain", floater: "daggers", floaterCount: 4 },
+  ashen: { gemCut: "cracked", ornament: "crystalLattice", ornamentScale: 1, accentGems: 3, floaterPath: "spiral", floater: "shards", floaterCount: 4 },
+  skyfather: { gemCut: "brilliant", ornament: "featherCrest", ornamentScale: 1.35, accentGems: 6, floaterPath: "constellation", floater: "stars", floaterCount: 6 },
+  valkyrie: { gemCut: "starcut", ornament: "silkRibbons", ornamentScale: 1.25, accentGems: 5, floaterPath: "crown", floater: "stars", floaterCount: 5 },
+  lotus: { gemCut: "teardrop", ornament: "lotusPetals", ornamentScale: 1.22, accentGems: 5, floaterPath: "figure8", floater: "petals", floaterCount: 6 },
+  astrolabe: { gemCut: "starcut", ornament: "celestialAstrolabe", ornamentScale: 1.25, accentGems: 6, floaterPath: "constellation", floater: "stars", floaterCount: 6 },
+  court: { gemCut: "emerald", ornament: "arabesque", ornamentScale: 1.18, accentGems: 6, floaterPath: "crown", floater: "orbs", floaterCount: 5 },
+  sylphid: { gemCut: "rose", ornament: "silkRibbons", ornamentScale: 1.2, accentGems: 4, floaterPath: "figure8", floater: "petals", floaterCount: 5 },
+  eclipse: { gemCut: "brilliant", ornament: "celestialAstrolabe", ornamentScale: 1.28, accentGems: 5, floaterPath: "orbit", floater: "moons", floaterCount: 5 },
+  vanillaRod: { gemCut: "raw", ornament: "none", ornamentScale: 0.7, accentGems: 0, floaterPath: "orbit", floater: "none", floaterCount: 0 },
+  vanillaPlus: { gemCut: "rose", ornament: "none", ornamentScale: 0.75, accentGems: 1, floaterPath: "orbit", floater: "motes", floaterCount: 2 },
+  apprentice: { gemCut: "raw", ornament: "none", ornamentScale: 0.8, accentGems: 0, floaterPath: "orbit", floater: "dust", floaterCount: 2 },
+  rubyTool: { gemCut: "emerald", ornament: "none", ornamentScale: 0.8, accentGems: 1, floaterPath: "orbit", floater: "glints", floaterCount: 2 },
+  sapphireTool: { gemCut: "emerald", ornament: "none", ornamentScale: 0.8, accentGems: 1, floaterPath: "orbit", floater: "glints", floaterCount: 2 },
+  emeraldTool: { gemCut: "emerald", ornament: "none", ornamentScale: 0.8, accentGems: 1, floaterPath: "orbit", floater: "glints", floaterCount: 2 },
+  prismSword: { gemCut: "starcut", ornament: "none", ornamentScale: 0.85, accentGems: 2, floaterPath: "orbit", floater: "sparkCross", floaterCount: 3 },
+  holySword: { gemCut: "brilliant", ornament: "none", ornamentScale: 0.85, accentGems: 1, floaterPath: "crown", floater: "motes", floaterCount: 3 },
+  ominousSword: { gemCut: "cracked", ornament: "none", ornamentScale: 0.9, accentGems: 1, floaterPath: "helix", floater: "dust", floaterCount: 3 },
+};
+
+export type EffectPresetId =
+  | "clean" | "vanilla" | "enchanted" | "legendary" | "mythic" | "ethereal" | "corrupted" | "divine"
+  | "infernal" | "frostbite" | "plague" | "prismatic" | "stormfront" | "celestial" | "soulbound" | "relic"
+  | "graceful" | "haute"
+  | "vanillaThin" | "vanillaPlus" | "rubyTool" | "sapphireTool" | "emeraldTool" | "prismHoly" | "ominous" | "plusScatter";
+export const EFFECT_PRESETS: Record<EffectPresetId, { label: string; desc: string; preset: Partial<Config> }> = {
+  graceful: { label: "優美・天衣", desc: "上品な光彩と星芒・宝飾反射", preset: { glow: 50, glowRadius: 4, dither: true, aura: false, rimLight: true, trail: true, particles: 42, glint: false, pulse: true, magicCircle: false, rays: true, specular: true, aa: true, floaterCount: 5, outline: "selout" } },
+  haute: { label: "宮廷宝飾", desc: "魔法陣と緻密な煌めき・高貴な輝き", preset: { glow: 58, glowRadius: 5, dither: true, aura: false, rimLight: true, trail: false, particles: 38, glint: true, pulse: true, magicCircle: true, rays: false, specular: true, aa: true, floaterCount: 6, outline: "selout" } },
+  clean: { label: "クリーン", desc: "効果なし・素材のみ", preset: { glow: 0, aura: false, rimLight: false, trail: false, particles: 0, glint: false, pulse: false, magicCircle: false, rays: false, specular: true, aa: false, dither: false, floater: "none", outline: "selout" } },
+  vanilla: { label: "バニラ風", desc: "Minecraft純正の雰囲気", preset: { glow: 0, aura: false, rimLight: false, trail: false, particles: 0, glint: false, pulse: false, magicCircle: false, rays: false, specular: true, aa: false, dither: false, floater: "none", outline: "color" } },
+  enchanted: { label: "エンチャント", desc: "紫のグリントが流れる", preset: { glow: 35, glowRadius: 4, aura: false, rimLight: false, trail: false, particles: 20, glint: true, pulse: false, magicCircle: false, rays: false, specular: true, aa: true, dither: true, outline: "selout" } },
+  legendary: { label: "レジェンダリー", desc: "発光と浮遊物・リムライト", preset: { glow: 60, glowRadius: 5, dither: true, aura: false, rimLight: true, trail: false, particles: 45, glint: false, pulse: true, magicCircle: false, rays: true, specular: true, aa: true, floaterCount: 3, outline: "selout" } },
+  mythic: { label: "神話級", desc: "Skyblock風・全部盛り", preset: { glow: 64, glowRadius: 5, dither: true, aura: false, rimLight: true, trail: true, particles: 52, glint: false, pulse: true, magicCircle: false, rays: true, specular: true, aa: true, floaterCount: 4, outline: "selout" } },
+  ethereal: { label: "幽玄", desc: "淡い光とハロー", preset: { glow: 55, glowRadius: 7, dither: true, aura: true, rimLight: true, trail: false, particles: 35, glint: false, pulse: true, magicCircle: false, rays: false, specular: true, aa: true, floater: "halo", outline: "selout" } },
+  corrupted: { label: "侵蝕", desc: "魔法陣と瘴気のオーラ", preset: { glow: 56, glowRadius: 5, dither: true, aura: true, rimLight: true, trail: true, particles: 48, glint: false, pulse: true, magicCircle: true, rays: false, specular: true, aa: true, floater: "runes", outline: "black" } },
+  divine: { label: "神聖", desc: "魔法陣と煌めきの光", preset: { glow: 60, glowRadius: 6, dither: true, aura: false, rimLight: true, trail: false, particles: 50, glint: true, pulse: true, magicCircle: true, rays: true, specular: true, aa: true, floater: "stars", outline: "selout" } },
+  infernal: { label: "業火", desc: "熔けるような熱と火の粉", preset: { glow: 68, glowRadius: 5, dither: true, aura: false, rimLight: true, trail: true, particles: 62, glint: false, pulse: true, magicCircle: false, rays: true, specular: true, aa: true, floater: "shards", outline: "selout" } },
+  frostbite: { label: "凍傷", desc: "冷たい霧と霜の粒", preset: { glow: 50, glowRadius: 6, dither: true, aura: true, rimLight: true, trail: false, particles: 55, glint: false, pulse: false, magicCircle: false, rays: false, specular: true, aa: true, floater: "shards", outline: "selout" } },
+  plague: { label: "疫病", desc: "瘴気と鬼火の群れ", preset: { glow: 58, glowRadius: 6, dither: true, aura: true, rimLight: false, trail: true, particles: 65, glint: false, pulse: true, magicCircle: true, rays: false, specular: false, aa: true, floater: "wisps", outline: "black" } },
+  prismatic: { label: "虹彩", desc: "多色に屈折する輝き", preset: { glow: 58, glowRadius: 5, dither: true, aura: false, rimLight: true, trail: true, particles: 40, glint: true, pulse: true, magicCircle: true, rays: true, specular: true, aa: true, floater: "shards", outline: "selout" } },
+  stormfront: { label: "雷雨前線", desc: "稲妻が迸る", preset: { glow: 58, glowRadius: 5, dither: true, aura: false, rimLight: true, trail: true, particles: 75, glint: false, pulse: true, magicCircle: false, rays: true, specular: true, aa: true, floater: "orbs", outline: "selout" } },
+  celestial: { label: "天界", desc: "聖なる光輪と星屑", preset: { glow: 66, glowRadius: 6, dither: true, aura: false, rimLight: true, trail: false, particles: 42, glint: false, pulse: true, magicCircle: true, rays: false, specular: true, aa: true, floater: "halo", outline: "selout" } },
+  soulbound: { label: "魂縛", desc: "青白い魂の炎", preset: { glow: 62, glowRadius: 6, dither: true, aura: true, rimLight: true, trail: true, particles: 50, glint: false, pulse: true, magicCircle: false, rays: false, specular: true, aa: true, floater: "wisps", outline: "selout" } },
+  relic: { label: "遺物", desc: "古びた金と静かな輝き", preset: { glow: 42, glowRadius: 4, dither: true, aura: false, rimLight: true, trail: false, particles: 25, glint: true, pulse: false, magicCircle: false, rays: false, specular: true, aa: true, floater: "coins", outline: "selout" } },
+  vanillaThin: { label: "バニラ細杖", desc: "効果なし。1pxの素直な棒", preset: { glow: 0, aura: false, rimLight: false, trail: false, particles: 0, glint: false, pulse: false, magicCircle: false, rays: false, specular: false, aa: false, dither: false, floater: "none", scatter: 0, sparkle: 0, drift: 0, outline: "color" } },
+  vanillaPlus: { label: "バニラ＋", desc: "微細な縁光と先端染めだけ", preset: { glow: 8, glowRadius: 2, aura: false, rimLight: true, trail: false, particles: 6, glint: false, pulse: false, magicCircle: false, rays: false, specular: true, aa: true, dither: false, floater: "motes", floaterCount: 2, scatter: 12, sparkle: 18, drift: 10, outline: "color" } },
+  rubyTool: { label: "ルビーツール", desc: "赤宝石の鈍い輝きと微塵", preset: { glow: 22, glowRadius: 3, aura: false, rimLight: true, trail: false, particles: 14, glint: false, pulse: true, magicCircle: false, rays: false, specular: true, aa: true, dither: true, floater: "glints", floaterCount: 2, scatter: 16, sparkle: 30, drift: 8, outline: "selout" } },
+  sapphireTool: { label: "サファイア", desc: "青宝石の冷たい瞬き", preset: { glow: 22, glowRadius: 3, aura: false, rimLight: true, trail: false, particles: 14, glint: false, pulse: true, magicCircle: false, rays: false, specular: true, aa: true, dither: true, floater: "glints", floaterCount: 2, scatter: 16, sparkle: 30, drift: 8, outline: "selout" } },
+  emeraldTool: { label: "エメラルド", desc: "緑宝石の落ち着いた光", preset: { glow: 20, glowRadius: 3, aura: false, rimLight: true, trail: false, particles: 12, glint: false, pulse: true, magicCircle: false, rays: false, specular: true, aa: true, dither: true, floater: "motes", floaterCount: 2, scatter: 14, sparkle: 26, drift: 8, outline: "selout" } },
+  prismHoly: { label: "虹彩・聖", desc: "虹の屈折と聖なる微光", preset: { glow: 46, glowRadius: 4, aura: false, rimLight: true, trail: false, particles: 30, glint: true, pulse: true, magicCircle: false, rays: true, specular: true, aa: true, dither: true, floater: "sparkCross", floaterCount: 3, scatter: 30, sparkle: 55, drift: 24, outline: "selout" } },
+  ominous: { label: "禍々しい", desc: "赤黒い滲みと重い残光", preset: { glow: 40, glowRadius: 4, aura: true, rimLight: false, trail: true, particles: 38, glint: false, pulse: true, magicCircle: false, rays: false, specular: false, aa: true, dither: true, floater: "dust", floaterCount: 4, scatter: 26, sparkle: 12, drift: 34, outline: "black" } },
+  plusScatter: { label: "＋散布", desc: "全体に散らす装飾・光・浮遊物の全部入り", preset: { glow: 30, glowRadius: 4, aura: false, rimLight: true, trail: false, particles: 34, glint: true, pulse: true, magicCircle: false, rays: false, specular: true, aa: true, dither: true, floater: "motes", floaterCount: 4, scatter: 62, sparkle: 58, drift: 46, outline: "selout" } },
+};
+
+// Curated atelier recipes ported from Spellforge (static records; original build() used the sibling engine).
+export interface AtelierRecipe { id: string; title: string; subtitle: string; accent: string; seed: number;
+  type: string; rarity: string; element: string; palette: string; effect: string; head: string; name: string }
+
+export const ATELIER_RECIPES: AtelierRecipe[] = [
+  { id: "court-rosegold", title: "薔薇宮の宝杖", subtitle: "Court · Rosegold · Arabesque", accent: "#e68a9e", seed: 77104,
+    type: "court", rarity: "divine", element: "light", palette: "rosegold", effect: "haute", head: `{ form: "shrine", ornament: "arabesque", gemCut: "emerald", floater: "stars", floaterPath: "crown" }`, name: "✪ 薔薇宮の典雅宝杖・天" },
+  { id: "lotus-celadon", title: "睡蓮華の天衣杖", subtitle: "Lotus · Celadon · Silk Ribbons", accent: "#6ec9b7", seed: 88219,
+    type: "lotus", rarity: "mythic", element: "wind", palette: "celadon", effect: "graceful", head: `{ form: "bouquet", ornament: "silkRibbons", gemCut: "teardrop", floater: "petals", floaterPath: "figure8" }`, name: "✦ 秘色睡蓮の天衣杖・極" },
+  { id: "astrolabe-cosmic", title: "星辰渾天の杖", subtitle: "Astrolabe · Cosmic · Celestial", accent: "#9d50e5", seed: 94012,
+    type: "astrolabe", rarity: "relic", element: "cosmic", palette: "imperial", effect: "celestial", head: `{ form: "constellation", ornament: "celestialAstrolabe", gemCut: "starcut", floater: "stars", floaterPath: "constellation" }`, name: "✪ 星辰渾天の至宝杖・神" },
+  { id: "valkyrie-pearl", title: "白銀戦乙女の槍杖", subtitle: "Valkyrie · Pearl · Bifurcated", accent: "#e8dff5", seed: 51208,
+    type: "valkyrie", rarity: "divine", element: "crystal", palette: "pearl", effect: "divine", head: `{ form: "bifurcated", ornament: "silkRibbons", gemCut: "starcut", floater: "stars", floaterPath: "crown" }`, name: "✪ 白銀戦乙女の天槍杖" },
+  { id: "sylphid-lyric", title: "風精の竪琴杖", subtitle: "Sylphid · Lyre · Lotus Petals", accent: "#ff6fb5", seed: 63019,
+    type: "sylphid", rarity: "legendary", element: "sound", palette: "candy", effect: "graceful", head: `{ form: "asymmetric", ornament: "lotusPetals", gemCut: "rose", floater: "bells", floaterPath: "figure8" }`, name: "✦ 風精シルフィードの楽杖" },
+  { id: "eclipse-void", title: "皆既日食の黒輪杖", subtitle: "Eclipse · Obsidian · Royal", accent: "#f0c04a", seed: 39081,
+    type: "eclipse", rarity: "artifact", element: "void", palette: "royal", effect: "haute", head: `{ form: "levitating", ornament: "celestialAstrolabe", gemCut: "brilliant", floater: "moons", floaterPath: "orbit" }`, name: "✪ 皆既日食の黒輪杖・絶" },
+  { id: "sakura-dream", title: "花霞の夢見杖", subtitle: "Feywild · Sakura · Constellation", accent: "#ef8fb2", seed: 24817,
+    type: "feywild", rarity: "mythic", element: "sakura", palette: "rosegold", effect: "ethereal", head: `{ form: "constellation", ornament: "lotusPetals", gemCut: "rose", floater: "butterflies", floaterPath: "figure8" }`, name: "✦ 花霞の夢見杖・真" },
+  { id: "ink-shrine", title: "墨染祠の封杖", subtitle: "Voidcaller · Ink · Shrine", accent: "#b8c4ff", seed: 36914,
+    type: "voidcaller", rarity: "artifact", element: "ink", palette: "void", effect: "corrupted", head: `{ form: "shrine", ornament: "arabesque", gemCut: "rune", floater: "sigils", floaterPath: "pendulum" }`, name: "✪ 墨染祠の封杖・絶" },
+  { id: "festival-lantern", title: "万華祭の提灯杖", subtitle: "Lanternbearer · Festival · Totemic", accent: "#ffe65c", seed: 48231,
+    type: "lanternbearer", rarity: "legendary", element: "festival", palette: "sunset", effect: "graceful", head: `{ form: "totemic", ornament: "hangingCharms", gemCut: "soul", floater: "lanterns", floaterPath: "pendulum" }`, name: "✦ 万華祭の提灯杖" },
+  { id: "aurora-clock", title: "極光刻漏の杖", subtitle: "Chronomancer · Aurora · Clockwork", accent: "#55e6c1", seed: 59307,
+    type: "chronomancer", rarity: "divine", element: "aurora", palette: "celadon", effect: "celestial", head: `{ form: "levitating", ornament: "clockwork", gemCut: "rose", floater: "gears", floaterPath: "helix" }`, name: "✪ 極光刻漏の杖・天" },
+];

@@ -54,3 +54,6 @@ venv/
 *.egg-info/
 .bin/
 .cli/
+
+# アセットバス (スタジオ間の受け渡し。ローカル成果物なので追跡しない)
+.mcasset-assets/

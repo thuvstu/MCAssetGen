@@ -1,9 +1,12 @@
 import { decodeDataUrl } from "@/lib/atlas";
 import {
   isExportFormat,
+  isGeckolibGeneration,
   toBlockbench,
+  toGeckolibBundle,
   toResourcePack,
   toVariantPack,
+  type GeckolibOptions,
 } from "@/lib/export";
 import {
   isPayloadTooLarge,
@@ -23,6 +26,19 @@ function attachment(body: BodyInit, filename: string, type: string): Response {
       "Content-Disposition": `attachment; filename="${filename}"`,
     },
   });
+}
+
+/** Picks the GeckoLib options out of the request body, ignoring unknown keys. */
+function geckolibOptionsFrom(value: unknown): Partial<GeckolibOptions> {
+  if (typeof value !== "object" || value === null) return {};
+  const source = value as Record<string, unknown>;
+  const options: Partial<GeckolibOptions> = {};
+  if (typeof source.namespace === "string") options.namespace = source.namespace;
+  if (typeof source.modelId === "string") options.modelId = source.modelId;
+  if (typeof source.javaPackage === "string") options.javaPackage = source.javaPackage;
+  if (isGeckolibGeneration(source.generation)) options.generation = source.generation;
+  if (typeof source.mirrorX === "boolean") options.mirrorX = source.mirrorX;
+  return options;
 }
 
 export async function POST(request: Request) {
@@ -56,6 +72,14 @@ export async function POST(request: Request) {
         new Uint8Array(decodeDataUrl(model.texture.source)),
         `${slug}_atlas.png`,
         "image/png",
+      );
+    }
+    if (format === "geckolib") {
+      const bundle = toGeckolibBundle(model, geckolibOptionsFrom(body.geckolib));
+      return attachment(
+        new Uint8Array(bundle.zip),
+        `${slug}_geckolib.zip`,
+        "application/zip",
       );
     }
     if (format === "resourcepack") {

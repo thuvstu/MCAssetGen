@@ -7,19 +7,101 @@ HTTP APIとCLIの使い方まとめ。ベースURLは各アプリのdevポート
 | texcraft | :5135 |
 | SkyForge (`skyblock/hypixel-skyblock-texture-generator (1)`) | :5132 |
 | voxelforge-studio | :5131 |
+| 統合された各スタジオ (取り込み済み) | :5131 の `/studios/<id>` (元ポートは不要) |
 | mythiccraft-studio | :5141 |
 | mythicforge-studio | :5142 |
 
-## mcasset 統合CLI (全スタジオ)
+## 統合スタジオAPI (VoxelForge :5131)
+
+移植済みの全エンジンは統合レジストリ経由で実行する。CLIもこれだけを使う。
+
+| メソッド | パス | 用途 |
+|---|---|---|
+| GET | `/api/studio/engines` | エンジン/コマンド一覧 (各コマンドの `sample` 引数つき) |
+| POST | `/api/studio/run` | `{"engine","command","args"}` → `{ok,text,files[],data}` (files は base64) |
+
+```bash
+curl localhost:5131/api/studio/engines
+curl -X POST localhost:5131/api/studio/run -H 'Content-Type: application/json' \
+  -d '{"engine":"voxel","command":"export","args":{"format":"geckolib","kind":"sword","seed":42}}'
+```
+
+ブラウザからは `http://localhost:5131/engines` のコンソールで同じ操作ができる
+(引数は `sample` が事前入力され、結果PNGのプレビューとダウンロードも付く)。
+`tests/studio-command-samples.test.ts` が全コマンドのサンプルを実行検証している。
+
+## アセットバス (スタジオ間の受け渡し)
+
+| メソッド | パス | 用途 |
+|---|---|---|
+| GET | `/api/assets` | 保存済みアセット一覧 (サムネイル付き) |
+| POST | `/api/assets` | `{name,studio,kind,files:[{path,base64}]}` を保存 |
+| GET | `/api/assets/<id or 名前>` | ファイル本体 (base64) |
+| DELETE | `/api/assets/<id or 名前>` | 削除 |
+
+エンジン実行に連携の口がある:
+`POST /api/studio/run {"engine","command","args","save":"名前","asset":"名前"}`
+- `save` : 成功した出力をバスへ保存
+- `asset`: バス内のアセットを入力に渡す (コマンドの宣言argsに応じて `in` / `project` / `texture`)。
+  **配列で複数指定できる** (`{"asset": ["myproj", "mod_tex"]}`)
+
+```bash
+# 素材スタジオの出力を保存し、テクスチャスタジオで使う
+npm run mcasset -- material:render --preset iron --shape ingot --save iron_ingot_tex --out mm/ingot.png
+npm run mcasset -- tex:convert --asset iron_ingot_tex --palette PICO-8 --out mm/dot.png
+# MODプロジェクトの受け渡し
+npm run mcasset -- mythic:sample --save myproject
+npm run mcasset -- mythic:build --asset myproject --out-dir moddev/mymod
+
+# テクスチャ → MOD (一気通貫)。asset は複数指定できる
+npm run mcasset -- tex:render --sample stone --save mod_tex
+npm run mcasset -- mythic:build --asset myproject --asset mod_tex --out-dir moddev/mymod
+# → src/main/resources/assets/<modId>/textures/item/<item>.png に画像が入り、
+#    アイテム登録 (Kotlin) / モデルJSON / lang も同じ id で生成される
+npm run mcasset -- mythic:build --project proj.json --asset mod_tex --textureTarget bus_blade
+npm run mcasset -- mythiccraft:build --asset myproject --asset mod_tex --out-dir moddev/mcmod
+```
+
+保存先は `3d-forge/voxelforge-studio/.mcasset-assets/` (gitignore済)。ブラウザでは
+`/assets` 一覧、`/engines` の「アセットから入力 / バスへ保存」から同じ操作ができる。
+
+## 取り込み済みスタジオのAPI (`:5131`)
+
+GUIを取り込んだスタジオも元アプリのAPIを `/api/studios/<id>/` 配下で使える
+(DBは `DATABASE_URL` があればPostgres、無ければメモリ保存)。
+
+| スタジオ | API | 備考 |
+|---|---|---|
+| SkyForge | `/api/studios/skyforge/...` | `packs` (GET/POST/PATCH/DELETE) `/packs/[id]/{export,icon,like,textures}` `/textures/[id]/{export,png,zip}` `/generate` `/masterworks/pack` `/health` |
+| MythicForge | `/api/studios/mythicforge/...` | `projects` + `compile` (JDK21/Gradleが無い環境では503と案内)、`compile/artifact` |
+| MythicCraft | `/api/studios/mythiccraft/...` | `projects` + `compile` |
+| Fabric | `/api/studios/fabric/...` | `projects` + `compile`、`compile/artifact` |
+
+SkyForgeのマスターワーク原画 (`public/masterworks/*.png`) は元アプリでも
+リポジトリ非同梱 (抽出スクリプトで生成) なので、`/masterworks/pack` は
+原画が無い環境ではエラーを返す。それ以外の生成・保存・書き出しは全て動作する。
+
+## mcasset 統合CLI (全スタジオ / API駆動)
 
 ```bash
 cd MCAssetGen/cli
-npm run mcasset -- <studio>:<command> [options]
+npm run mcasset -- <studio>:<command> [options] [--out file|dir]
+npm run mcasset -- engines                      # エンジン一覧
+npm run mcasset -- engines --json               # コマンド定義 (sample引数つき)
+npm run mcasset -- tex:render --out mm/x.png    # 引数省略=サンプル引数で実行
+MCASSET_STUDIO_URL=http://host:5131 npm run mcasset -- sky:items
 ```
+
+CLIは統合スタジオAPIへのHTTPクライアント(スタジオのソースはimportしない)。
+起動時に `/api/studio/engines` からコマンド定義を取得し、**引数を省略すると
+サンプル引数で実行**する (`--no-sample` で無効化、`--dry-run` で送信内容を確認)。
+`--out` を省略した場合は各ファイルの既定パスに書き出し、複数ファイル出力
+(`build` など)では `--out` をディレクトリとして扱う。`--in` はPNG等をbase64で
+アップロード、`--project`/`--config` はJSONファイルを読んで送信する。
 
 | スタジオ | コマンド例 |
 |---|---|
-| `tex` | texcraft CLIに委譲(下記参照) |
+| `tex` | `tex:list-effects` / `tex:effect --id edgewear --sample sword --out mm/edge.png` / `tex:texture --id diamond_ore --size 32 --out mm/d.png` / `tex:variant --id tier5 --sample sword --frame strip --out mm/tier5.png` / `tex:convert --in mm/tex.png --palette PICO-8 --out mm/dot.png` |
 | `sky` | `sky:items` / `sky:render --item hyperion --seed 7 --res 16 --out mm/tex.png` |
 | `sky2` | `sky2:items` / `sky2:render --item hyperion --size 32 --out mm/tex.png` (旧 `skyblock/hypixel-skyblock-texture-generator`、ヘッドレス描画) |
 | `forge` | `forge:items` / `forge:render --item HYPERION --res 32 --anim pulse --strip --out mm/forge.png` / `forge:pack --items HYPERION,TERMINATOR --target catharsis --out pack.zip` |
@@ -30,6 +112,10 @@ npm run mcasset -- <studio>:<command> [options]
 | `sword` | `sword:render --preset Hyperion --size 64 --out mm/sword.png` |
 | `mythic` | `mythic:build --project proj.json --out moddev/mymod` |
 | `mythiccraft` | `mythiccraft:sample --name mymod --out project.json` / `mythiccraft:build --project file.json --out dir/` |
+| `armor` | `armor:presets` / `armor:render --armorId test --geo` / `armor:bundle --armorId test --namespace mymod --geckolib` |
+| `mob` | `mob:presets` / `mob:render --archetype humanoid --entityId foo` / `mob:bundle --archetype humanoid` / `mob:geckolib --archetype humanoid` |
+| `structure` | `structure:samples` / `structure:nbt --sample house --out house.nbt` / `structure:export --sample house --out dir/` |
+| `material` | `material:shapes` / `material:render --preset iron --out dir/` / `material:pack --preset iron --modId mymod --out pack.zip` |
 
 `forge:pack --target` は `catharsis`(1.21.11+ Mod) / `optifine`(1.8.9 CIT) / `vanilla`(1.21.4+ item_model + datapack) の3系統。`--items all` でカタログ全件を同梱できる。
 
@@ -133,7 +219,8 @@ curl 'localhost:5142/api/compile/artifact?mod=mymod' -o mymod.jar
 
 ## 注意
 
-- CLIは `bun scripts/mcasset.mjs <studio>:<command>` でも実行可能(bun優先。`process.execPath` で子プロセスもbunが使われる)
+- CLIは統合スタジオ(`3d-forge/voxelforge-studio`, 既定 :5131)が起動している必要がある。接続先は `MCASSET_STUDIO_URL` で変更
+- GeckoLib: `vox:export --format geckolib`、`armor:*`(GeckoLib 5の8ボーン)、`mob:geckolib`、`mythic:build` で `geckolib: true` のモブ(geo/animation/Kotlin/Gradle依存)
 - `sky2:render` はヘッドレス実装のため、ブラウザ版と異なり放射グロー背景とアニメーションフレームは出力しない(本体ピクセル・アウトライン・エレメント・ウェアは同等)
 - `mythic:build` はMythicForge形式のプロジェクトJSONが必要(`mythiccraft:sample` の出力は `mythiccraft:build` 用で別スキーマ)
 - DB要アプリは `.env` の `DATABASE_URL` (Supabaseプーラー) が必要。未設定では5xxになる

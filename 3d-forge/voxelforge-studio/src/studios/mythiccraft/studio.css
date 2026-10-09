@@ -1,0 +1,56 @@
+/* Tailwind v4: @apply を使うため、このCSSからtailwindを参照する */
+@reference "tailwindcss";
+
+/* 元: mod/mythiccraft-studio/src/app/globals.css */
+.studio-mythiccraft {
+  color-scheme: dark;
+}
+
+.studio-mythiccraft {
+  font-family: ui-sans-serif, system-ui, "Hiragino Sans", "Noto Sans JP", sans-serif;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, "JetBrains Mono", Menlo, Consolas, monospace;
+}
+
+.input {
+  @apply w-full rounded-md border border-zinc-700 bg-zinc-900 px-2.5 py-1.5 text-sm text-zinc-100 outline-none transition focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/40;
+}
+
+.btn {
+  @apply inline-flex items-center gap-1.5 rounded-md border border-zinc-700 bg-zinc-800 px-3 py-1.5 text-sm font-medium text-zinc-100 transition hover:bg-zinc-700 disabled:opacity-50;
+}
+
+.btn-primary {
+  @apply inline-flex items-center gap-1.5 rounded-md bg-emerald-600 px-3 py-1.5 text-sm font-semibold text-white transition hover:bg-emerald-500 disabled:opacity-50;
+}
+
+.btn-danger {
+  @apply inline-flex items-center gap-1.5 rounded-md border border-red-900 bg-red-950/60 px-2.5 py-1 text-xs font-medium text-red-300 transition hover:bg-red-900/60;
+}
+
+.card {
+  @apply rounded-xl border border-zinc-800 bg-zinc-900/60;
+}
+
+.label {
+  @apply mb-1 block text-xs font-medium text-zinc-400;
+}
+
+.pixel-bg {
+  background-image:
+    linear-gradient(45deg, rgba(16, 185, 129, 0.06) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(16, 185, 129, 0.06) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(16, 185, 129, 0.06) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(16, 185, 129, 0.06) 75%);
+  background-size: 24px 24px;
+  background-position: 0 0, 0 12px, 12px -12px, -12px 0;
+}
+
+.tok-kw { color: #c792ea; }
+.tok-str { color: #c3e88d; }
+.tok-num { color: #f78c6c; }
+.tok-com { color: #6b7280; font-style: italic; }
+.tok-type { color: #82aaff; }
+.tok-ann { color: #ffcb6b; }

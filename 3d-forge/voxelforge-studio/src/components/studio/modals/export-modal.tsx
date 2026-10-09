@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Bone,
   Box,
   Check,
   Download,
@@ -14,7 +15,7 @@ import {
 import { VARIANT_FAMILIES } from "@/lib/variants";
 import PixelArt from "@/components/pixel-art";
 import Modal from "@/components/ui/modal";
-import type { ExportFormat } from "@/lib/export";
+import type { ExportFormat, GeckolibGeneration } from "@/lib/export";
 import { TEMPLATES, type ModelKind } from "@/lib/model-types";
 import { useStudioStore } from "../studio-context";
 
@@ -55,12 +56,25 @@ const FORMATS: FormatOption[] = [
     description: "強化段階・形態・モード等を Custom Model Data で切替",
     icon: Layers,
   },
+  {
+    id: "geckolib",
+    title: "GeckoLib MODアセット",
+    ext: ".zip",
+    description: "geo/animation/専用アトラス + GeoItem・Renderer のJava",
+    icon: Bone,
+  },
 ];
 
 function replacedItemNote(kind: ModelKind): string {
   const item = TEMPLATES.find((t) => t.kind === kind)?.vanillaItem ?? "paper";
   return `minecraft:${item} を表示用に置き換えます（性能・ゲーム内挙動は変わりません）。`;
 }
+
+const GENERATION_LABELS: { id: GeckolibGeneration; label: string }[] = [
+  { id: "geckolib5", label: "GeckoLib 5.x (1.21.11)" },
+  { id: "geckolib4", label: "GeckoLib 4.x (1.21.1)" },
+  { id: "none", label: "アセットのみ (Javaなし)" },
+];
 
 function formatNote(format: ExportFormat, kind: ModelKind): string {
   if (format === "resourcepack")
@@ -69,6 +83,8 @@ function formatNote(format: ExportFormat, kind: ModelKind): string {
     return "Blockbench 4.10以降に対応。アニメーション付きは Generic Model 形式（アニメーションタブで再生可）、静止モデルは Java Block/Item 形式で書き出します。";
   if (format === "variantpack")
     return "各バリアントの .bbmodel と、custom_model_data で切り替わる 1.21.4 リソースパックをまとめます。README に /give コマンド付き。";
+  if (format === "geckolib")
+    return "geo.json / animation.json / キューブごとの島に展開した専用PNG / GeoItem・GeoItemRenderer のJava / 依存関係スニペットをまとめます。Blockbenchへは geo.json をそのまま読み込めます。";
   return "グラデーションとパーツの塗りを適用したPNGを書き出します。未加工時は元のPNGを維持します。";
 }
 
@@ -127,6 +143,55 @@ export default function ExportModal() {
           </button>
         ))}
       </div>
+
+      {exporter.format === "geckolib" && (
+        <div className="export-family">
+          <span>GeckoLib の世代とモデル名</span>
+          <div className="variant-families">
+            {GENERATION_LABELS.map((generation) => (
+              <button
+                key={generation.id}
+                className={exporter.geckolib.generation === generation.id ? "selected" : ""}
+                aria-pressed={exporter.geckolib.generation === generation.id}
+                onClick={() => exporter.setGeckolib({ generation: generation.id })}
+              >
+                {generation.label}
+              </button>
+            ))}
+          </div>
+          <div className="export-geckolib-fields">
+            <label>
+              名前空間
+              <input
+                value={exporter.geckolib.namespace}
+                onChange={(event) =>
+                  exporter.setGeckolib({ namespace: event.target.value })
+                }
+              />
+            </label>
+            <label>
+              モデルID
+              <input
+                value={exporter.geckolib.modelId}
+                placeholder={`voxelforge_${model.settings.kind}`}
+                onChange={(event) =>
+                  exporter.setGeckolib({ modelId: event.target.value })
+                }
+              />
+            </label>
+            <label className="export-geckolib-toggle">
+              <input
+                type="checkbox"
+                checked={exporter.geckolib.mirrorX}
+                onChange={(event) =>
+                  exporter.setGeckolib({ mirrorX: event.target.checked })
+                }
+              />
+              X軸をBedrock規格に反転
+            </label>
+          </div>
+        </div>
+      )}
 
       {exporter.format === "variantpack" && (
         <div className="export-family">

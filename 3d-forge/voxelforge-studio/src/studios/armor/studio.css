@@ -1,0 +1,96 @@
+/* 元: minecraft-armor-asset-generator/src/index.css (原本のスタイル。/armor でのみ読む) */
+.studio-armor {
+  font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Meiryo", system-ui, sans-serif;
+  background: #111513;
+  color: #e7e5dd;
+  font-synthesis: none;
+}
+
+* { box-sizing: border-box; }
+
+.studio-armor { margin: 0; min-width: 320px; }
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+button:disabled { cursor: not-allowed; }
+::selection { background: #cda36a; color: #191c18; }
+
+.eyebrow {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: #d1a876;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.17em;
+}
+
+.forge-stage {
+  background:
+    radial-gradient(ellipse 48% 48% at 52% 46%, #3a3730 0%, transparent 75%),
+    radial-gradient(ellipse 63% 62% at 51% 33%, #292c29 0%, transparent 78%),
+    linear-gradient(160deg, #1e2522 0%, #101513 78%);
+}
+
+.forge-stage::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(10, 15, 13, 0.17), transparent 23%, transparent 80%, rgba(7, 11, 9, 0.21));
+}
+
+.stage-halo {
+  opacity: 0.72;
+  background:
+    radial-gradient(ellipse 30% 26% at 51% 54%, rgba(194, 135, 65, 0.13), transparent 75%),
+    repeating-linear-gradient(0deg, rgba(232, 224, 203, 0.016) 0, rgba(232, 224, 203, 0.016) 1px, transparent 1px, transparent 42px),
+    repeating-linear-gradient(90deg, rgba(232, 224, 203, 0.015) 0, rgba(232, 224, 203, 0.015) 1px, transparent 1px, transparent 42px);
+  animation: stage-breathe 8s ease-in-out infinite alternate;
+}
+
+.animate-appear { animation: appear 460ms cubic-bezier(.2,.8,.2,1) both; }
+
+@keyframes appear {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes stage-breathe {
+  from { opacity: 0.45; }
+  to { opacity: 0.9; }
+}
+
+.forge-range {
+  appearance: none;
+  -webkit-appearance: none;
+  height: 2px;
+  border-radius: 0;
+  background: #666c61;
+  outline: none;
+  margin-block: 11px 4px;
+}
+
+.forge-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 12px;
+  height: 12px;
+  border: 2px solid #202522;
+  border-radius: 0;
+  background: #ddb77e;
+  box-shadow: 0 0 0 1px #d8ad76;
+}
+
+.forge-range::-moz-range-thumb {
+  width: 10px;
+  height: 10px;
+  border: 1px solid #d8ad76;
+  border-radius: 0;
+  background: #ddb77e;
+}
+
+.custom-scrollbar { scrollbar-width: thin; scrollbar-color: #636a5b #202522; }
+.custom-scrollbar::-webkit-scrollbar { width: 7px; }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #596254; }
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-appear, .stage-halo { animation: none !important; }
+  * { scroll-behavior: auto !important; }
+}

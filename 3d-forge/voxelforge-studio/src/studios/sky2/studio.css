@@ -1,0 +1,175 @@
+/* 元: skyblock/skyblock-texture-pack-generator/src/index.css (原本のスタイル。/sky2 でのみ読む) */
+@theme {
+  --color-ink: #08080d;
+  --color-ink2: #0d0d14;
+  --color-panel: #14141d;
+  --color-slate: #2a2a38;
+  --color-mist: #7b7b90;
+  --color-bone: #e8e8f0;
+  --color-gold: #ffaa00;
+  --color-amber: #ffc84d;
+  --color-plasma: #5000ff;
+  --font-display: "DotGothic16", "Zen Kaku Gothic New", sans-serif;
+  --font-sans: "Zen Kaku Gothic New", "Hiragino Kaku Gothic ProN", system-ui, sans-serif;
+  --font-mono: "Space Mono", "SFMono-Regular", ui-monospace, monospace;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+.studio-sky2 {
+  background: #08080d;
+  color: #e8e8f0;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+/* ---------- instrument controls ---------- */
+input[type="range"].fx {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 14px;
+  background: transparent;
+  cursor: ew-resize;
+}
+input[type="range"].fx::-webkit-slider-runnable-track {
+  height: 4px;
+  background: linear-gradient(to right, #ffaa00 0 var(--p, 50%), #2a2a38 var(--p, 50%) 100%);
+}
+input[type="range"].fx::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 9px;
+  height: 15px;
+  margin-top: -5.5px;
+  background: #e8e8f0;
+  border: 1px solid #08080d;
+  box-shadow: 0 0 0 1px #ffaa00, 0 2px 4px rgba(0, 0, 0, 0.6);
+}
+input[type="range"].fx:focus-visible::-webkit-slider-thumb {
+  background: #ffaa00;
+}
+input[type="range"].fx::-moz-range-track {
+  height: 4px;
+  background: #2a2a38;
+}
+input[type="range"].fx::-moz-range-progress {
+  height: 4px;
+  background: #ffaa00;
+}
+input[type="range"].fx::-moz-range-thumb {
+  width: 8px;
+  height: 15px;
+  border-radius: 0;
+  background: #e8e8f0;
+  border: 1px solid #ffaa00;
+}
+input[type="range"].hue::-webkit-slider-runnable-track {
+  background: linear-gradient(
+    to right,
+    #f44,
+    #ff0,
+    #4f4,
+    #4ff,
+    #44f,
+    #f4f,
+    #f44
+  );
+}
+
+/* ---------- surfaces ---------- */
+.checker {
+  background-color: #101017;
+  background-image: linear-gradient(45deg, #191922 25%, transparent 25%),
+    linear-gradient(-45deg, #191922 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #191922 75%),
+    linear-gradient(-45deg, transparent 75%, #191922 75%);
+  background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0;
+}
+
+.pixelgrid {
+  background-image: linear-gradient(to right, rgba(255, 255, 255, 0.09) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.09) 1px, transparent 1px);
+}
+
+.scan {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.035) 0 1px,
+    transparent 1px 3px
+  );
+}
+
+/* procedural film grain — no external asset, always available */
+.noise {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+
+
+/* ---------- ticker ---------- */
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.marquee {
+  animation: marquee 48s linear infinite;
+}
+
+@keyframes blip {
+  0% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.25;
+  }
+}
+.blip {
+  animation: blip 1.6s steps(4, end) infinite;
+}
+
+/* ---------- scrollbars ---------- */
+.thin {
+  scrollbar-width: thin;
+  scrollbar-color: #2a2a38 transparent;
+}
+.thin::-webkit-scrollbar {
+  width: 9px;
+  height: 9px;
+}
+.thin::-webkit-scrollbar-thumb {
+  background: #2a2a38;
+  border: 2px solid #08080d;
+}
+.thin::-webkit-scrollbar-thumb:hover {
+  background: #ffaa00;
+}
+.thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.crisp {
+  image-rendering: pixelated;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
