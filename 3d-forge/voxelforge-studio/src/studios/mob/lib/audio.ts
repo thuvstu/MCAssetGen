@@ -23,7 +23,7 @@ class SoundSynth {
 
       const baseFreq = (isSmall ? 280 : isHostile ? 85 : 150) * pitch;
       osc.type = isUndead ? "sawtooth" : isHostile ? "triangle" : "sine";
-      
+
       const now = ctx.currentTime;
       osc.frequency.setValueAtTime(baseFreq, now);
       osc.frequency.exponentialRampToValueAtTime(baseFreq * (isHostile ? 0.7 : 1.2), now + 0.25);

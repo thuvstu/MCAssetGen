@@ -1263,5 +1263,3 @@ export function drawHead(c: RenderCtx) {
     }
   }
 }
-
-

@@ -187,4 +187,3 @@ export function completeShape(value?: Partial<ShapeOptions>): ShapeOptions {
     decorTweaks: tweaks,
   };
 }
-

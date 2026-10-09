@@ -618,7 +618,7 @@ function helmetSampler(a: BuildArgs): Sampler {
     }
 
     // ---- trims ----
-    
+
     if (shape === 1 && y > 39 && y < 42.5) return R.accent[lv(y < 40.2 ? 4 : 2)];
     if (shape === 2 && detail >= 1 && Math.abs(nx) > 0.62 && y > 33 && y < 44) return R.accent[lv(nx < 0 ? 3 : 1)];
 
@@ -1790,4 +1790,3 @@ export function renderToDataURL(
   generateTexture(c, item, N, style, seed, customPalette, essence, animation, shape);
   return c.toDataURL('image/png');
 }
-

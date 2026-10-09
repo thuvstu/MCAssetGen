@@ -3204,4 +3204,3 @@ export function renderSheet(cfg: Config, scale = 1): HTMLCanvasElement {
   for (let f = 0; f < F; f++) x.drawImage(frameToCanvas(renderFrame(cfg, f), scale), 0, f * N);
   return c;
 }
-

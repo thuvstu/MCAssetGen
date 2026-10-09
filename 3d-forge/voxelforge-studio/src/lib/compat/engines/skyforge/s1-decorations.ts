@@ -781,4 +781,3 @@ export function buildDecorationLayer(id: Decoration, a: FormArgs, geo: BodyGeome
   if (built.hasBack) return built.back;
   return null;
 }
-

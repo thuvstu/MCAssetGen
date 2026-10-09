@@ -5,4 +5,3 @@ export const CATEGORY_LABELS: Record<Category, string> = {
   colors: "カラー", effects: "エフェクト", animation: "アニメーション",
 };
 export type { Category };
-

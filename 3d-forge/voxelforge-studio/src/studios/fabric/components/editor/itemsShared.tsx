@@ -23,4 +23,3 @@ export function TexturePicker({ value, onChange, list }: { value: string; onChan
     </div>
   );
 }
-

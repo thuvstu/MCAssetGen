@@ -11,7 +11,7 @@
 | texture | `texture/texcraft` (旧`minecraft-texture-enhancement-app (1)`) | enhancement無印、(2)、editor、pixel-art | **完了** |
 | skyblock | `skyblock/hypixel-skyblock-texture-generator (1)` (SkyForge) | generator2(完了・削除済)、無印・pack-generator(エンジン+データ保存、UIは残置) | **部分完了** |
 | weapons-staff | `weapons/minecraft-magic-staff-generator` (**Spellforge・杖の本体**) + `(1)`Arcane(別設計として併存) | 完了(復元済み) |
-| 3d-forge | `3d-forge/voxelforge-studio` (旧`(2)`) | 他7件(完了・削除済) | **完了(エンジン/データ/輸出/統合API・CLI)/UIは次段階** |
+| 3d-forge | `3d-forge/voxelforge-studio` (旧`(2)`) | 他7件(完了・削除済) | **完了(エンジン/データ/輸出)/UIは次段階** |
 | mod | `mod/web-based-fabric-mod-builder` (単独維持) | なし | — |
 
 ---
@@ -143,21 +143,6 @@
 - 無印Forge: panels/{Color,Effects,Lineage,Motion,Shape}、right/{AtlasSheet,ExportPanel,LibraryPanel}、stage/{Stage,StageHud,StageBoundary}、ForgeProvider、LeftRail
 - (1): SpecPanel、SetGenerator、Gallery、Viewer、ExportBar
 - (3): VoxelForgeStudio、StaffFxPanel、UVAtlasEditor、ExportStudioModal、Viewport3D、ElementInspector
-
-## 統合API・CLI (2026-10-08)
-
-- `src/lib/studio/` の登録エンジン: voxel / armor / mob / structure / material /
-  skyforge / sky2 / forge / spell / arcane / sword / adv / tex / mythic / mythiccraft
-- `GET /api/studio/engines` + `POST /api/studio/run`(+`/engines` コンソールページ)
-- 各コマンドは実行サンプル (`sample`) を持ち、コンソールとCLIが同じ引数を
-  事前入力する。`tests/studio-command-samples.test.ts` が全サンプルを実行検証
-- `cli/` はAPIクライアント化(`cli/src/*.ts` と esbuild は削除)。スタジオのソースを
-  直接importしないため、各エンジンの移植元を削除してもCLIは動き続ける
-- 2026-10-09 修正: API経由で失敗していた実バグを解消 —
-  モブbundleのDOM依存(`document is not defined`)をpngjs描画へ、
-  `mythic:sample` の `data` 欠落、`tex:convert --palette auto|kmeans`、
-  `material:folder` 未登録、`sword:presets` 未実装。DB無し起動も可
-  (`DATABASE_URL` 未設定時はメモリ保存へフォールバック)
 
 ## mod群(両維持)
 

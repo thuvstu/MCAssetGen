@@ -502,5 +502,3 @@ export function amorphize(base: Sampler, a: FormArgs, amount: number): Sampler {
     return null;
   };
 }
-
-

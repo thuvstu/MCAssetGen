@@ -18,4 +18,3 @@ export interface ExportActions {
   saveCustomPreset: () => void;
   isCustomSaved: boolean;
 }
-

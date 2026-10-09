@@ -127,7 +127,7 @@ export function packIconDataUrl(cfg: StaffConfig): string {
   canvas.height = 64;
   const ctx = canvas.getContext('2d')!;
   ctx.imageSmoothingEnabled = false;
-  
+
   // Background gradient for pack.png
   const grad = ctx.createLinearGradient(0, 0, 64, 64);
   grad.addColorStop(0, '#1a102f');

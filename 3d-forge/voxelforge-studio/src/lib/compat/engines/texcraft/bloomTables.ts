@@ -142,4 +142,3 @@ export const ANIMATIONS: AnimationDef[] = [
   { id: "channel", name: "詠唱維持", icon: "flare", description: "魔力を放出し続ける", duration: 2000, loop: true },
   { id: "burst", name: "解放", icon: "burst", description: "衝撃波を放つ大技", duration: 900, loop: true },
 ];
-
